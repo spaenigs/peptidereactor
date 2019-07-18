@@ -1,0 +1,63 @@
+from sklearn.externals import joblib as jl
+from Bio import SeqIO
+
+
+configfile: '02_preprocessing/config.yaml'
+
+rule all:
+    input:
+        lambda wildcards: expand("01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_pssms_filtered.joblib",
+                                 dataset=config["dataset"], part=config["part"])
+
+
+rule split_input_data:
+    input:
+         "01_data/out/joblib/{dataset}_{part}_normal_distributed.joblib"
+    output:
+         "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
+    group: "split"
+    run:
+        seq_tuple = list(filter(lambda t: wildcards.seq_name == t[0][0], zip(*jl.load(str(input)))))[0]
+        jl.dump(value=([seq_tuple[0]], seq_tuple[1]), filename=str(output))
+
+
+rule generate_pssm_profile:
+    input:
+        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
+    output:
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.pssm",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.asn.pssm",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.mat"
+    run:
+        import encoder.ifeature.pssm.utils as pssm_utils
+        input_data = jl.load(str(input))
+        input_data[0][0][0] = f"{wildcards.dataset}-{wildcards.seq_name}"
+        pssm_utils.PSSMUtils.generate_profile(
+            input_data, f"01_data/out/profile/{wildcards.dataset}_{wildcards.part}", cores=1,
+            db=config["uniref_db"])
+
+
+def generate_pssm_based_file_names(wildcards):
+    seq_names = list(map(lambda r: str(r.name),
+                         SeqIO.parse(f"01_data/out/fasta/{wildcards.dataset}_{wildcards.part}.fasta", "fasta")))[:4]
+    return expand("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.{ftype}",
+                    dataset=wildcards.dataset,
+                    part=wildcards.part,
+                    seq_name=seq_names,
+                    ftype=["pssm", "asn.pssm", "mat"])
+
+rule remove_non_pssm_hits:
+    input:
+         "01_data/out/joblib/{dataset}_{part}_normal_distributed.joblib",
+         generate_pssm_based_file_names
+    output:
+        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_pssms_filtered.joblib",
+    run:
+        import os
+        def _filter(input_data_):
+            filtered_seq_names = [fi.replace(f"01_data/out/profile/{wildcards.dataset}_{wildcards.part}/{wildcards.dataset}_{wildcards.part}_", "").replace(".mat", "")
+                                  for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, input.g)]
+            res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
+            return res_seqs, res_classes
+        jl.dump(jl.load(str(input[0])), str(output[0]))
+        jl.dump(jl.load(str(input[1])), str(output[1]))
