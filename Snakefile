@@ -13,6 +13,7 @@ NORMALIZE = config["normalize"]
 
 rule all:
     input:
+        expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
         expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}.txt",
                dataset=DATASET, part=PART, normalized=NORMALIZE),
         expand("01_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg",
