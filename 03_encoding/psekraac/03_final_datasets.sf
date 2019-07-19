@@ -231,7 +231,7 @@ rule collect_geometric_median:
         res.to_csv(str(output))
 
 
-rule plot:
+rule plot_clustering:
     input:
         "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
