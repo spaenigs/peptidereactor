@@ -1,3 +1,5 @@
+import os
+
 configfile: "config.yaml"
 
 include: "02_preprocessing/a_preprocessing.sf"
@@ -10,6 +12,13 @@ include: "03_encoding/psekraac/c_final_datasets.sf"
 DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]
+
+file_should_exist_name = f"01_data/out/{DATASET}/fasta/{DATASET}_{PART}.fasta"
+if not os.path.isfile(file_should_exist_name):
+    os.makedirs(os.path.dirname(file_should_exist_name))
+    with open(file_should_exist_name, mode="w") as f:
+        f.write("")
+        f.flush()
 
 rule all:
     input:
