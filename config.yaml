@@ -1,0 +1,211 @@
+#cwd: "/scratch/spaenigs/encoding_benchmark_encoding"
+cwd: "/home/spaenigs/PycharmProjects/encoding_benchmark/encoding_benchmark_encoding"
+conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
+#conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
+#uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
+uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
+
+datasets:
+  processed:
+    path: "data/in/fasta"
+    names: ["neuropeptides_ds1"]  # ["amps_ds1", "amps_ds2", "neuropeptides_ds1", "neuropeptides_ds2"]
+    # names: ["amps_ds1", "amps_ds2"]
+
+programs:
+  rlibs: "apps"
+  iFeature: "apps"
+  spinex: "apps/spineXpublic"
+  vsl2: "apps/VSL2"
+  raptorx: "apps/RaptorX"
+
+filter:
+  max_sparse_ratio: 0.2
+  max_row_col_ratio: 4
+
+psipred_based:
+  names: ["sseb", "ssec"]
+
+pssm_based:
+  names: ["pssm"]
+
+spinex_based:
+  names: ["asa", "ta"]
+
+disorder_based:
+  names: ["disorder", "disorderb", "disorderc"]
+
+paramfree_based:
+  names: ["gaac", "aac", "ctdt", "ctdc", "ctdd", "tpc", "gtpc", "dpc", "gdpc",
+          "dde", "blosum62", "zscale"]
+
+gap_based:
+  names: ["cksaap", "cksaagp", "ctriad", "ksctriad"]
+  cksaap:
+    name: "cksaapencoder"
+    gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  cksaagp:
+    name: "cksaagpencoder"
+    gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  ctriad:
+    name: "ctriadencoder"
+    gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  ksctriad:
+    name: "ksctriadencoder"
+    gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+
+nlag_based:
+  names: ["moran", "geary", "nmbroto", "socnumber", "qsorder"]
+  moran:
+    name: "moranencoder"
+    nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  geary:
+    name: "gearyencoder"
+    nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  nmbroto:
+    name: "nmbrotoencoder"
+    nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  socnumber:
+    name: "socnumberencoder"
+    nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  qsorder:
+    name: "qsorderencoder"
+    nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+
+lambda_based:
+  names: ["paac", "apaac"]
+  paac:
+    name: "paacencoder"
+    lambdas: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  apaac:
+    name: "apaacencoder"
+    lambdas: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+
+window_based:
+  names: ["eaac", "egaac"]
+  eaac:
+    name: "eaacencoder"
+    windows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+  egaac:
+    name: "egaacencoder"
+    windows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
+
+psekraac:
+  types: [
+    "type1", "type2", "type3A", "type3B", "type4", "type5" ,"type6A" ,"type6B",
+    "type6C", "type7", "type8", "type9", "type10", "type11","type12", "type13",
+    "type14", "type15", "type16"
+  ]
+  type1:
+    name: "psekraactype1encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3, 4, 5, 6]
+  type2:
+    name: "psekraactype2encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 8, 15, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type3A:
+    name: "psekraactype3Aencoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type3B:
+    name: "psekraactype3Bencoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type4:
+    name: "psekraactype4encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [5, 8, 9, 11, 13, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type5:
+    name: "psekraactype5encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [3, 4, 8, 10, 15, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type6A:
+    name: "psekraactype6Aencoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [4, 5, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type6B:
+    name: "psekraactype6Bencoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [5]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type6C:
+    name: "psekraactype6Cencoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [5]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type7:
+    name: "psekraactype7encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [5]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type8:
+    name: "psekraactype8encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type9:
+    name: "psekraactype9encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type10:
+    name: "psekraactype10encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type11:
+    name: "psekraactype11encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type12:
+    name: "psekraactype12encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type13:
+    name: "psekraactype13encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [4, 12, 17, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type14:
+    name: "psekraactype14encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type15:
+    name: "psekraactype15encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
+  type16:
+    name: "psekraactype16encoder"
+    subtypes: ["g-gap", "lambda-correlation"]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20]
+    ktuples: [1, 2, 3]
+    glambdas: [1, 2, 3]
