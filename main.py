@@ -6,11 +6,19 @@ encodings = ["psekraac"]
 
 ## preprocessing
 for ds in pre_datasets:
-    subprocess.run(
-        ["snakemake", "--snakefile", f"02_preprocessing/preprocessing.sf", "--config", f"dataset={ds}", "--cores", "4"])
+
+    cmd = ["snakemake", "--snakefile", f"02_preprocessing/preprocessing.sf", "--config", f"dataset={ds}",
+           "--cores", "4", "-np"]
+    if sys.argv[1] == "":
+        cmd.pop()
+    subprocess.run(cmd)
+
     for p in ["ds1"]:
-        subprocess.run(
-            ["snakemake", "--snakefile", f"02_preprocessing/pssm.sf", "--config", f"dataset={ds}", f"part={p}", "--cores", "4"])
+        cmd = ["snakemake", "--snakefile", f"02_preprocessing/pssm.sf", "--config", f"dataset={ds}", f"part={p}",
+               "--cores", "8", "-np"]
+        if sys.argv[1] == "":
+            cmd.pop()
+        subprocess.run(cmd)
 
 ## encoding -> filtering -> machine learning
 # for ds in datasets:

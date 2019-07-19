@@ -6,8 +6,12 @@ configfile: '02_preprocessing/config.yaml'
 
 rule all:
     input:
-        lambda wildcards: expand("01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_pssms_filtered.joblib",
-                                 dataset=config["dataset"], part=config["part"])
+        lambda wildcards: expand("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.{ftype}",
+                                 dataset=config["dataset"], part=config["part"], ftype=["ss2", "horiz", "dis", "flat", "spXout"],
+                                 seq_name=list(map(lambda r: str(r.name),
+                                                   SeqIO.parse(
+                                                       f"01_data/out/fasta/{config['dataset']}_{config['part']}.fasta",
+                                                       "fasta"))))
 
 
 rule split_input_data:
@@ -31,33 +35,114 @@ rule generate_pssm_profile:
     run:
         import encoder.ifeature.pssm.utils as pssm_utils
         input_data = jl.load(str(input))
-        input_data[0][0][0] = f"{wildcards.dataset}-{wildcards.seq_name}"
+        input_data[0][0][0] = f"{wildcards.dataset}_{wildcards.part}_{wildcards.seq_name}"
         pssm_utils.PSSMUtils.generate_profile(
             input_data, f"01_data/out/profile/{wildcards.dataset}_{wildcards.part}", cores=1,
             db=config["uniref_db"])
 
 
-def generate_pssm_based_file_names(wildcards):
-    seq_names = list(map(lambda r: str(r.name),
-                         SeqIO.parse(f"01_data/out/fasta/{wildcards.dataset}_{wildcards.part}.fasta", "fasta")))[:4]
-    return expand("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.{ftype}",
-                    dataset=wildcards.dataset,
-                    part=wildcards.part,
-                    seq_name=seq_names,
-                    ftype=["pssm", "asn.pssm", "mat"])
-
-rule remove_non_pssm_hits:
+rule generate_psipred_profile:
     input:
-         "01_data/out/joblib/{dataset}_{part}_normal_distributed.joblib",
-         generate_pssm_based_file_names
+        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.asn.pssm"
     output:
-        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_pssms_filtered.joblib",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.ss2",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.horiz",
+        temp("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.ss"),
+        temp("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.mtx")
+    group:
+        "a"
+    shell:
+        """
+        export datadir={config[conda_env]}/share/psipred_4.01/data;
+        if [ -s {input[1]} ]
+        then
+            chkparse '{input[1]}' > '{output[3]}';
+            psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
+                > '{output[2]}';    
+            psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
+                > '{output[1]}';
+        else
+            touch '{output[0]}'
+            touch '{output[1]}'
+            touch '{output[2]}'
+            touch '{output[3]}'
+        fi
+        """
+
+
+rule generate_vsl2_profile:
+    input:
+        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.asn.pssm",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.ss2"
+    output:
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.dis",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.flat"
+    group:
+        "a"
     run:
-        import os
-        def _filter(input_data_):
-            filtered_seq_names = [fi.replace(f"01_data/out/profile/{wildcards.dataset}_{wildcards.part}/{wildcards.dataset}_{wildcards.part}_", "").replace(".mat", "")
-                                  for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, input.g)]
-            res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
-            return res_seqs, res_classes
-        jl.dump(jl.load(str(input[0])), str(output[0]))
-        jl.dump(jl.load(str(input[1])), str(output[1]))
+        input_data = jl.load(str(input[0]))
+        seq_tup, class_ = input_data[0][0], input_data[1]
+        fasta_name, fasta_seq = seq_tup[0], seq_tup[1]
+        shell(f"echo {fasta_seq} > '{str(output[1])}'")
+        shell("""
+            if [ -s {input[1]} ] 
+            then
+                java -Duser.country=US -Duser.language=en -jar {config[cwd]}/{config[programs][vsl2]}/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
+                    > '{output[0]}'
+            else
+                touch '{output[0]}'
+                touch '{output[1]}'
+            fi
+        """)
+
+
+rule generate_spx_profile:
+    input:
+        "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.mat"
+    output:
+        "01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.spXout",
+        temp("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_protein-list-file_{seq_name}.txt")
+    group:
+        "b"
+    shell:
+        """
+        export spineXcodir={config[cwd]}/{config[programs][spinex]};
+        echo '{wildcards.dataset}_{wildcards.part}_{wildcards.seq_name}' > '{output[1]}';
+        if [ -s {input[1]} ]
+        then
+            {config[cwd]}/{config[programs][spinex]}/spX.pl '{output[1]}' 01_data/out/profile/{wildcards.dataset}_{wildcards.part} 01_data/out/profile/{wildcards.dataset}_{wildcards.part}
+            rm -rf spxtemp*
+        else 
+            touch '{output[0]}';
+            touch '{output[1]}';
+        fi
+        """
+
+
+# def generate_pssm_based_file_names(wildcards):
+#     seq_names = list(map(lambda r: str(r.name),
+#                          SeqIO.parse(f"01_data/out/fasta/{wildcards.dataset}_{wildcards.part}.fasta", "fasta")))[:8]
+#     return expand("01_data/out/profile/{dataset}_{part}/{dataset}_{part}_{seq_name}.{ftype}",
+#                     dataset=wildcards.dataset,
+#                     part=wildcards.part,
+#                     seq_name=seq_names,
+#                     ftype=["pssm", "asn.pssm", "mat"])
+
+# rule remove_non_pssm_hits:
+#     input:
+#          "01_data/out/joblib/{dataset}_{part}_normal_distributed.joblib",
+#          generate_pssm_based_file_names
+#     output:
+#         "01_data/out/joblib/{dataset}_{part}/{dataset}_{part}_pssms_filtered.joblib",
+#     run:
+#         import os
+#         def _filter(input_data_):
+#             filtered_seq_names = [fi.replace(f"01_data/out/profile/{wildcards.dataset}_{wildcards.part}/{wildcards.dataset}_{wildcards.part}_", "").replace(".mat", "")
+#                                   for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, input.g)]
+#             res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
+#             return res_seqs, res_classes
+#         jl.dump(jl.load(str(input[0])), str(output[0]))
+#         jl.dump(jl.load(str(input[1])), str(output[1]))
