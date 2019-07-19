@@ -2,19 +2,6 @@ from sklearn.externals import joblib as jl
 from Bio import SeqIO
 
 
-# def generate_target_files(wildcards):
-#     files = []
-#     files += expand("01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
-#                     dataset=config["dataset"], part=config["part"])
-#     files += expand("01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib",
-#                     dataset=config["dataset"], part=config["part"])
-#     return files
-#
-# rule all:
-#     input:
-#         generate_target_files
-
-
 rule split_input_data:
     input:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
@@ -143,7 +130,7 @@ rule remove_non_pssm_hits:
             expand("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.{ftype}",
                    dataset=config["dataset"], part=config["part"], ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
                    seq_name=list(map(lambda r: str(r.name),
-                                     SeqIO.parse(f"01_data/out/{config['dataset']}/fasta/{config['dataset']}_{config['part']}.fasta", "fasta")))[:30])
+                                     SeqIO.parse(f"01_data/out/{config['dataset']}/fasta/{config['dataset']}_{config['part']}.fasta", "fasta"))))
     output:
         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib",
