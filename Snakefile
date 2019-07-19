@@ -1,11 +1,11 @@
 configfile: "config.yaml"
 
-include: "02_preprocessing/01_preprocessing.sf"
-include: "02_preprocessing/02_profiles.sf"
+include: "02_preprocessing/a_preprocessing.sf"
+include: "02_preprocessing/b_profiles.sf"
 
-include: "03_encoding/psekraac/01_psekraac.sf"
-include: "03_encoding/psekraac/02_filter_and_normalize.sf"
-include: "03_encoding/psekraac/03_final_datasets.sf"
+include: "03_encoding/psekraac/a_encode.sf"
+include: "03_encoding/psekraac/b_filter_and_normalize.sf"
+include: "03_encoding/psekraac/c_final_datasets.sf"
 
 DATASET = config["dataset"]
 PART = config["part"]
