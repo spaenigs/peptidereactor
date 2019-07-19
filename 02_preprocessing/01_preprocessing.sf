@@ -6,16 +6,16 @@ from sklearn.externals import joblib as jl
 import re
 
 
-def generate_target_file_names(wildcards):
-    files = []
-    files += expand("01_data/out/{dataset}/fasta/{dataset}_{part}.fasta", dataset=config["dataset"], part=["ds1", "ds2"])
-    files += expand("01_data/out/{dataset}/class/{dataset}_{part}_classes.txt", dataset=config["dataset"], part=["ds1", "ds2"])
-    files += expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=config["dataset"])
-    return files
-
-rule all:
-    input:
-        generate_target_file_names
+# def generate_target_file_names(wildcards):
+#     files = []
+#     files += expand("01_data/out/{dataset}/fasta/{dataset}_{part}.fasta", dataset=config["dataset"], part=["ds1", "ds2"])
+#     files += expand("01_data/out/{dataset}/class/{dataset}_{part}_classes.txt", dataset=config["dataset"], part=["ds1", "ds2"])
+#     files += expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=config["dataset"])
+#     return files
+#
+# rule all:
+#     input:
+#         generate_target_file_names
 
 
 rule read_fasta:
