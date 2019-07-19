@@ -8,9 +8,9 @@ import re
 
 def generate_target_file_names(wildcards):
     files = []
-    files += expand("01_data/out/fasta/{dataset}_{part}.fasta", dataset=config["dataset"], part=["ds1", "ds2"])
-    files += expand("01_data/out/class/{dataset}_{part}_classes.txt", dataset=config["dataset"], part=["ds1", "ds2"])
-    files += expand("01_data/out/plots/{dataset}_length_distribution.svg", dataset=config["dataset"])
+    files += expand("01_data/out/{dataset}/fasta/{dataset}_{part}.fasta", dataset=config["dataset"], part=["ds1", "ds2"])
+    files += expand("01_data/out/{dataset}/class/{dataset}_{part}_classes.txt", dataset=config["dataset"], part=["ds1", "ds2"])
+    files += expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=config["dataset"])
     return files
 
 rule all:
@@ -22,7 +22,7 @@ rule read_fasta:
     input:
          "01_data/in/fasta/{dataset}.fasta"
     output:
-        temp("01_data/out/joblib/{dataset}_from_fasta.joblib")
+        temp("01_data/out/tmp/{dataset}_from_fasta.joblib")
     group:
         "preprocessing"
     run:
@@ -40,7 +40,7 @@ rule read_classes:
     input:
         "01_data/in/class/{dataset}_classes.txt"
     output:
-        temp("01_data/out/joblib/{dataset}_from_classes.joblib")
+        temp("01_data/out/tmp/{dataset}_from_classes.joblib")
     group:
         "preprocessing"
     run:
@@ -51,10 +51,10 @@ rule read_classes:
 
 rule create_input_data:
     input:
-        "01_data/out/joblib/{dataset}_from_fasta.joblib",
-        "01_data/out/joblib/{dataset}_from_classes.joblib"
+        "01_data/out/tmp/{dataset}_from_fasta.joblib",
+        "01_data/out/tmp/{dataset}_from_classes.joblib"
     output:
-        temp("01_data/out/joblib/{dataset,[A-Za-z]+}.joblib")
+        temp("01_data/out/tmp/{dataset,[A-Za-z]+}.joblib")
     group:
         "preprocessing"
     run:
@@ -69,11 +69,11 @@ rule create_input_data:
 
 rule create_normal_distributed_input_data:
     input:
-        "01_data/out/joblib/{dataset}.joblib"
+        "01_data/out/tmp/{dataset}.joblib"
     output:
-        temp("01_data/out/joblib/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
-        "01_data/out/joblib/{dataset,[A-Za-z]+}_ds1_normal_distributed.joblib",
-        "01_data/out/joblib/{dataset,[A-Za-z]+}_ds2_normal_distributed.joblib"
+        temp("01_data/out/tmp/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
+        "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds1/joblib/{dataset}_ds1_normal_distributed.joblib",
+        "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds2/joblib/{dataset}_ds2_normal_distributed.joblib",
     group:
         "preprocessing"
     script:
@@ -82,10 +82,10 @@ rule create_normal_distributed_input_data:
 
 rule save_as_fasta:
     input:
-         "01_data/out/joblib/{dataset}_{part}_normal_distributed.joblib"
+         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
-        "01_data/out/fasta/{dataset,[A-Za-z]+}_{part}.fasta",
-        "01_data/out/class/{dataset,[A-Za-z]+}_{part}_classes.txt"
+        "01_data/out/{dataset,[A-Za-z]+}/fasta/{dataset}_{part}.fasta",
+        "01_data/out/{dataset,[A-Za-z]+}/class/{dataset}_{part}_classes.txt"
     group:
         "preprocessing"
     run:
@@ -107,12 +107,12 @@ rule save_as_fasta:
 
 rule plot_sequence_length_distribution:
     input:
-        "01_data/out/joblib/{dataset}.joblib",
-        "01_data/out/joblib/{dataset}_normal_distributed.joblib",
-        "01_data/out/joblib/{dataset}_ds1_normal_distributed.joblib",
-        "01_data/out/joblib/{dataset}_ds2_normal_distributed.joblib"
+        "01_data/out/tmp/{dataset}.joblib",
+        "01_data/out/tmp/{dataset}_normal_distributed.joblib",
+         lambda wildcards: expand("01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
+                                  dataset=wildcards.dataset, part=["ds1", "ds2"])
     output:
-        "01_data/out/plots/{dataset}_length_distribution.svg"
+        "01_data/out/{dataset,[A-Za-z]+}/plots/{dataset}_length_distribution.svg"
     group:
         "preprocessing"
     script:
