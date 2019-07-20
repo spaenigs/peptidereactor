@@ -1,5 +1,8 @@
 import os
 
+from Bio import SeqIO
+from snakemake.io import expand
+
 configfile: "config.yaml"
 
 include: "02_preprocessing/a_preprocessing.sf"
@@ -13,12 +16,6 @@ DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]
 
-file_should_exist_name = f"01_data/out/{DATASET}/fasta/{DATASET}_{PART}.fasta"
-if not os.path.isfile(file_should_exist_name):
-    os.makedirs(os.path.dirname(file_should_exist_name))
-    with open(file_should_exist_name, mode="w") as f:
-        f.write("")
-        f.flush()
 
 rule all:
     input:
@@ -74,19 +71,19 @@ rule all:
 #         "config.yaml"
 
 
-def target_files(encoding):
-    files = []
-    if encoding == "psekraac":
-        for type_ in config["psekraac"]["types"]:
-            files += expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/original/" + \
-                                "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}.csv",
-                            dataset=config["dataset"], part=config["part"],
-                            name=config["psekraac"][type_]["name"],
-                            subtype=config["psekraac"][type_]["subtypes"],
-                            raactype=config["psekraac"][type_]["raactypes"],
-                            ktuple=config["psekraac"][type_]["ktuples"],
-                            glambda=config["psekraac"][type_]["glambdas"])
-    return files
+# def target_files(encoding):
+#     files = []
+#     if encoding == "psekraac":
+#         for type_ in config["psekraac"]["types"]:
+#             files += expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/original/" + \
+#                                 "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}.csv",
+#                             dataset=config["dataset"], part=config["part"],
+#                             name=config["psekraac"][type_]["name"],
+#                             subtype=config["psekraac"][type_]["subtypes"],
+#                             raactype=config["psekraac"][type_]["raactypes"],
+#                             ktuple=config["psekraac"][type_]["ktuples"],
+#                             glambda=config["psekraac"][type_]["glambdas"])
+#     return files
 
 
 

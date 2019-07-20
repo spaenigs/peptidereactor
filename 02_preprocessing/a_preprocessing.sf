@@ -80,7 +80,7 @@ rule create_normal_distributed_input_data:
         "scripts/create_normal_distributed_input_data.py"
 
 
-rule save_as_fasta:
+checkpoint save_as_fasta:
     input:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
