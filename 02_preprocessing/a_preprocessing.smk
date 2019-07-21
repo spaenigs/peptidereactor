@@ -17,8 +17,6 @@ rule read_fasta:
          "01_data/in/fasta/{dataset}.fasta"
     output:
         temp("01_data/out/tmp/{dataset}_from_fasta.joblib")
-    group:
-        "preprocessing"
     run:
         raw_data: List[List[str]] = []
         seq_names = []
@@ -35,8 +33,6 @@ rule read_classes:
         "01_data/in/class/{dataset}_classes.txt"
     output:
         temp("01_data/out/tmp/{dataset}_from_classes.joblib")
-    group:
-        "preprocessing"
     run:
         f = open(str(input), mode="r")
         target = [int(line.rstrip()) for line in f.readlines()]
@@ -49,8 +45,6 @@ rule create_input_data:
         "01_data/out/tmp/{dataset}_from_classes.joblib"
     output:
         temp("01_data/out/tmp/{dataset,[A-Za-z]+}.joblib")
-    group:
-        "preprocessing"
     run:
         from_fasta = jl.load(filename=str(input[0]))
         from_classes = jl.load(filename=str(input[1]))
@@ -68,8 +62,6 @@ rule create_normal_distributed_input_data:
         temp("01_data/out/tmp/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
         "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds1/joblib/{dataset}_ds1_normal_distributed.joblib",
         "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds2/joblib/{dataset}_ds2_normal_distributed.joblib",
-    group:
-        "preprocessing"
     script:
         "scripts/create_normal_distributed_input_data.py"
 
@@ -80,8 +72,6 @@ checkpoint save_as_fasta:
     output:
         "01_data/out/{dataset,[A-Za-z]+}/fasta/{dataset}_{part}.fasta",
         "01_data/out/{dataset,[A-Za-z]+}/class/{dataset}_{part}_classes.txt"
-    group:
-        "preprocessing"
     run:
         from modlamp.core import save_fasta
         def create_fasta(input_data_):
@@ -107,7 +97,5 @@ rule plot_sequence_length_distribution:
                                   dataset=wildcards.dataset, part=["ds1", "ds2"])
     output:
         "01_data/out/{dataset,[A-Za-z]+}/plots/{dataset}_length_distribution.svg"
-    group:
-        "preprocessing"
     script:
         "scripts/plot_sequence_length_distribution.py"
