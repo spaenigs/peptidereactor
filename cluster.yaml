@@ -2,6 +2,6 @@ __default__:
   memory: 4G
   cores: 4
 
-generate_pssm_profile:
+pssm:
   memory: 12G
   cores: 6
