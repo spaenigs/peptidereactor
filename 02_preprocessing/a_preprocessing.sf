@@ -3,19 +3,13 @@ from snakemake.io import temp, expand
 from typing import List
 from Bio import SeqIO
 from sklearn.externals import joblib as jl
-import re
 
 
-# def generate_target_file_names(wildcards):
-#     files = []
-#     files += expand("01_data/out/{dataset}/fasta/{dataset}_{part}.fasta", dataset=config["dataset"], part=["ds1", "ds2"])
-#     files += expand("01_data/out/{dataset}/class/{dataset}_{part}_classes.txt", dataset=config["dataset"], part=["ds1", "ds2"])
-#     files += expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=config["dataset"])
-#     return files
-#
-# rule all:
-#     input:
-#         generate_target_file_names
+localrules: read_fasta, read_classes,
+            create_input_data,
+            create_normal_distributed_input_data,
+            save_as_fasta,
+            plot_sequence_length_distribution
 
 
 rule read_fasta:

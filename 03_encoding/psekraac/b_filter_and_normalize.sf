@@ -6,7 +6,7 @@ rule filter_datasets:
         "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/filtered/" + \
             "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}.csv"
     group:
-        "filter"
+        "filter_and_normalize"
     script:
         "../scripts/filter.py"
 
@@ -19,7 +19,7 @@ rule normalize:
          "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/" + \
             "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}.csv"
     group:
-        "normalize"
+        "filter_and_normalize"
     script:
           "../scripts/normalize.py"
 

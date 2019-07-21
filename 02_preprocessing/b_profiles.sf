@@ -2,12 +2,16 @@ from sklearn.externals import joblib as jl
 from Bio import SeqIO
 
 
+localrules: split_input_data
+
+
 rule split_input_data:
     input:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
-    group: "split"
+    group:
+        "pssm"
     run:
         seq_tuple = list(filter(lambda t: wildcards.seq_name == t[0][0], zip(*jl.load(str(input)))))[0]
         jl.dump(value=([seq_tuple[0]], seq_tuple[1]), filename=str(output))
@@ -20,10 +24,17 @@ rule generate_pssm_profile:
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.pssm",
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
+    priority:
+        1
+    group:
+        "pssm"
     run:
         import encoder.ifeature.pssm.utils as pssm_utils
         input_data = jl.load(str(input))
         input_data[0][0][0] = f"{wildcards.dataset}_{wildcards.part}_{wildcards.seq_name}"
+        for o in output[:3]:
+            with open(str(o), mode="w") as f:
+                f.write("")
         pssm_utils.PSSMUtils.generate_profile(
             input_data, f"01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile", cores=1,
             db=config["uniref_db"])
@@ -39,7 +50,7 @@ rule generate_psipred_profile:
         temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss"),
         temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mtx")
     group:
-        "a"
+        "pssm"
     shell:
         """
         export datadir={config[conda_env]}/share/psipred_4.01/data;
@@ -68,7 +79,7 @@ rule generate_vsl2_profile:
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.dis",
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.flat"
     group:
-        "a"
+        "pssm"
     run:
         input_data = jl.load(str(input[0]))
         seq_tup, class_ = input_data[0][0], input_data[1]
@@ -94,7 +105,7 @@ rule generate_spx_profile:
         "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.spXout",
         temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_protein-list-file_{seq_name}.txt")
     group:
-        "b"
+        "pssm"
     shell:
         """
         export spineXcodir={config[cwd]}/{config[programs][spinex]};
@@ -114,6 +125,8 @@ rule generate_multiple_sequence_alignment:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib"
+    group:
+        "final"
     run:
         from encoder.encoder import BaseEncoder as base_encoder
         input_data = jl.load(str(input))
@@ -136,7 +149,9 @@ rule remove_non_pssm_hits:
          get_target_files
     output:
         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib",
+        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib"
+    group:
+        "final"
     run:
         import os
         def _filter(input_data_):
