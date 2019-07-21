@@ -5,7 +5,7 @@ from snakemake.io import expand
 
 configfile: "config.yaml"
 
-include: "02_preprocessing/a_preprocessing.sf"
+include: "02_preprocessing/a_preprocessing.smk"
 include: "02_preprocessing/b_profiles.sf"
 
 include: "03_encoding/psekraac/a_encode.sf"
