@@ -2,6 +2,10 @@ from sklearn.externals import joblib as jl
 
 sys.path.append(config["cwd"] + "/" + config["programs"]["iFeature"])
 
+
+localrules: generate_psekraac_based_encodings
+
+
 rule generate_psekraac_based_encodings:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
