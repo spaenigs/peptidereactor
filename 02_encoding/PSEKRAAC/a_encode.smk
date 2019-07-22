@@ -4,9 +4,9 @@ sys.path.append(config["cwd"] + "/" + config["programs"]["iFeature"])
 
 rule generate_psekraac_based_encodings:
     input:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
     output:
-         "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/original/" + \
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/original/" + \
             "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}.csv"
     run:
         import encoder.ifeature.psekraac.encoder as psekraac_encoder

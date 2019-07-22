@@ -3,14 +3,15 @@ import os
 from Bio import SeqIO
 from snakemake.io import expand
 
+
 configfile: "config.yaml"
 
-include: "02_preprocessing/a_preprocessing.smk"
-include: "02_preprocessing/b_profiles.smk"
+include: "01_preprocessing/a_preprocessing.smk"
+include: "01_preprocessing/b_profiles.smk"
 
-include: "03_encoding/psekraac/a_encode.smk"
-include: "03_encoding/psekraac/b_filter_and_normalize.smk"
-include: "03_encoding/psekraac/c_final_datasets.smk"
+include: "02_encoding/PSEKRAAC/a_encode.smk"
+include: "02_encoding/PSEKRAAC/b_filter_and_normalize.smk"
+include: "02_encoding/PSEKRAAC/c_final_datasets.smk"
 
 DATASET = config["dataset"]
 PART = config["part"]
@@ -19,18 +20,24 @@ NORMALIZE = config["normalize"]
 
 rule all:
     input:
-        expand("01_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
-        expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}.txt",
+        expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_final_datasets.txt",
                dataset=DATASET, part=PART, normalized=NORMALIZE),
-        expand("01_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg",
+        expand("00_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg",
                dataset=DATASET, part=PART, normalized=NORMALIZE)
+
+
+
+
+
+
 
 
 # subworkflow a_preprocessing_preprocessing:
 #     workdir:
 #         "."
 #     snakefile:
-#         "02_preprocessing/01_preprocessing.sf"
+#         "02_preprocessing/a_preprocessing.smk"
 #     configfile:
 #         "config.yaml"
 #
@@ -39,7 +46,7 @@ rule all:
 #     workdir:
 #         "."
 #     snakefile:
-#         "02_preprocessing/02_profiles.sf"
+#         "02_preprocessing/b_profiles.smk"
 #     configfile:
 #         "config.yaml"
 #
@@ -48,7 +55,7 @@ rule all:
 #     workdir:
 #         "."
 #     snakefile:
-#         "03_encoding/psekraac/01_psekraac.sf"
+#         "03_encoding/psekraac/a_encode.smk"
 #     configfile:
 #         "config.yaml"
 #
@@ -57,7 +64,7 @@ rule all:
 #     workdir:
 #         "."
 #     snakefile:
-#         "03_encoding/psekraac/02_filter_and_normalize.sf"
+#         "03_encoding/psekraac/b_filter_and_normalize.smk"
 #     configfile:
 #         "config.yaml"
 #
@@ -66,11 +73,11 @@ rule all:
 #     workdir:
 #         "."
 #     snakefile:
-#         "03_encoding/psekraac/03_final_datasets.sf"
+#         "03_encoding/psekraac/c_final_datasets.smk"
 #     configfile:
 #         "config.yaml"
-
-
+#
+#
 # def target_files(encoding):
 #     files = []
 #     if encoding == "psekraac":
@@ -82,23 +89,20 @@ rule all:
 #                             subtype=config["psekraac"][type_]["subtypes"],
 #                             raactype=config["psekraac"][type_]["raactypes"],
 #                             ktuple=config["psekraac"][type_]["ktuples"],
-#                             glambda=config["psekraac"][type_]["glambdas"])
+#                             glambda=config["psekraac"][type_]["glambdas"])[:10]
+#     print(len(files))
 #     return files
-
-
-
+#
 # rule all:
 #     input:
 #         a_preprocessing_preprocessing(f"01_data/out/{DATASET}/fasta/{DATASET}_{PART}.fasta"),
 #         a_preprocessing_preprocessing(f"01_data/out/{DATASET}/class/{DATASET}_{PART}_classes.txt"),
 #         a_preprocessing_preprocessing(f"01_data/out/{DATASET}/plots/{DATASET}_length_distribution.svg"),
-#
 #         a_preprocessing_profiles_and_filter(
 #             f"01_data/out/{DATASET}/{DATASET}_{PART}/joblib/{DATASET}_{PART}_pssms_filtered.joblib"),
 #         a_preprocessing_profiles_and_filter(
 #             f"01_data/out/{DATASET}/{DATASET}_{PART}/joblib/{DATASET}_{PART}_pssms_filtered_msa.joblib"),
-#
-#         b_psekraac_encode(target_files("psekraac")),
+#         b_psekraac_encode(target_files("psekraac"))
 #         b_psekraac_filter_and_normalize(
 #             expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt",
 #                dataset=DATASET, part=PART, normalized=NORMALIZE)),
@@ -107,5 +111,6 @@ rule all:
 #                dataset=DATASET, part=PART, normalized=NORMALIZE)),
 #         b_psekraac_final_datasets(expand("01_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg",
 #                                          dataset=DATASET, part=PART, normalized=NORMALIZE))
+
 
 

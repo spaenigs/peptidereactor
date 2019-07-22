@@ -14,9 +14,9 @@ localrules: read_fasta, read_classes,
 
 rule read_fasta:
     input:
-         "01_data/in/fasta/{dataset}.fasta"
+         "00_data/in/fasta/{dataset}.fasta"
     output:
-        temp("01_data/out/tmp/{dataset}_from_fasta.joblib")
+        temp("00_data/out/tmp/{dataset}_from_fasta.joblib")
     run:
         raw_data: List[List[str]] = []
         seq_names = []
@@ -30,9 +30,9 @@ rule read_fasta:
 
 rule read_classes:
     input:
-        "01_data/in/class/{dataset}_classes.txt"
+        "00_data/in/class/{dataset}_classes.txt"
     output:
-        temp("01_data/out/tmp/{dataset}_from_classes.joblib")
+        temp("00_data/out/tmp/{dataset}_from_classes.joblib")
     run:
         f = open(str(input), mode="r")
         target = [int(line.rstrip()) for line in f.readlines()]
@@ -41,10 +41,10 @@ rule read_classes:
 
 rule create_input_data:
     input:
-        "01_data/out/tmp/{dataset}_from_fasta.joblib",
-        "01_data/out/tmp/{dataset}_from_classes.joblib"
+        "00_data/out/tmp/{dataset}_from_fasta.joblib",
+        "00_data/out/tmp/{dataset}_from_classes.joblib"
     output:
-        temp("01_data/out/tmp/{dataset,[A-Za-z]+}.joblib")
+        temp("00_data/out/tmp/{dataset,[A-Za-z]+}.joblib")
     run:
         from_fasta = jl.load(filename=str(input[0]))
         from_classes = jl.load(filename=str(input[1]))
@@ -57,21 +57,21 @@ rule create_input_data:
 
 rule create_normal_distributed_input_data:
     input:
-        "01_data/out/tmp/{dataset}.joblib"
+        "00_data/out/tmp/{dataset}.joblib"
     output:
-        temp("01_data/out/tmp/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
-        "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds1/joblib/{dataset}_ds1_normal_distributed.joblib",
-        "01_data/out/{dataset,[A-Za-z]+}/{dataset}_ds2/joblib/{dataset}_ds2_normal_distributed.joblib",
+        temp("00_data/out/tmp/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
+        "00_data/out/{dataset,[A-Za-z]+}/{dataset}_ds1/joblib/{dataset}_ds1_normal_distributed.joblib",
+        "00_data/out/{dataset,[A-Za-z]+}/{dataset}_ds2/joblib/{dataset}_ds2_normal_distributed.joblib",
     script:
         "scripts/create_normal_distributed_input_data.py"
 
 
 checkpoint save_as_fasta:
     input:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
-        "01_data/out/{dataset,[A-Za-z]+}/fasta/{dataset}_{part}.fasta",
-        "01_data/out/{dataset,[A-Za-z]+}/class/{dataset}_{part}_classes.txt"
+        "00_data/out/{dataset,[A-Za-z]+}/fasta/{dataset}_{part}.fasta",
+        "00_data/out/{dataset,[A-Za-z]+}/class/{dataset}_{part}_classes.txt"
     run:
         from modlamp.core import save_fasta
         def create_fasta(input_data_):
@@ -91,11 +91,11 @@ checkpoint save_as_fasta:
 
 rule plot_sequence_length_distribution:
     input:
-        "01_data/out/tmp/{dataset}.joblib",
-        "01_data/out/tmp/{dataset}_normal_distributed.joblib",
-         lambda wildcards: expand("01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
+        "00_data/out/tmp/{dataset}.joblib",
+        "00_data/out/tmp/{dataset}_normal_distributed.joblib",
+         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
                                   dataset=wildcards.dataset, part=["ds1", "ds2"])
     output:
-        "01_data/out/{dataset,[A-Za-z]+}/plots/{dataset}_length_distribution.svg"
+        "00_data/out/{dataset,[A-Za-z]+}/plots/{dataset}_length_distribution.svg"
     script:
         "scripts/plot_sequence_length_distribution.py"

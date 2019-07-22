@@ -18,11 +18,11 @@ def write_empty_file(path):
 
 rule generate_distance_matrix:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/" + \
             "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}.csv",
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
             "{dataset}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv"
     run:
         from scipy import interpolate, stats
@@ -38,7 +38,7 @@ rule generate_distance_matrix:
             ds1 = pd.read_csv(actual_csv, engine="c", index_col=0).iloc[:, :-1].astype("float64").values
 
             files = [f for f in
-                     glob.glob(f"01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/psekraac/csv/normalized/" + \
+                     glob.glob(f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/psekraac/csv/normalized/" + \
                                     f"{wildcards.dataset}_{wildcards.part}_ifeature_*_normalized-{wildcards.normalized}*")
                      # glob.glob(f"data/out/{wildcards.encoding}/csv/normalized/{wildcards.dataset}_{wildcards.source}_*.normalized-{wildcards.normalized}*")
                      if os.path.getsize(f) > 0]
@@ -47,7 +47,7 @@ rule generate_distance_matrix:
                 list(map(lambda tup: tup[1], filter(lambda tup: tup[0] == actual_csv, itertools.combinations(files, 2))))
 
             # pattern = f"data/out/{wildcards.encoding}/csv/normalized/{wildcards.dataset}_{wildcards.source}_(.*?)\.normalized-{wildcards.normalized}\.csv"
-            pattern = f"01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/psekraac/csv/normalized/" + \
+            pattern = f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/psekraac/csv/normalized/" + \
                             f"{wildcards.dataset}_{wildcards.part}_ifeature_(.*?)_normalized-{wildcards.normalized}.csv"
 
             row_name = re.match(pattern, actual_csv).group(1)
@@ -77,7 +77,7 @@ rule generate_distance_matrix:
 def collect_files(wildcards):
     files = []
     for type_ in config["psekraac"]["types"]:
-        files += expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
+        files += expand("00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
                             "{dataset}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv",
                         dataset=wildcards.dataset, part=wildcards.part,  normalized=wildcards.normalized,
                         name=config["psekraac"][type_]["name"],
@@ -91,7 +91,7 @@ rule collect_distance_matrix:
     input:
         collect_files
     output:
-          "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
+          "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
     run:
          def sort_df_to_lower_tril(df):
             """
@@ -132,9 +132,9 @@ rule collect_distance_matrix:
 
 rule run_clustering:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized,yes|no}.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized,yes|no}.csv"
     run:
         from sklearn.manifold import MDS, TSNE
 
@@ -163,9 +163,9 @@ rule run_clustering:
 
 rule compute_geometric_median:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}.csv"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/geom_median/{dataset}_{part}_normalized-{normalized}_{type}_vs_rest.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/geom_median/{dataset}_{part}_normalized-{normalized}_{type}_vs_rest.csv"
     run:
         from scipy.spatial.distance import euclidean
 
@@ -213,13 +213,13 @@ rule compute_geometric_median:
 
 rule collect_geometric_median:
     input:
-        lambda wildcards: expand("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/geom_median/" + \
+        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/geom_median/" + \
                                     "{dataset}_{part}_normalized-{normalized}_{type}_vs_rest.csv",
                                  dataset=wildcards.dataset, part=wildcards.part,
                                  normalized=wildcards.normalized,
                                  type=[f"{t}encoder" for t in config["psekraac"]["types"]])
     output:
-         "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     run:
         dfs = list(input)
         res = pd.DataFrame()
@@ -233,9 +233,9 @@ rule collect_geometric_median:
 
 rule plot_clustering:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
-        "01_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg"
+        "00_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg"
     run:
         import matplotlib.pyplot as plt
         from matplotlib import colors as mcolors
@@ -280,9 +280,9 @@ rule plot_clustering:
 
 rule get_final_datasets:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
-        temp("01_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}.txt")
+        temp("00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_final_datasets.txt")
     run:
         from shutil import copyfile
 

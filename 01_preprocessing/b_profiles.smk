@@ -7,9 +7,9 @@ localrules: split_input_data
 
 rule split_input_data:
     input:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
     group:
         "pssm"
     run:
@@ -19,11 +19,11 @@ rule split_input_data:
 
 rule generate_pssm_profile:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.pssm",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.pssm",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
     priority:
         1
     group:
@@ -36,19 +36,19 @@ rule generate_pssm_profile:
             with open(str(o), mode="w") as f:
                 f.write("")
         pssm_utils.PSSMUtils.generate_profile(
-            input_data, f"01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile", cores=1,
+            input_data, f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile", cores=1,
             db=config["uniref_db"])
 
 
 rule generate_psipred_profile:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm"
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.horiz",
-        temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss"),
-        temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mtx")
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.horiz",
+        temp("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss"),
+        temp("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mtx")
     group:
         "pssm"
     shell:
@@ -72,12 +72,12 @@ rule generate_psipred_profile:
 
 rule generate_vsl2_profile:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2"
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.dis",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.flat"
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.dis",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.flat"
     group:
         "pssm"
     run:
@@ -99,11 +99,11 @@ rule generate_vsl2_profile:
 
 rule generate_spx_profile:
     input:
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.spXout",
-        temp("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_protein-list-file_{seq_name}.txt")
+        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.spXout",
+        temp("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_protein-list-file_{seq_name}.txt")
     group:
         "pssm"
     shell:
@@ -112,7 +112,7 @@ rule generate_spx_profile:
         echo '{wildcards.dataset}_{wildcards.part}_{wildcards.seq_name}' > '{output[1]}';
         if [ -s {input[1]} ]
         then
-            {config[cwd]}/{config[programs][spinex]}/spX.pl '{output[1]}' 01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile 01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile
+            {config[cwd]}/{config[programs][spinex]}/spX.pl '{output[1]}' 00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile 00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile
         else 
             touch '{output[0]}';
             touch '{output[1]}';
@@ -122,9 +122,9 @@ rule generate_spx_profile:
 
 rule generate_multiple_sequence_alignment:
     input:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib"
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib"
     run:
         from encoder.encoder import BaseEncoder as base_encoder
         input_data = jl.load(str(input))
@@ -135,25 +135,25 @@ rule generate_multiple_sequence_alignment:
 
 def get_target_files(wildcards):
     fasta_file = checkpoints.save_as_fasta.get(dataset=config['dataset'], part=config['part']).output
-    return expand("01_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.{ftype}",
+    return expand("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.{ftype}",
                    dataset=config["dataset"], part=config["part"], ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
                    seq_name=list(map(lambda r: str(r.name), SeqIO.parse(fasta_file[0], "fasta"))))
 
 
 rule remove_non_pssm_hits:
     input:
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
-         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib",
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib",
          get_target_files
     output:
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
-        "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib"
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib"
     run:
         import os
         def _filter(input_data_):
             print(list(input[2:]))
             filtered_seq_names = \
-                [fi.replace(f"01_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile/{wildcards.dataset}_{wildcards.part}_", "")\
+                [fi.replace(f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile/{wildcards.dataset}_{wildcards.part}_", "")\
                      .replace(".mat", "")
                  for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[2:]))]
             res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
