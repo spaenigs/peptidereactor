@@ -23,7 +23,7 @@ rule generate_distance_matrix:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt"
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
-            "{dataset}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv"
+            "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv"
     run:
         from scipy import interpolate, stats
 
@@ -78,7 +78,7 @@ def collect_files(wildcards):
     files = []
     for type_ in config["psekraac"]["types"]:
         files += expand("00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/correlation/" + \
-                            "{dataset}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv",
+                            "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}_normalized-{normalized}_vs_rest.csv",
                         dataset=wildcards.dataset, part=wildcards.part,  normalized=wildcards.normalized,
                         name=config["psekraac"][type_]["name"],
                         subtype=config["psekraac"][type_]["subtypes"],
