@@ -235,7 +235,7 @@ rule plot_clustering:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/psekraac/tsne/{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
-        "00_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg"
+        "00_data/out/{dataset}/plots/{dataset}_{part}_psekraac_normalized-{normalized}_tsne.svg"
     run:
         import matplotlib.pyplot as plt
         from matplotlib import colors as mcolors
