@@ -125,8 +125,6 @@ rule generate_multiple_sequence_alignment:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
     output:
          "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed_msa.joblib"
-    group:
-        "final"
     run:
         from encoder.encoder import BaseEncoder as base_encoder
         input_data = jl.load(str(input))
@@ -150,8 +148,6 @@ rule remove_non_pssm_hits:
     output:
         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
         "01_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib"
-    group:
-        "final"
     run:
         import os
         def _filter(input_data_):

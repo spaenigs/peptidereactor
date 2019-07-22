@@ -8,9 +8,9 @@ configfile: "config.yaml"
 include: "02_preprocessing/a_preprocessing.smk"
 include: "02_preprocessing/b_profiles.sf"
 
-include: "03_encoding/psekraac/a_encode.sf"
-include: "03_encoding/psekraac/b_filter_and_normalize.sf"
-include: "03_encoding/psekraac/c_final_datasets.sf"
+include: "03_encoding/psekraac/a_encode.smk"
+include: "03_encoding/psekraac/b_filter_and_normalize.smk"
+include: "03_encoding/psekraac/c_final_datasets.smk"
 
 DATASET = config["dataset"]
 PART = config["part"]
