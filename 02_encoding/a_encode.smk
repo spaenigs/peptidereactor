@@ -15,6 +15,9 @@ except ModuleNotFoundError as e:
     sys.exit(1)
 
 
+localrules: generate_psekraac_based_encodings 
+
+
 rule generate_window_based_encodings:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"

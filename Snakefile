@@ -28,14 +28,14 @@ NORMALIZE = config["normalize"]
 # TODO only submit pssm profile generation to cluster
 rule all:
     input:
-        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
-        # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
-        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
-        #        "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
-        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
-        # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        #expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt",
+        #       dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
+        expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
+               "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
 
 
 

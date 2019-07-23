@@ -4,6 +4,8 @@ sys.path.append("02_encoding")
 import scripts.utils as utils
 
 
+localrules: filter_datasets, normalize_datasets, collect_normalized_datasets
+
 rule filter_datasets:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
@@ -30,7 +32,7 @@ rule normalize_datasets:
           "scripts/normalize.py"
 
 
-rule collect_normalized_datsets:
+rule collect_normalized_datasets:
     input:
          lambda wildcards: \
             expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \

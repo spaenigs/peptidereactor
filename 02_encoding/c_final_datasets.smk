@@ -3,6 +3,9 @@ sys.path.append("02_encoding")
 
 import scripts.utils as utils
 
+
+localrules: collect_distance_matrix, collect_geometric_median, plot_clustering, get_final_datasets
+
 rule generate_distance_matrix:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
