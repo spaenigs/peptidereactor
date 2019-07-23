@@ -1,9 +1,9 @@
-cwd: "/scratch/spaenigs/eb"
-#cwd: "/home/spaenigs/PycharmProjects/encoding_benchmark/encoding_benchmark_encoding"
-#conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
-conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
-uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
-#uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
+#cwd: "/scratch/spaenigs/eb"
+cwd: "/home/spaenigs/PycharmProjects/eb"
+conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
+#conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
+#uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
+uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
 
 datasets:
   processed:
@@ -41,52 +41,52 @@ paramfree_based:
 gap_based:
   names: ["cksaap", "cksaagp", "ctriad", "ksctriad"]
   cksaap:
-    name: "cksaapencoder"
+    name: "cksaap"
     gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   cksaagp:
-    name: "cksaagpencoder"
+    name: "cksaagp"
     gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   ctriad:
-    name: "ctriadencoder"
+    name: "ctriad"
     gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   ksctriad:
-    name: "ksctriadencoder"
+    name: "ksctriad"
     gaps: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
 nlag_based:
   names: ["moran", "geary", "nmbroto", "socnumber", "qsorder"]
   moran:
-    name: "moranencoder"
+    name: "moran"
     nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   geary:
-    name: "gearyencoder"
+    name: "geary"
     nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   nmbroto:
-    name: "nmbrotoencoder"
+    name: "nmbroto"
     nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   socnumber:
-    name: "socnumberencoder"
+    name: "socnumber"
     nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   qsorder:
-    name: "qsorderencoder"
+    name: "qsorder"
     nlags: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
 lambda_based:
   names: ["paac", "apaac"]
   paac:
-    name: "paacencoder"
+    name: "paac"
     lambdas: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   apaac:
-    name: "apaacencoder"
+    name: "apaac"
     lambdas: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
 window_based:
   names: ["eaac", "egaac"]
   eaac:
-    name: "eaacencoder"
+    name: "eaac"
     windows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
   egaac:
-    name: "egaacencoder"
+    name: "egaac"
     windows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]
 
 psekraac:
