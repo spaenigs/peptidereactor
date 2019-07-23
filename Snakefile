@@ -12,11 +12,13 @@ include: "02_encoding/a_encode.smk"
 include: "02_encoding/b_filter_and_normalize.smk"
 include: "02_encoding/c_final_datasets.smk"
 
-ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
-             "ksctriad", "geary", "moran", "nmbroto", "qsorder",
-             "socnumber", "eaac", "egaac"]
+# ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
+#              "ksctriad", "geary", "moran", "nmbroto", "qsorder",
+#              "socnumber", "eaac", "egaac"]
 
-# TODO psekrrac, aaindex, not param based
+ENCODINGS = ["psekraac"]
+
+# TODO aaindex, not param based, LOCALRULES, structure based
 
 DATASET = config["dataset"]
 PART = config["part"]
@@ -26,24 +28,14 @@ NORMALIZE = config["normalize"]
 # TODO only submit pssm profile generation to cluster
 rule all:
     input:
-        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
-        #        "{dataset}_{part}_normalized-{normalized}.txt",
-        #        dataset=DATASET,
-        #        part=PART,
-        #        normalized=NORMALIZE,
-        #        encoding=ENCODINGS)
-        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/" + \
-        #        "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv",
-        #        dataset=DATASET,
-        #        part=PART,
-        #        normalized=NORMALIZE,
-        #        encoding=ENCODINGS)
-        expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
-        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
-               "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
-        expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt",
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
+        # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
+        #        "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
 
 
 
