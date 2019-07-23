@@ -1,9 +1,9 @@
-rule apaac_filter_datasets:
+rule paac_filter_datasets:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
             "{dataset}_{part}_ifeature_{encoding}encoder_lambda-{lambdaValue}.csv"
     output:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,apaac}/csv/filtered/" + \
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,paac}/csv/filtered/" + \
             "{dataset}_{part}_ifeature_{encoding}encoder_lambda-{lambdaValue}.csv"
     group:
         "filter_and_normalize"
@@ -11,12 +11,12 @@ rule apaac_filter_datasets:
         "../scripts/filter.py"
 
 
-rule apaac_normalize:
+rule paac_normalize:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/filtered/" + \
             "{dataset}_{part}_ifeature_{encoding}encoder_lambda-{lambdaValue}.csv"
     output:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,apaac}/csv/normalized/" + \
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,paac}/csv/normalized/" + \
             "{dataset}_{part}_ifeature_{encoding}encoder_lambda-{lambdaValue}_normalized-{normalized}.csv"
     group:
         "filter_and_normalize"
@@ -29,13 +29,14 @@ def collect_files(wildcards):
                         "{dataset}_{part}_ifeature_{encoding}encoder_lambda-{lambdaValue}_normalized-{normalized}.csv",
                   dataset=wildcards.dataset, part=wildcards.part,  normalized=wildcards.normalized,
                   encoding=wildcards.encoding,
-                  lambdaValue=config["lambda_based"]["apaac"]["lambdas"])
+                  lambdaValue=config["lambda_based"]["paac"]["lambdas"])
 
-rule apaac_collect_normalized:
+rule paac_collect_normalized:
     input:
          collect_files
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,apaac}/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,paac}/csv/normalized/" + \
+        "{dataset}_{part}_normalized-{normalized}.txt"
     run:
         for path in list(input):
             with open(str(output), mode="a") as f:

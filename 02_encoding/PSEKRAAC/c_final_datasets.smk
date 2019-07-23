@@ -5,7 +5,7 @@ import sys
 sys.path.append("02_encoding/")
 
 
-rule generate_distance_matrix:
+rule psekraac_generate_distance_matrix:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
         "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_" + \
@@ -13,7 +13,7 @@ rule generate_distance_matrix:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/{dataset}_" + \
         "{part}_normalized-{normalized}.txt"
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/correlation/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/correlation/" + \
         "{dataset}_{part}_ifeature_{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_" + \
         "glValue-{glambda}_normalized-{normalized}_vs_rest.csv"
     script:
@@ -35,69 +35,69 @@ def collect_files(wildcards):
                         glambda=config["psekraac"][type_]["glambdas"])
     return files
 
-rule collect_distance_matrix:
+rule psekraac_collect_distance_matrix:
     input:
         collect_files
     output:
-          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/" + \
+          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/" + \
           "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
     script:
         "../scripts/collect_distance_matrix.py"
 
 
-rule run_clustering:
+rule psekraac_run_clustering:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/" + \
         "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized,yes|no}.csv"
     run:
         from scripts.run_clustering import run_clustering
         run_clustering("psekraac(.*?)_subtype", str(input), str(output))
 
 
-rule compute_geometric_median:
+rule psekraac_compute_geometric_median:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}.csv"
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/geom_median/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/tsne/geom_median/" + \
         "{dataset}_{part}_normalized-{normalized}_{type}_vs_rest.csv"
     script:
         "../scripts/compute_geometric_median.py"
 
-rule collect_geometric_median:
+rule psekraac_collect_geometric_median:
     input:
         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/geom_median/" + \
                                     "{dataset}_{part}_normalized-{normalized}_{type}_vs_rest.csv",
                                  dataset=wildcards.dataset, part=wildcards.part,
-                                 normalized=wildcards.normalized,
+                                 normalized=wildcards.normalized, encoding=wildcards.encoding,
                                  type=[f"{t}encoder" for t in config["psekraac"]["types"]])
     output:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/tsne/" + \
          "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     script:
         "../scripts/collect_geometric_median.py"
 
 
 
-rule plot_clustering:
+rule psekraac_plot_clustering:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
-        "00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg"
+        "00_data/out/{dataset}/plots/{dataset}_{part}_{encoding,psekraac}_normalized-{normalized}_tsne.svg"
     script:
         "../scripts/get_final_datasets.py"
 
 
-rule get_final_datasets:
+rule psekraac_get_final_datasets:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     output:
-        temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
-             "{dataset}_{part}_normalized-{normalized}_final_datasets.txt")
+        temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding,psekraac}/csv/final/" +
+             "geom_median/tsne/normalized-{normalized}/final_datasets.txt")
     script:
          "../scripts/get_final_datasets.py"
