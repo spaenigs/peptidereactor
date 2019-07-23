@@ -17,7 +17,7 @@ part = snakemake.wildcards.part
 encoding = snakemake.wildcards.encoding
 normalized = snakemake.wildcards.normalized
 
-df_gm = pd.read_csv(str(input), index_col=0)
+df_gm = pd.read_csv(str(snakemake.input), index_col=0)
 
 if (not df_gm.empty) or (not df_gm.empty):
 
