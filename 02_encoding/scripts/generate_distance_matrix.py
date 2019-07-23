@@ -34,14 +34,14 @@ try:
     files = [f for f in
              glob.glob(
                  f"00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
-                 f"{dataset}_{part}_ifeature_*_normalized-{normalized}*")
+                 f"{dataset}_{part}_*")
              if os.path.getsize(f) > 0]
 
     files_filtered = \
         list(map(lambda tup: tup[1], filter(lambda tup: tup[0] == actual_csv, itertools.combinations(files, 2))))
 
     pattern = f"00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
-              f"{dataset}_{part}_ifeature_(.*?)_normalized-{normalized}.csv"
+              f"{dataset}_{part}_(.*?).csv"
 
     row_name = re.match(pattern, actual_csv).group(1)
 
@@ -65,4 +65,4 @@ try:
 
 
 except EmptyDataError as e:
-            write_empty_file(str(output))
+            write_empty_file(str(snakemake.output))

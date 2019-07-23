@@ -7,7 +7,7 @@ colors = list(dict(mcolors.TABLEAU_COLORS, **mcolors.CSS4_COLORS).keys())
 
 fig, ax = plt.subplots()
 
-df_gm = pd.read_csv(str(input), index_col=0)
+df_gm = pd.read_csv(str(snakemake.input), index_col=0)
 
 if not df_gm.empty:
 
@@ -50,4 +50,5 @@ if not df_gm.empty:
     plt.savefig(str(snakemake.output))
 
 else:
+    plt.title(f"{str(snakemake.wildcards.encoding).upper()}: NO DATASETS PASSED THE FILTER.")
     plt.savefig(str(snakemake.output))

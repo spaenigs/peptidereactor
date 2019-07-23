@@ -9,7 +9,7 @@ def write_empty_file(path):
         f.flush()
 
 
-df = pd.read_csv(str(input), index_col=0)
+df = pd.read_csv(str(snakemake.input), index_col=0)
 df["name"] = df.index
 
 df_type_filtered = df.loc[df.name.apply(lambda x: snakemake.wildcards.type in x), :]

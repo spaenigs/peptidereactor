@@ -1,0 +1,93 @@
+from snakemake.io import expand, glob_wildcards
+
+AAINDEX   = "aaindex"
+APAAC     = "apaac"
+CKSAAGP   = "cksaagp"
+CKSAAP    = "cksaap"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
+CTRIAD    = "ctriad"  # very sparse, no dataset passes rule filter_datasets
+EAAC      = "eaac"
+EGAAC     = "egaac"
+GEARY     = "geary"
+KSCTRIAD  = "ksctriad"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
+MORAN     = "moran"
+NMBROTO   = "nmbroto"
+PAAC      = "paac"
+PSEKRAAC  = "psekraac"
+QSORDER   = "qsorder"
+SOCNUMBER = "socnumber"
+
+ENCODING_PATTERN = {
+    AAINDEX:   "aaindexencoder_aaindex-(.*?)\d+",
+    APAAC:     "apaacencoder_(.*)",
+    CKSAAGP:   "cksaagpencoder_(.*)",
+    CKSAAP:    "cksaapencoder_(.*)",
+    CTRIAD:    "ctriadencoder_(.*)",
+    EAAC:      "eaacencoder_(.*)",
+    EGAAC:     "egaacencoder_(.*)",
+    GEARY:     "gearyencoder_(.*)",
+    KSCTRIAD:  "ksctriadencoder_(.*)",
+    MORAN:     "moranencoder_(.*)",
+    NMBROTO:   "nmbrotoencoder_(.*)",
+    PAAC:      "paacencoder_(.*)",
+    QSORDER:   "qsorderencoder_(.*)",
+    SOCNUMBER: "socnumberencoder_(.*)",
+    PSEKRAAC:  "psekraac(.*?)_subtype"
+}
+
+def get_type(encoding, config):
+
+    if encoding in [APAAC, PAAC]:
+        return expand("{name}encoder_lambda-{lambdaValue}",
+                      name=encoding,
+                      lambdaValue=config["lambda_based"][encoding]["lambdas"])
+
+    elif encoding in [CKSAAGP, CKSAAP, CTRIAD, KSCTRIAD]:
+        return expand("{name}encoder_gap-{gapValue}",
+                      name=encoding,
+                      gapValue=config["gap_based"][encoding]["gaps"])
+
+    elif encoding in [GEARY, MORAN, NMBROTO, QSORDER, SOCNUMBER]:
+        return expand("{name}encoder_nlag-{nlag}",
+               name=encoding,
+               nlag=config["nlag_based"][encoding]["nlags"])
+
+    elif encoding in [EAAC, EGAAC]:
+        return expand("{name}encoder_window-{window}",
+                      name=encoding,
+                      window=config["window_based"][encoding]["windows"])
+
+    elif encoding == PSEKRAAC:
+        files = []
+        for type_ in config["psekraac"]["types"]:
+            files += expand("{name}_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}",
+                            name=config["psekraac"][type_]["name"],
+                            subtype=config["psekraac"][type_]["subtypes"],
+                            raactype=config["psekraac"][type_]["raactypes"],
+                            ktuple=config["psekraac"][type_]["ktuples"],
+                            glambda=config["psekraac"][type_]["glambdas"])
+        return files
+
+    else:
+        raise ValueError("Unknown encoding")
+
+def get_unique_types(encoding):
+
+    if encoding in [APAAC, PAAC]:
+        return ["lambda"]
+
+    elif encoding in [CKSAAGP, CKSAAP, CTRIAD, KSCTRIAD]:
+        return ["gap"]
+
+    elif encoding in [EAAC, EGAAC]:
+        return ["window"]
+
+    elif encoding in [GEARY, MORAN, NMBROTO, QSORDER, SOCNUMBER]:
+        return ["nlag"]
+
+    elif encoding == PSEKRAAC:
+        return ["type1", "type2", "type3A", "type3B", "type4", "type5" ,"type6A" ,"type6B",
+                "type6C", "type7", "type8", "type9", "type10", "type11","type12", "type13",
+                "type14", "type15", "type16"]
+
+    else:
+        raise ValueError("Unknown encoding")
