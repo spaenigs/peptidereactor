@@ -5,10 +5,10 @@ import sys
 sys.path.append(config["cwd"] + "/" + config["programs"]["iFeature"])
 
 
-localrules: paac_generate_lambda_based_encodings
+localrules: paac_generate_encodings
 
 
-rule paac_generate_lambda_based_encodings:
+rule paac_generate_encodings:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
     output:
