@@ -14,6 +14,7 @@ except ModuleNotFoundError as e:
     print("Loaded environment specific configuration?", file=sys.stderr)
     sys.exit(1)
 
+
 rule generate_window_based_encodings:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
@@ -198,7 +199,7 @@ rule generate_psekraac_based_encodings:
          "{dataset}_{part}_{name}encoder_subtype-{subtype}_raactype-{raactype}_ktuple-{ktuple}_glValue-{glambda}.csv"
     run:
         import encoder.ifeature.psekraac.encoder as psekraac_encoder
-        if wildcards.encoding == "psekraactype1":
+        if wildcards.name == "psekraactype1":
             for df in psekraac_encoder.PseKRAACType1Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -206,7 +207,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype2":
+        elif wildcards.name == "psekraactype2":
             for df in psekraac_encoder.PseKRAACType2Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -214,7 +215,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype3A":
+        elif wildcards.name == "psekraactype3A":
             for df in psekraac_encoder.PseKRAACType3AEncoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -222,7 +223,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype3Bencoder":
+        elif wildcards.name == "psekraactype3B":
             for df in psekraac_encoder.PseKRAACType3BEncoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -230,7 +231,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype4encoder":
+        elif wildcards.name == "psekraactype4":
             for df in psekraac_encoder.PseKRAACType4Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -238,7 +239,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype5encoder":
+        elif wildcards.name == "psekraactype5":
             for df in psekraac_encoder.PseKRAACType5Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -246,7 +247,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype6Aencoder":
+        elif wildcards.name == "psekraactype6A":
             for df in psekraac_encoder.PseKRAACType6AEncoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -254,7 +255,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype6Bencoder":
+        elif wildcards.name == "psekraactype6B":
             for df in psekraac_encoder.PseKRAACType6BEncoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -262,7 +263,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype6Cencoder":
+        elif wildcards.name == "psekraactype6C":
             for df in psekraac_encoder.PseKRAACType6CEncoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -270,7 +271,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype7encoder":
+        elif wildcards.name == "psekraactype7":
             for df in psekraac_encoder.PseKRAACType7Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -278,7 +279,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype8encoder":
+        elif wildcards.name == "psekraactype8":
             for df in psekraac_encoder.PseKRAACType8Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -286,7 +287,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype9encoder":
+        elif wildcards.name == "psekraactype9":
             for df in psekraac_encoder.PseKRAACType9Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -294,7 +295,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype10encoder":
+        elif wildcards.name == "psekraactype10":
             for df in psekraac_encoder.PseKRAACType10Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -302,7 +303,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype11encoder":
+        elif wildcards.name == "psekraactype11":
             for df in psekraac_encoder.PseKRAACType11Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -310,7 +311,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype12encoder":
+        elif wildcards.name == "psekraactype12":
             for df in psekraac_encoder.PseKRAACType12Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -318,7 +319,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype13encoder":
+        elif wildcards.name == "psekraactype13":
             for df in psekraac_encoder.PseKRAACType13Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -326,7 +327,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype14encoder":
+        elif wildcards.name == "psekraactype14":
             for df in psekraac_encoder.PseKRAACType14Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -334,7 +335,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        elif wildcards.encoding == "psekraactype15encoder":
+        elif wildcards.name == "psekraactype15":
             for df in psekraac_encoder.PseKRAACType15Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -342,7 +343,7 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
-        else:
+        elif wildcards.name == "psekraactype16":
             for df in psekraac_encoder.PseKRAACType16Encoder(
                 in_data=jl.load(str(input)), cores=4,
                 subtype=wildcards.subtype,
@@ -350,6 +351,8 @@ rule generate_psekraac_based_encodings:
                 ktuple=int(wildcards.ktuple),
                 glambda=int(wildcards.glambda)).encode():
                 df.to_csv(str(output))
+        else:
+            raise ValueError(f"Unknown encoding: {wildcards.name}")
 
 
 
