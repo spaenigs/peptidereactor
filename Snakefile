@@ -3,22 +3,22 @@ import os
 from Bio import SeqIO
 from snakemake.io import expand
 
-
 configfile: "config.yaml"
 
 include: "01_preprocessing/a_preprocessing.smk"
 include: "01_preprocessing/b_profiles.smk"
 
-FILES_02 = ["02_encoding/*/a_encode.smk",
-            "02_encoding/*/b_filter_and_normalize.smk",
-            "02_encoding/*/c_final_datasets.smk"]
+include: "02_encoding/a_encode.smk"
+include: "02_encoding/b_filter_and_normalize.smk"
+include: "02_encoding/c_final_datasets.smk"
 
-ENCODINGS = ["apaac", "paac", "psekraac"]
+# ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
+#              "ksctriad", "geary", "moran", "nmbroto", "qsorder",
+#              "socnumber", "eaac", "egaac"]
 
-for f in FILES_02:
-    for e in ENCODINGS:
-        include: f.replace("*", e.upper())
+ENCODINGS = ["psekraac"]
 
+# TODO aaindex, not param based, LOCALRULES, structure based
 
 DATASET = config["dataset"]
 PART = config["part"]
@@ -28,11 +28,14 @@ NORMALIZE = config["normalize"]
 # TODO only submit pssm profile generation to cluster
 rule all:
     input:
-        expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
-        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/geom_median/tsne/normalized-{normalized}/final_datasets.txt",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
-        expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/{dataset}_{part}_normalized-{normalized}.txt",
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
+        # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
+        #        "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
 
 
 
@@ -119,6 +122,7 @@ rule all:
 #                dataset=DATASET, part=PART, normalized=NORMALIZE)),
 #         b_psekraac_final_datasets(expand("01_data/out/{dataset}/plots/{dataset}_{part}_normalized-{normalized}_tsne.svg",
 #                                          dataset=DATASET, part=PART, normalized=NORMALIZE))
+
 
 
 
