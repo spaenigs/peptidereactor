@@ -1,4 +1,5 @@
 from snakemake.io import expand, glob_wildcards
+from encoder.ifeature.param_free.encoder import AAIndexEncoder
 
 AAINDEX   = "aaindex"
 APAAC     = "apaac"
@@ -67,6 +68,11 @@ def get_type(encoding, config):
                             glambda=config["psekraac"][type_]["glambdas"])
         return files
 
+    elif encoding == AAINDEX:
+        return expand("{name}encoder_aaindex-{aaindex}",
+                      name=encoding,
+                      aaindex=AAIndexEncoder._aaindex_names)
+
     else:
         raise ValueError("Unknown encoding")
 
@@ -88,6 +94,9 @@ def get_unique_types(encoding):
         return ["type1", "type2", "type3A", "type3B", "type4", "type5" ,"type6A" ,"type6B",
                 "type6C", "type7", "type8", "type9", "type10", "type11","type12", "type13",
                 "type14", "type15", "type16"]
+
+    elif encoding == AAINDEX:
+        return ["aaindex"]
 
     else:
         raise ValueError("Unknown encoding")

@@ -16,7 +16,7 @@ include: "02_encoding/c_final_datasets.smk"
 #              "ksctriad", "geary", "moran", "nmbroto", "qsorder",
 #              "socnumber", "eaac", "egaac"]
 
-ENCODINGS = ["psekraac"]
+ENCODINGS = ["aaindex"]
 
 # TODO aaindex, not param based, LOCALRULES, structure based
 
