@@ -15,7 +15,7 @@ except ModuleNotFoundError as e:
     sys.exit(1)
 
 
-localrules: generate_psekraac_based_encodings 
+localrules: generate_psekraac_based_encodings
 
 
 rule generate_window_based_encodings:
