@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("02_encoding")
 
 import scripts.utils as utils
@@ -7,6 +8,19 @@ import scripts.utils as utils
 localrules: collect_distance_matrix, collect_geometric_median, plot_clustering, get_final_datasets
 
 rule generate_distance_matrix:
+    # """
+    # Computes the distances from each dataset to another within an encoding family.
+    # Every execution of this rule computes a row in the final distance matrix.
+    #
+    # input
+    # -----
+    #     A (normalized,) encoded dataset.
+    #
+    # output
+    # ------
+    #     A file with the respective distances to the other datasets. To save computation time,
+    #     only the lower triangular matrix will be computed, hence other values are set to NA.
+    # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
         "{dataset}_{part}_{type}.csv"
@@ -18,6 +32,17 @@ rule generate_distance_matrix:
 
 
 rule collect_distance_matrix:
+    # """
+    # Combines all rows to the final distance matrix.
+    #
+    # input
+    # -----
+    #     The files with the respective distances.
+    #
+    # output
+    # ------
+    #     The lower left triangular distance matrix.
+    # """
     input:
         lambda wildcards: \
             expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/correlation/" + \
@@ -35,6 +60,21 @@ rule collect_distance_matrix:
 
 
 rule run_clustering:
+    # """
+    # Runs the t-SNE algorithm for a given distance matrix and reduces the dimension
+    # from NxN to Nx2 components.
+    #
+    # input
+    # -----
+    #     The lower left triangular distance matrix.
+    #
+    # output
+    # ------
+    #     A file with the reduced components and meaningful subclasses for a given
+    #     encoding family. The subclass is based on a regex pattern and extracted
+    #     from the filenames of the encoded datasets. See scripts/utils.py for more
+    #     information.
+    # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/" + \
         "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
@@ -43,12 +83,27 @@ rule run_clustering:
         "{dataset}_{part}_normalized-{normalized,yes|no}.csv"
     run:
         from scripts.run_clustering import run_clustering
-        run_clustering(utils.ENCODING_PATTERN[wildcards.encoding],
+        run_clustering(utils.ENCODING_PATTERN[wildcards.encoding], # TODO replace with get_unique_types
                        str(input),
                        str(output))
 
 
 rule compute_geometric_median:
+    # """
+    # Computes the geometric median, i.e, the median of a given set of 2D vectors
+    # for each subclass.
+    #
+    # input
+    # -----
+    #     The file with the Nx2 components, i.e, a set of 2D vectors for each subclass.
+    #
+    # output
+    # ------
+    #     A file for each subclass and the results from the distances between all points
+    #     within a subclass. The geometric median for a subclass is highlighted via the
+    #     column 'min_gm'. Note that each of the 2D vectors can be traced back to an
+    #     actual, encoded dataset.
+    # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}.csv"
@@ -60,6 +115,16 @@ rule compute_geometric_median:
 
 
 rule collect_geometric_median:
+    # """
+    # Collect the geometric median data for all subclasses.
+    #
+    # input
+    # -----
+    #     All files with the geometric median of a subclass.
+    #
+    # output:
+    #     A file with all subclasses concatenated.
+    # """
     input:
         lambda wildcards: \
             expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/geom_median/" + \
@@ -77,6 +142,18 @@ rule collect_geometric_median:
 
 
 rule plot_clustering:
+    # """
+    # Plots the Nx2 components of an encoding family.
+    #
+    # input
+    # -----
+    #     The file with all subclasses concatenated.
+    #
+    # output
+    # ------
+    #     A scatter plot. All subclasses are color-coded and the respective
+    #     geometric median is annotated.
+    # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
@@ -87,6 +164,20 @@ rule plot_clustering:
 
 
 rule get_final_datasets:
+    # """
+    # Gets the final dataset, i.e., the most representative dataset for an encoding,
+    # in case the number of subclasses is 1, or for the subclass if there are more
+    # than one subclasses for an encoding.
+    #
+    # input
+    # -----
+    #     The file with all subclasses concatenated.
+    #
+    # output
+    # ------
+    #     A file with a list of the final datasets. The actual datasets are silently
+    #     copied to same output directory.
+    # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
@@ -94,4 +185,5 @@ rule get_final_datasets:
         temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
              "geom_median/tsne/normalized-{normalized}/final_datasets.txt")
     script:
-         "scripts/get_final_datasets.py"
+        "scripts/get_aaindex_types.py" #if wildcards.encoding == "aaindex" else "scripts/get_final_datasets.py"
+
