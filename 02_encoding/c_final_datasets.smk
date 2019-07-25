@@ -1,13 +1,8 @@
-import sys
-
-sys.path.append("02_encoding")
-
 import scripts.utils as utils
-
 
 localrules: collect_distance_matrix, collect_geometric_median, plot_clustering, get_final_datasets
 
-rule generate_distance_matrix:
+rule compute_distance_matrix:
     # """
     # Computes the distances from each dataset to another within an encoding family.
     # Every execution of this rule computes a row in the final distance matrix.
@@ -28,7 +23,7 @@ rule generate_distance_matrix:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/correlation/" + \
         "{dataset}_{part}_{type}_normalized-{normalized}_vs_rest.csv"
     script:
-        "scripts/generate_distance_matrix.py"
+        "scripts/compute_distance_matrix.py"
 
 
 rule collect_distance_matrix:
@@ -163,6 +158,28 @@ rule plot_clustering:
         "scripts/plot_clustering.py"
 
 
+def determine_input(wildcards):
+    if wildcards.encoding == utils.AAINDEX:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/aaindex/" + \
+               "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
+    elif wildcards.encoding in [utils.APAAC, utils.PAAC, utils.CKSAAGP, utils.CKSAAP,
+                                utils.CTRIAD, utils.KSCTRIAD,
+                                utils.GEARY, utils.MORAN, utils.NMBROTO, utils.QSORDER, utils.SOCNUMBER,
+                                utils.EAAC, utils.EGAAC, utils.PSEKRAAC]:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
+               "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+    elif wildcards.encoding in [utils.BINARY, utils.AAC, utils.GAAC, utils.CTDT, utils.CTDC,
+                                utils.CTDD, utils.TPC, utils.GTPC, utils.DPC, utils.GDPC,
+                                utils.DDE, utils.BLOSUM62, utils.ZSCALE]:
+        return expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
+                      "{dataset}_{part}_{type}.csv",
+                      dataset=wildcards.dataset,
+                      part=wildcards.part,
+                      encoding=wildcards.encoding,
+                      type=["binaryencoder", "aacencoder"])
+    else:
+        raise ValueError(f"Unknown encoding: {wildcards.encoding}.")
+
 rule get_final_datasets:
     # """
     # Gets the final dataset, i.e., the most representative dataset for an encoding,
@@ -179,11 +196,9 @@ rule get_final_datasets:
     #     copied to same output directory.
     # """
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
-        "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+         determine_input
     output:
         temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
              "geom_median/tsne/normalized-{normalized}/final_datasets.txt")
     script:
-        "scripts/get_aaindex_types.py" #if wildcards.encoding == "aaindex" else "scripts/get_final_datasets.py"
-
+        "scripts/get_final_datasets.py"

@@ -36,7 +36,9 @@ rule generate_pssm_profile:
             with open(str(o), mode="w") as f:
                 f.write("")
         pssm_utils.PSSMUtils.generate_profile(
-            input_data, f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile", cores=1,
+            input_data,
+            f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+            cores=1,
             db=config["uniref_db"])
 
 

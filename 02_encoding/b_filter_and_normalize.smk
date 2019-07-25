@@ -1,8 +1,4 @@
-import sys
-sys.path.append("02_encoding")
-
 import scripts.utils as utils
-
 
 localrules: filter_datasets, normalize_datasets, collect_normalized_datasets
 

@@ -1,10 +1,8 @@
 from sklearn.externals import joblib as jl
 
+import sys
 import os
 os.environ["R_LIBS_USER"] = config["cwd"] + "/" + config["programs"]["rlibs"]
-
-import sys
-sys.path.append(config["cwd"] + "/" + config["programs"]["iFeature"])
 
 try:
     import encoder.ifeature.param_free.encoder as param_free_encoder
@@ -14,9 +12,7 @@ except ModuleNotFoundError as e:
     print("Loaded environment specific configuration?", file=sys.stderr)
     sys.exit(1)
 
-
 localrules: generate_psekraac_based_encodings
-
 
 rule generate_window_based_encodings:
     input:
@@ -123,19 +119,6 @@ rule generate_gap_based_encodings:
                     df.to_csv(str(output))
 
 
-rule generate_binary_encoding:
-    input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
-        "{dataset}_{part}_binaryencoder"
-    run:
-        df = param_free_encoder.BinaryEncoder(
-            in_data=jl.load(str(input)), cores=4, run_msa=False
-        ).encode()
-        df.to_csv(str(output))
-
-
 rule generate_aaindex_encoding:
      input:
         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
@@ -150,7 +133,9 @@ rule generate_aaindex_encoding:
 
 rule generate_paramfree_based_encoding:
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib"
+        lambda wildcards: \
+            f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/joblib/" + \
+            f"{wildcards.dataset}_{wildcards.part}_pssms_filtered{'_msa' if wildcards.encoding == 'binary' else ''}.joblib"
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
         "{dataset}_{part}_{name}encoder.csv"
@@ -188,9 +173,16 @@ rule generate_paramfree_based_encoding:
         elif wildcards.encoding == "blosum62":
             df = param_free_encoder.Blosum62Encoder(in_data=jl.load(str(input)), cores=4)\
                 .encode()
-        else:
+        elif wildcards.encoding == "binary":
+            df = param_free_encoder.BinaryEncoder(
+                in_data=jl.load(str(input)), cores=4, run_msa=False
+            ).encode()
+            df.to_csv(str(output))
+        elif wildcards.encoding == "zscale":
             df = param_free_encoder.ZscaleEncoder(in_data=jl.load(str(input)), cores=4)\
                 .encode()
+        else:
+            raise ValueError("Unknown encoding.")
         df.to_csv(str(output))
 
 

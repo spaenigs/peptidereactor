@@ -14,7 +14,7 @@ localrules: read_fasta, read_classes,
 
 rule read_fasta:
     input:
-         "00_data/in/fasta/{dataset}.fasta"
+         ancient("00_data/in/fasta/{dataset}.fasta")
     output:
         temp("00_data/out/tmp/{dataset}_from_fasta.joblib")
     run:
@@ -30,7 +30,7 @@ rule read_fasta:
 
 rule read_classes:
     input:
-        "00_data/in/class/{dataset}_classes.txt"
+        ancient("00_data/in/class/{dataset}_classes.txt")
     output:
         temp("00_data/out/tmp/{dataset}_from_classes.joblib")
     run:
@@ -41,8 +41,8 @@ rule read_classes:
 
 rule create_input_data:
     input:
-        "00_data/out/tmp/{dataset}_from_fasta.joblib",
-        "00_data/out/tmp/{dataset}_from_classes.joblib"
+        ancient("00_data/out/tmp/{dataset}_from_fasta.joblib"),
+        ancient("00_data/out/tmp/{dataset}_from_classes.joblib")
     output:
         temp("00_data/out/tmp/{dataset,[A-Za-z]+}.joblib")
     run:
@@ -57,7 +57,7 @@ rule create_input_data:
 
 rule create_normal_distributed_input_data:
     input:
-        "00_data/out/tmp/{dataset}.joblib"
+        ancient("00_data/out/tmp/{dataset}.joblib")
     output:
         temp("00_data/out/tmp/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
         "00_data/out/{dataset,[A-Za-z]+}/{dataset}_ds1/joblib/{dataset}_ds1_normal_distributed.joblib",
@@ -68,7 +68,7 @@ rule create_normal_distributed_input_data:
 
 checkpoint save_as_fasta:
     input:
-         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
+         ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib")
     output:
         "00_data/out/{dataset,[A-Za-z]+}/fasta/{dataset}_{part}.fasta",
         "00_data/out/{dataset,[A-Za-z]+}/class/{dataset}_{part}_classes.txt"
@@ -91,10 +91,10 @@ checkpoint save_as_fasta:
 
 rule plot_sequence_length_distribution:
     input:
-        "00_data/out/tmp/{dataset}.joblib",
-        "00_data/out/tmp/{dataset}_normal_distributed.joblib",
-         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
-                                  dataset=wildcards.dataset, part=["ds1", "ds2"])
+        ancient("00_data/out/tmp/{dataset}.joblib"),
+        ancient("00_data/out/tmp/{dataset}_normal_distributed.joblib"),
+        ancient(lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
+                                  dataset=wildcards.dataset, part=["ds1", "ds2"]))
     output:
         "00_data/out/{dataset,[A-Za-z]+}/plots/{dataset}_length_distribution.svg"
     script:

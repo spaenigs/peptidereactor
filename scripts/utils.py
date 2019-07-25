@@ -1,14 +1,25 @@
-from snakemake.io import expand, glob_wildcards
+from snakemake.io import expand
 from encoder.ifeature.param_free.encoder import AAIndexEncoder
 
 AAINDEX   = "aaindex"
+AAC       = "aac"
 APAAC     = "apaac"
+BINARY    = "binary"
+BLOSUM62  = "blosum62"
 CKSAAGP   = "cksaagp"
 CKSAAP    = "cksaap"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
 CTRIAD    = "ctriad"  # very sparse, no dataset passes rule filter_datasets
+CTDT      = "ctdt"
+CTDC      = "ctdc"
+CTDD      = "ctdd"
+DDE       = "dde"
+DPC       = "dpc"
 EAAC      = "eaac"
 EGAAC     = "egaac"
+GAAC      = "gaac"
 GEARY     = "geary"
+GTPC      = "gtpc"
+GDPC      = "gdpc"
 KSCTRIAD  = "ksctriad"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
 MORAN     = "moran"
 NMBROTO   = "nmbroto"
@@ -16,6 +27,18 @@ PAAC      = "paac"
 PSEKRAAC  = "psekraac"
 QSORDER   = "qsorder"
 SOCNUMBER = "socnumber"
+TPC       = "tpc"
+ZSCALE    = "zscale"
+
+PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
+                         "ksctriad", "geary", "moran", "nmbroto", "qsorder",
+                         "socnumber", "eaac", "egaac"]
+
+PARAM_FREE_ENCODINGS = ["binary", "aac", "gaac", "ctdt", "ctdc", "ctdd", "tpc",
+                        "gtpc", "gtpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
+
+REST_ENCODINGS = ["AAINDEX", "PSEKRAAC"]
+
 
 ENCODING_PATTERN = {
     AAINDEX:   "aaindexencoder_aaindex-(.*?)\d+",
@@ -74,7 +97,7 @@ def get_type(encoding, config):
                       aaindex=AAIndexEncoder._aaindex_names)
 
     else:
-        raise ValueError("Unknown encoding")
+        raise ValueError(f"Unknown encoding: {encoding}.")
 
 def get_unique_types(encoding):
 
@@ -99,4 +122,4 @@ def get_unique_types(encoding):
         return ["aaindex"]
 
     else:
-        raise ValueError("Unknown encoding")
+        raise ValueError(f"Unknown encoding: {encoding}.")
