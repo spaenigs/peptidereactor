@@ -78,10 +78,15 @@ class BaseEncoder(ABC):
                 stdin=PIPE, stdout=PIPE, stderr=PIPE
             )
             output, error = p.communicate()
-            if "Error" in error.decode():
+            if "Error in library" in error.decode():
                 raise ModuleNotFoundError(
                     error.decode() +
                     f"\nPath to R libraries correct: {os.environ['R_LIBS_USER']}?\n")
+            elif "Error" in error.decode():
+                raise EnvironmentError(
+                    error.decode() +
+                    f"\nSomething went wrong while using an external program (R)...\n" +
+                    f"  - Did you set the correct R libraries path? ({os.environ['R_LIBS_USER']})\n")
             encoded_seqs = eval(output.decode())
         return encoded_seqs
 
