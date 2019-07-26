@@ -32,8 +32,8 @@ if not df_gm.empty:
                    label=f"(geom. median)",
                    c=colors[i])
         if not df_filtered.empty:
-            ax.text(df_filtered.x1,
-                    df_filtered.x2 - (0.2 * df_filtered.x2),
+            ax.text(df_filtered.x1.values[0],
+                    df_filtered.x2.values[0] - (0.2 * df_filtered.x2.values[0]),
                     df_filtered.name.values[0],
                     ha="center")
 
