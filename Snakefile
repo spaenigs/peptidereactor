@@ -20,16 +20,20 @@ include: "02_encoding/c_final_datasets.smk"
 DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]
-ENCODINGS = utils.PARAM_FREE_ENCODINGS
-
+# ENCODINGS = ["disorder", "spinex", "pssm", "psipred"]
+ENCODINGS = ["psekraac"]
 rule all:
     input:
-        expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
+        #        "{dataset}_{part}_normalized-{normalized}.txt",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
+        # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
         expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
                "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
                dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
-        # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
+        # TODO works only for param_based, psekraac and aaindex encoding:
+        expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
 
 
 
