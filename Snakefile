@@ -14,14 +14,20 @@ include: "02_encoding/a_encode.smk"
 include: "02_encoding/b_filter_and_normalize.smk"
 include: "02_encoding/c_final_datasets.smk"
 
-# TODO structure based
 # TODO check aaindex distance (1 -?)
 
 DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]
-# ENCODINGS = ["disorder", "spinex", "pssm", "psipred"]
-ENCODINGS = ["psekraac"]
+
+ENCODINGS = sorted(utils.STRUC_ENCODINGS +
+                   utils.REST_ENCODINGS +
+                   utils.PARAM_BASED_ENCODINGS +
+                   utils.PARAM_FREE_ENCODINGS)
+
+ENCODINGS_PLOT = sorted(utils.REST_ENCODINGS +
+                        utils.PARAM_BASED_ENCODINGS)
+
 rule all:
     input:
         # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
@@ -33,12 +39,7 @@ rule all:
                dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
         # TODO works only for param_based, psekraac and aaindex encoding:
         expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
-
-
-
-
-
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS_PLOT),
 
 
 
