@@ -1,48 +1,49 @@
 from snakemake.io import expand
 from encoder.ifeature.param_free.encoder import AAIndexEncoder
 
-AAINDEX   = "aaindex"
-AAC       = "aac"
-APAAC     = "apaac"
-BINARY    = "binary"
-BLOSUM62  = "blosum62"
-CKSAAGP   = "cksaagp"
-CKSAAP    = "cksaap"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
-CTRIAD    = "ctriad"  # very sparse, no dataset passes rule filter_datasets
-CTDT      = "ctdt"
-CTDC      = "ctdc"
-CTDD      = "ctdd"
-DISORDER  = "disorder"
-DDE       = "dde"
-DPC       = "dpc"
-EAAC      = "eaac"
-EGAAC     = "egaac"
-GAAC      = "gaac"
-GEARY     = "geary"
-GTPC      = "gtpc"
-GDPC      = "gdpc"
-KSCTRIAD  = "ksctriad"  # thousands of columns and very sparse, no dataset passes rule filter_datasets
-MORAN     = "moran"
-NMBROTO   = "nmbroto"
-PAAC      = "paac"
-PSEKRAAC  = "psekraac"
-PSIPRED   = "psipred"
-PSSM      = "pssm"
-QSORDER   = "qsorder"
-SOCNUMBER = "socnumber"
-SPINEX    = "spinex"
-TPC       = "tpc"
-ZSCALE    = "zscale"
+AAC       = "aac" # x
+AAINDEX   = "aaindex" # x
+APAAC     = "apaac" # x
+BINARY    = "binary" # x
+BLOSUM62  = "blosum62" # x
+CKSAAGP   = "cksaagp" # x
+CKSAAP    = "cksaap" # x  # thousands of columns and very sparse, no dataset passes rule filter_datasets
+CTDC      = "ctdc" # x
+CTDD      = "ctdd" # x
+CTDT      = "ctdt" # x
+CTRIAD    = "ctriad" # x  # very sparse, no dataset passes rule filter_datasets
+DDE       = "dde"  # x
+DISORDER  = "disorder" # x
+DPC       = "dpc" # x
+EAAC      = "eaac" # x
+EGAAC     = "egaac" # x
+GAAC      = "gaac" # x
+GDPC      = "gdpc" # x
+GTPC      = "gtpc"  # x
+GEARY     = "geary"  # x
+KSCTRIAD  = "ksctriad" # x  # thousands of columns and very sparse, no dataset passes rule filter_datasets
+MORAN     = "moran" # x
+NMBROTO   = "nmbroto" # x
+PAAC      = "paac" # x
+PSEKRAAC  = "psekraac" # x
+PSIPRED   = "psipred" # x
+PSSM      = "pssm" # x
+QSORDER   = "qsorder" # x
+SOCNUMBER = "socnumber" # x
+SPINEX    = "spinex" # x
+TPC       = "tpc" # x
+ZSCALE    = "zscale" # x
 
 PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
                          "ksctriad", "geary", "moran", "nmbroto", "qsorder",
                          "socnumber", "eaac", "egaac"]
 
 PARAM_FREE_ENCODINGS = ["binary", "aac", "gaac", "ctdt", "ctdc", "ctdd", "tpc",
-                        "gtpc", "gtpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
+                        "gtpc", "gdpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
 
-REST_ENCODINGS = ["AAINDEX", "PSEKRAAC"]
+REST_ENCODINGS = ["aaindex", "psekraac"]
 
+STRUC_ENCODINGS = ["disorder", "spinex", "psipred", "pssm"]
 
 ENCODING_PATTERN = {
     AAINDEX:   "aaindexencoder_aaindex-(.*?)\d+",
@@ -64,7 +65,14 @@ ENCODING_PATTERN = {
 
 
 def get_type(encoding, config):
-
+    """
+    Gets the unique type, also referred to as ’subclass’, of an encoding. Ranges from 'easy'
+    subclasses, such as lambda or window values to complex shapes, composed of several para-
+    meters.
+    :param encoding: The encoding.
+    :param config: The snakemake config object.
+    :return: The specific type of the given encoding.
+    """
     if encoding in [APAAC, PAAC]:
         return expand("{name}encoder_lambda-{lambdaValue}",
                       name=encoding,
@@ -117,7 +125,13 @@ def get_type(encoding, config):
 
 
 def get_unique_types(encoding):
-
+    """
+    Gets the unique type of an encoding. The unique type is commonly the
+    name of a parameter family, which is shared by all manifestations of
+    a parametrized encoding.
+    :param encoding: The encoding.
+    :return: The unique type for a given encoding.
+    """
     if encoding in [APAAC, PAAC]:
         return ["lambda"]
 
@@ -143,7 +157,14 @@ def get_unique_types(encoding):
 
 
 def determine_input(wildcards, config):
-
+    """
+    Determines the type of input data to get the final datasets. Parameter-
+    based encodings require more complex preceeding steps than encodings
+    without parameters. Hence, the input depends on the encoding type.
+    :param wildcards: The snakemake wildcards object.
+    :param config: The snakemake config object.
+    :return: The input data to compute the final (filtered) dataset.
+    """
     if wildcards.encoding == AAINDEX:
         return "00_data/out/{dataset}/{dataset}_{part}/encodings/aaindex/" + \
                "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
