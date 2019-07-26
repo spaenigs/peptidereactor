@@ -350,153 +350,96 @@ rule generate_psekraac_based_encodings:
             raise ValueError(f"Unknown encoding: {wildcards.name}")
 
 
+rule generate_disorder_based_encodings:
+    input:
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated.joblib",
+         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated_msa.joblib"
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
+        "{dataset}_{part}_disorderencoder_{name}.csv"
+    run:
+        import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
+        if wildcards.name == "disorder":
+            df = disprot_encoder.DisorderEncoder(
+                in_data=jl.load(str(input[0])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1
+            ).encode()
+        elif wildcards.name == "disorderb":
+            df = disprot_encoder.DisorderBEncoder(
+                in_data=jl.load(str(input[1])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1, run_msa=False
+            ).encode()
+        else:
+            df = disprot_encoder.DisorderCEncoder(
+                in_data=jl.load(str(input[0])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1
+            ).encode()
+        df.to_csv(str(output))
 
 
-### TODO ####
+rule generate_spinex_based_encodings:
+    input:
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated.joblib",
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
+        "{dataset}_{part}_spinexencoder_{name}.csv"
+    run:
+        import encoder.ifeature.pssm.spinex_encoding.encoder as spx_encoder
+        if wildcards.name == "asa":
+            df = spx_encoder.ASAEncoder(
+                in_data=jl.load(str(input[0])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1,
+            ).encode()
+        else:
+            df = spx_encoder.TAEncoder(
+                in_data=jl.load(str(input[0])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1,
+            ).encode()
+        df.to_csv(str(output))
 
 
-# rule annotate_sequence_names:
-#     input:
-#         "data/out/joblib/{dataset}-pssms_filtered.joblib",
-#         "data/out/joblib/{dataset}-pssms_filtered-msa.joblib"
-#     output:
-#         "data/out/joblib/{dataset,[A-Za-z]+(_ds[12])?}-annotated.joblib",
-#         "data/out/joblib/{dataset,[A-Za-z]+(_ds[12])?}-annotated-msa.joblib"
-#     run:
-#         def add_names(input_data_):
-#             res_seqs, res_classes = [], []
-#             for tup in zip(*input_data_):
-#                 seq_tup = tup[0]
-# 		print(f"original seq: {seq_tup[0]}")
-#                 print(f"with wildcards: {wildcards.dataset}-{seq_tup[0]}")
-#                 seq_tup[0] = f"{wildcards.dataset}-{seq_tup[0]}"
-#                 res_seqs.append(seq_tup)
-#                 res_classes.append(tup[1])
-#             return res_seqs, res_classes
-#         input_data, input_data_msa = jl.load(str(input[0])), jl.load(str(input[1]))
-#         jl.dump(value=add_names(input_data), filename=str(output[0]))
-#         jl.dump(value=add_names(input_data_msa), filename=str(output[1]))
-#
-#
-# def generate_vsl2_based_file_names(wildcards):
-#     seq_names, files = get_sequence_names(wildcards), []
-#     files += expand("data/out/profile/{dataset}-{seq_name}.dis",
-#                     dataset=wildcards.dataset,
-#                     seq_name=seq_names)
-#     files += expand("data/out/profile/{dataset}-{seq_name}.flat",
-#                     dataset=wildcards.dataset,
-#                     seq_name=seq_names)
-#     return files
-#
-#
-# rule generate_disorder_based_encodings:
-#     input:
-#          "data/out/joblib/{dataset}-annotated.joblib",
-#          "data/out/joblib/{dataset}-annotated-msa.joblib",
-#          generate_vsl2_based_file_names
-#     output:
-#         "data/out/csv/disorder/{dataset}_ifeature_disorder_{name}-encoder.csv"
-#     run:
-#         import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
-#         if wildcards.encoding == "disorder":
-#             df = disprot_encoder.DisorderEncoder(
-#                 in_data=jl.load(str(input[0])),
-#                 profile_dir="data/out/profile",
-#                 cores=1
-#             ).encode()
-#         elif wildcards.encoding == "disorderb":
-#             df = disprot_encoder.DisorderBEncoder(
-#                 in_data=jl.load(str(input[1])),
-#                 profile_dir="data/out/profile",
-#                 cores=1, run_msa=False
-#             ).encode()
-#         else:
-#             df = disprot_encoder.DisorderCEncoder(
-#                 in_data=jl.load(str(input[0])),
-#                 profile_dir="data/out/profile",
-#                 cores=1
-#             ).encode()
-#         df.to_csv(str(output))
-#
-#
-# def generate_spinex_based_file_names(wildcards):
-#     seq_names, files = get_sequence_names(wildcards), []
-#     files += expand("data/out/profile/{dataset}-{seq_name}.spXout",
-#                     dataset=wildcards.dataset,
-#                     seq_name=seq_names)
-#     return files
-#
-#
-# rule generate_spinex_based_encodings:
-#     input:
-#         "data/out/joblib/{dataset}-annotated.joblib",
-#         generate_spinex_based_file_names
-#     output:
-#         "data/out/csv/spinex/{dataset}_ifeature_spinex_{name}-encoder.csv"
-#     run:
-#         import encoder.ifeature.pssm.spinex_encoding.encoder as spx_encoder
-#         if wildcards.encoding == "asa":
-#             df = spx_encoder.ASAEncoder(
-#                 in_data=jl.load(str(input[0])),
-#                 profile_dir="data/out/profile",
-#                 cores=1,
-#             ).encode()
-#         else:
-#             df = spx_encoder.TAEncoder(
-#                 in_data=jl.load(str(input[0])),
-#                 profile_dir="data/out/profile",
-#                 cores=1,
-#             ).encode()
-#         df.to_csv(str(output))
-#
-#
-# rule generate_pssm_encoding:
-#     input:
-#         "data/out/joblib/{dataset}-annotated.joblib"
-#     output:
-#         "data/out/csv/pssm/{dataset}_ifeature_pssm_{name}-encoder.csv"
-#     run:
-#         import encoder.ifeature.pssm.pssm_encoding.encoder as pssm_encoder
-#         df = pssm_encoder.PSSMEncoder(
-#             in_data=jl.load(str(input)),
-#             profile_dir="data/out/profile",
-#             cores=1
-#         ).encode()
-#         df.to_csv(str(output))
-#
-#
-# def generate_psipred_based_fime_names(wildcards):
-#     seq_names, files = get_sequence_names(wildcards), []
-#     files += expand("data/out/profile/{dataset}-{seq_name}.spXout",
-#                     dataset=wildcards.dataset,
-#                     seq_name=seq_names)
-#     files += expand("data/out/profile/{dataset}-{seq_name}.ss2",
-#                     dataset=wildcards.dataset,
-#                     seq_name=seq_names)
-#     return files
-#
-#
-# rule generate_psipred_based_encodings:
-#     input:
-#         "data/out/joblib/{dataset}-annotated.joblib",
-#         "data/out/joblib/{dataset}-annotated-msa.joblib",
-#         generate_psipred_based_fime_names
-#     output:
-#         "data/out/csv/psipred/{dataset}_ifeature_psipred_{name}-encoder.csv"
-#     run:
-#         import encoder.ifeature.pssm.psipred_encoding.encoder as psipred_encoder
-#         if wildcards.encoding == "sseb":
-#             df = psipred_encoder.SSEBEncoder(
-#                 in_data=jl.load(str(input[1])),
-#                 profile_dir="data/out/profile",
-#                 cores=1, run_msa=False
-#             ).encode()
-#         else:
-#             df = psipred_encoder.SSECEncoder(
-#                 in_data=jl.load(str(input[0])),
-#                 profile_dir="data/out/profile",
-#                 cores=1,
-#             ).encode()
-#         df.to_csv(str(output))
+rule generate_pssm_encoding:
+    input:
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated.joblib",
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
+        "{dataset}_{part}_pssmencoder_pssm.csv"
+    run:
+        import encoder.ifeature.pssm.pssm_encoding.encoder as pssm_encoder
+        df = pssm_encoder.PSSMEncoder(
+            in_data=jl.load(str(input)),
+            profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+            cores=1
+        ).encode()
+        df.to_csv(str(output))
+
+
+rule generate_psipred_based_encodings:
+    input:
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated_msa.joblib"
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
+        "{dataset}_{part}_psipredencoder_{name}.csv"
+    run:
+        import encoder.ifeature.pssm.psipred_encoding.encoder as psipred_encoder
+        if wildcards.encoding == "sseb":
+            df = psipred_encoder.SSEBEncoder(
+                in_data=jl.load(str(input[1])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1, run_msa=False
+            ).encode()
+        else:
+            df = psipred_encoder.SSECEncoder(
+                in_data=jl.load(str(input[0])),
+                profile_dir=f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/profile",
+                cores=1,
+            ).encode()
+        df.to_csv(str(output))
 
 

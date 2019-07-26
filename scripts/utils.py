@@ -12,6 +12,7 @@ CTRIAD    = "ctriad"  # very sparse, no dataset passes rule filter_datasets
 CTDT      = "ctdt"
 CTDC      = "ctdc"
 CTDD      = "ctdd"
+DISORDER  = "disorder"
 DDE       = "dde"
 DPC       = "dpc"
 EAAC      = "eaac"
@@ -25,8 +26,11 @@ MORAN     = "moran"
 NMBROTO   = "nmbroto"
 PAAC      = "paac"
 PSEKRAAC  = "psekraac"
+PSIPRED   = "psipred"
+PSSM      = "pssm"
 QSORDER   = "qsorder"
 SOCNUMBER = "socnumber"
+SPINEX    = "spinex"
 TPC       = "tpc"
 ZSCALE    = "zscale"
 
@@ -57,6 +61,7 @@ ENCODING_PATTERN = {
     SOCNUMBER: "socnumberencoder_(.*)",
     PSEKRAAC:  "psekraac(.*?)_subtype"
 }
+
 
 def get_type(encoding, config):
 
@@ -96,8 +101,20 @@ def get_type(encoding, config):
                       name=encoding,
                       aaindex=AAIndexEncoder._aaindex_names)
 
+    elif encoding in PARAM_FREE_ENCODINGS:
+        return f"{encoding}encoder"
+
+    elif encoding == PSSM:
+        return f"{encoding}encoder_pssm"
+
+    elif encoding in [DISORDER, SPINEX, PSIPRED]:
+        return expand("{name}encoder_{type_name}",
+                      name=encoding,
+                      type_name=config[f"{encoding}_based"]["names"])
+
     else:
         raise ValueError(f"Unknown encoding: {encoding}.")
+
 
 def get_unique_types(encoding):
 
@@ -123,3 +140,29 @@ def get_unique_types(encoding):
 
     else:
         raise ValueError(f"Unknown encoding: {encoding}.")
+
+
+def determine_input(wildcards, config):
+
+    if wildcards.encoding == AAINDEX:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/aaindex/" + \
+               "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
+
+    elif wildcards.encoding in [APAAC, PAAC, CKSAAGP, CKSAAP, CTRIAD, KSCTRIAD,
+                                GEARY, MORAN, NMBROTO, QSORDER, SOCNUMBER,
+                                EAAC, EGAAC, PSEKRAAC]:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
+               "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
+
+    elif wildcards.encoding in [BINARY, AAC, GAAC, CTDT, CTDC, CTDD, TPC, GTPC,
+                                DPC, GDPC, DDE, BLOSUM62, ZSCALE, DISORDER,
+                                SPINEX, PSSM, PSIPRED]:
+        return expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
+                      "{dataset}_{part}_{type}.csv",
+                      dataset=wildcards.dataset,
+                      part=wildcards.part,
+                      encoding=wildcards.encoding,
+                      type=get_type(wildcards.encoding, config))
+
+    else:
+        raise ValueError(f"Unknown encoding: {wildcards.encoding}.")

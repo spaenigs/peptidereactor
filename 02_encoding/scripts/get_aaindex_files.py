@@ -5,7 +5,7 @@ import glob
 from shutil import copyfile
 
 
-def get_aaindex_files(df, output_path, dataset, part, normalized):
+def get_aaindex_files(df):
 
     df = df.applymap(lambda x: 1.0 if np.isnan(x) else x).transpose() * df.applymap(lambda x: 1.0 if np.isnan(x) else x)
 
@@ -56,15 +56,4 @@ def get_aaindex_files(df, output_path, dataset, part, normalized):
         except KeyError:
             pass
 
-    with open(output_path, mode="a") as f:
-        for r in res:
-
-            src = glob.glob(f"00_data/out/{dataset}/{dataset}_{part}/encodings/" +
-                            f"aaindex/csv/normalized/{dataset}_{part}_{r}.csv")[0]
-            dst = f"00_data/out/{dataset}/{dataset}_{part}/encodings/aaindex/csv/final/" + \
-                  f"geom_median/tsne/normalized-{normalized}/{os.path.basename(src)}"
-
-            copyfile(src, dst)
-
-            f.write(f"{src},{dst}\n")
-            f.flush()
+    return res

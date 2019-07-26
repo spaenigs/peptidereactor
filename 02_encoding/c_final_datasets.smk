@@ -158,28 +158,6 @@ rule plot_clustering:
         "scripts/plot_clustering.py"
 
 
-def determine_input(wildcards):
-    if wildcards.encoding == utils.AAINDEX:
-        return "00_data/out/{dataset}/{dataset}_{part}/encodings/aaindex/" + \
-               "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
-    elif wildcards.encoding in [utils.APAAC, utils.PAAC, utils.CKSAAGP, utils.CKSAAP,
-                                utils.CTRIAD, utils.KSCTRIAD,
-                                utils.GEARY, utils.MORAN, utils.NMBROTO, utils.QSORDER, utils.SOCNUMBER,
-                                utils.EAAC, utils.EGAAC, utils.PSEKRAAC]:
-        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
-               "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
-    elif wildcards.encoding in [utils.BINARY, utils.AAC, utils.GAAC, utils.CTDT, utils.CTDC,
-                                utils.CTDD, utils.TPC, utils.GTPC, utils.DPC, utils.GDPC,
-                                utils.DDE, utils.BLOSUM62, utils.ZSCALE]:
-        return expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
-                      "{dataset}_{part}_{type}.csv",
-                      dataset=wildcards.dataset,
-                      part=wildcards.part,
-                      encoding=wildcards.encoding,
-                      type=["binaryencoder", "aacencoder"])
-    else:
-        raise ValueError(f"Unknown encoding: {wildcards.encoding}.")
-
 rule get_final_datasets:
     # """
     # Gets the final dataset, i.e., the most representative dataset for an encoding,
@@ -196,7 +174,7 @@ rule get_final_datasets:
     #     copied to same output directory.
     # """
     input:
-         determine_input
+        lambda wildcards: utils.determine_input(wildcards, config)
     output:
         temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
              "geom_median/tsne/normalized-{normalized}/final_datasets.txt")

@@ -7,7 +7,7 @@ localrules: split_input_data
 
 rule split_input_data:
     input:
-         "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib"
+         ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib")
     output:
          "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
     group:
@@ -19,7 +19,7 @@ rule split_input_data:
 
 rule generate_pssm_profile:
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"
+        ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib")
     output:
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.pssm",
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
@@ -44,8 +44,8 @@ rule generate_pssm_profile:
 
 rule generate_psipred_profile:
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm"
+        ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"),
+        ancient("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm")
     output:
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2",
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.horiz",
@@ -74,9 +74,9 @@ rule generate_psipred_profile:
 
 rule generate_vsl2_profile:
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm",
-        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2"
+        ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"),
+        ancient("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.asn.pssm"),
+        ancient("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.ss2")
     output:
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.dis",
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.flat"
@@ -101,8 +101,8 @@ rule generate_vsl2_profile:
 
 rule generate_spx_profile:
     input:
-        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib",
-        "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat"
+        ancient("00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_{seq_name}_normal_distributed.joblib"),
+        ancient("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.mat")
     output:
         "00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_{seq_name}.spXout",
         temp("00_data/out/{dataset}/{dataset}_{part}/profile/{dataset}_{part}_protein-list-file_{seq_name}.txt")
@@ -141,7 +141,6 @@ def get_target_files(wildcards):
                    dataset=config["dataset"], part=config["part"], ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
                    seq_name=list(map(lambda r: str(r.name), SeqIO.parse(fasta_file[0], "fasta"))))
 
-
 rule remove_non_pssm_hits:
     input:
          "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_normal_distributed.joblib",
@@ -164,3 +163,27 @@ rule remove_non_pssm_hits:
                 filename=str(output[0]))
         jl.dump(value=_filter(jl.load(str(input[1]))),
                 filename=str(output[1]))
+
+
+rule annotate_sequence_names:
+    input:
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_pssms_filtered_msa.joblib"
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated.joblib",
+        "00_data/out/{dataset}/{dataset}_{part}/joblib/{dataset}_{part}_annotated_msa.joblib"
+    run:
+        def add_names(input_data_):
+            res_seqs, res_classes = [], []
+            for tup in zip(*input_data_):
+                seq_tup = tup[0]
+                print(f"original seq: {seq_tup[0]}")
+                print(f"with wildcards: {wildcards.dataset}_{wildcards.part}_{seq_tup[0]}")
+                seq_tup[0] = f"{wildcards.dataset}_{wildcards.part}_{seq_tup[0]}"
+                res_seqs.append(seq_tup)
+                res_classes.append(tup[1])
+            return res_seqs, res_classes
+        input_data, input_data_msa = jl.load(str(input[0])), jl.load(str(input[1]))
+        jl.dump(value=add_names(input_data), filename=str(output[0]))
+        jl.dump(value=add_names(input_data_msa), filename=str(output[1]))
+
