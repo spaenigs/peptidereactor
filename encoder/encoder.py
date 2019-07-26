@@ -12,6 +12,8 @@ import pandas as pd
 import tempfile as tf
 from subprocess import Popen, PIPE
 
+import os
+
 
 class BaseEncoder(ABC):
 
@@ -75,7 +77,11 @@ class BaseEncoder(ABC):
                 ['encoder/R_scripts/interpolate_seq.R', f.name, str(interpolate_to)],
                 stdin=PIPE, stdout=PIPE, stderr=PIPE
             )
-            output, _ = p.communicate()
+            output, error = p.communicate()
+            if "Error" in error.decode():
+                raise ModuleNotFoundError(
+                    error.decode() +
+                    f"\nPath to R libraries correct: {os.environ['R_LIBS_USER']}?\n")
             encoded_seqs = eval(output.decode())
         return encoded_seqs
 
