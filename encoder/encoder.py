@@ -87,6 +87,8 @@ class BaseEncoder(ABC):
                     error.decode() +
                     f"\nSomething went wrong while using an external program (R)...\n" +
                     f"  - Did you set the correct R libraries path? ({os.environ['R_LIBS_USER']})\n")
+            else:
+                print(error.decode())
             encoded_seqs = eval(output.decode())
         return encoded_seqs
 
