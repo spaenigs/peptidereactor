@@ -58,7 +58,7 @@ try:
             to_dim = int(np.ceil(np.mean([ds1.shape[1], ds2.shape[1]])))
             ds1_interpolated, ds2_interpolated = interpolate_to(ds1, to_dim), interpolate_to(ds2, to_dim)
             corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
-            res_corr[row_name][col_name] = 1 - corr
+            res_corr[row_name][col_name] = corr if encoding == "aaindex" else 1 - corr
 
     df = pd.DataFrame(res_corr)
     df.to_csv(str(snakemake.output))
