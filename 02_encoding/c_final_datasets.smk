@@ -18,7 +18,9 @@ rule compute_distance_matrix:
     # """
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
-        "{dataset}_{part}_{type}.csv"
+        "{dataset}_{part}_{type}.csv",
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
+        "{dataset}_{part}_normalized-{normalized}.txt"
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/correlation/" + \
         "{dataset}_{part}_{type}_normalized-{normalized}_vs_rest.csv"

@@ -34,7 +34,7 @@ try:
     files = [f for f in
              glob.glob(
                  f"00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
-                 f"{dataset}_{part}_*")
+                 f"{dataset}_{part}_*.csv")
              if os.path.getsize(f) > 0]
 
     files_filtered = \
