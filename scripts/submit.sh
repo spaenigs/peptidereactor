@@ -11,7 +11,7 @@
 . /etc/profile.d/modules.sh
 module load tools/R-3.4.3
 
-source .bashrc
+source /home/spaenigs/.bashrc
 conda activate encoding_benchmark
 
 snakemake --config dataset=neuropeptides part=ds1 normalize=yes --cores 32 -np
