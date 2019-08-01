@@ -1,6 +1,12 @@
 import scripts.utils as utils
 
-localrules: collect_distance_matrix, collect_geometric_median, plot_clustering, get_final_datasets
+localrules: compute_distance_matrix,
+            collect_distance_matrix,
+            run_clustering,
+            compute_geometric_median,
+            collect_geometric_median,
+            plot_clustering,
+            get_final_datasets
 
 rule compute_distance_matrix:
     # """

@@ -14,5 +14,5 @@ module load tools/R-3.4.3
 source /home/spaenigs/.bashrc
 conda activate encoding_benchmark
 
-snakemake --config dataset=neuropeptides part=ds1 normalize=yes --cores 32 
+snakemake --config dataset=neuropeptides part=ds1 normalize=yes --cores 32
 

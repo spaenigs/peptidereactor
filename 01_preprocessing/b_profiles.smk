@@ -2,7 +2,9 @@ from sklearn.externals import joblib as jl
 from Bio import SeqIO
 
 
-localrules: split_input_data
+localrules: split_input_data,
+            remove_non_pssm_hits,
+            annotate_sequence_names
 
 
 rule split_input_data:
