@@ -7,6 +7,12 @@ usage()
 
 while [ "$1" != "" ]; do
     case $1 in
+        -ds | --dataset )         shift
+                                  dataset=$1
+                                  ;;
+        -pt | --part )            shift
+                                  part=$1
+                                  ;;
         -j | --jobs )             shift
                                   jobs=$1
                                   ;;
@@ -28,8 +34,8 @@ while [ "$1" != "" ]; do
 done
 
 if [ $preprocessing == 1 ]; then
-  snakemake 00_data/out/neuropeptides/neuropeptides_ds1/joblib/neuropeptides_ds1_annotated.joblib \
-            00_data/out/neuropeptides/neuropeptides_ds1/joblib/neuropeptides_ds1_annotated_msa.joblib \
+  snakemake 00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated.joblib \
+            00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated_msa.joblib \
             --jobs $jobs \
             --cluster-config cluster.yaml \
             --cluster "qsub -N snmk -S /bin/bash -l h_vmem={cluster.memory} -pe smp {cluster.cores} -l h_rt=172800 -e /scratch/spaenigs/error/ -o /scratch/spaenigs/out" \
