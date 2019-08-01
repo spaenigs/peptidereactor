@@ -33,7 +33,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-if [ $preprocessing == 1 ]; then
+if [ $preprocessing -eq 1 ]; then
   snakemake 00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated.joblib \
             00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated_msa.joblib \
             --jobs $jobs \
@@ -43,7 +43,7 @@ if [ $preprocessing == 1 ]; then
             $dryrun $quiet
 fi
 
-if [ $encoding == 1 ]; then
+if [ $encoding -eq 1 ]; then
   qsub -N scripts/submit.sh
 fi
 
