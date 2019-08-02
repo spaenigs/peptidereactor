@@ -34,19 +34,15 @@ def get_classification_error(df):
     return np.array(res), train_size[0], test_size[0]
 
 
-def compute_all_vs_all_t_test_on_classification_error(file_paths):
+def compute_all_vs_all_t_test_on_classification_error(file_paths, names):
 
-    def get_dataframes(paths):
-        for path in paths:
-            yield pd.read_csv(path, index_col=0), path.replace("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/neuropeptides_ds1_apaacencoder_", "").replace(".csv", "")
+    res = pd.DataFrame(np.zeros((len(names), len(names))) + 1.0,
+                       index=names,
+                       columns=names)
 
-    idx = list(map(lambda p: p.replace("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/neuropeptides_ds1_apaacencoder_", "").replace(".csv", ""), file_paths))
+    dfs = ((pd.read_csv(path, index_col=0), name) for (path, name) in zip(file_paths, names))
 
-    res = pd.DataFrame(np.zeros((30, 30)) + 1.0,
-                       index=idx,
-                       columns=idx)
-
-    for (df_tmp1, n1), (df_tmp2, n2) in itertools.combinations(get_dataframes(file_paths), 2):
+    for (df_tmp1, n1), (df_tmp2, n2) in itertools.combinations(dfs, 2):
         errors_e1, N_training, N_testing = get_classification_error(df_tmp1)
         errors_e2, _, _ = get_classification_error(df_tmp2)
         m_diff = np.abs(np.mean(errors_e1 - errors_e2))
@@ -55,14 +51,13 @@ def compute_all_vs_all_t_test_on_classification_error(file_paths):
         df = len(errors_e1) - 1
         res.loc[n1, n2] = 2 * stats.t.cdf(-m_diff / standard_error_mean_corr, df)
 
+    # https://matplotlib.org/3.1.1/gallery/images_contours_and_fields/image_annotated_heatmap.html
     fig, ax = plt.subplots()
     pc = ax.imshow(res.values * res.values.transpose(), vmin=0, vmax=1, cmap='Greys')
     ax.set_xticks(np.arange(len(res.columns)))
     ax.set_yticks(np.arange(len(res.index)))
     ax.set_xticklabels(res.columns)
     ax.set_yticklabels(res.index)
-
-    # ax.tick_params(top=True, bottom=False, labeltop=True, labelbottom=False)
 
     plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
@@ -72,37 +67,42 @@ def compute_all_vs_all_t_test_on_classification_error(file_paths):
     for i in range(len(res.index)):
         for j in range(len(res.columns)):
             if res.loc[res.index[i], res.columns[j]] <= 0.01:
-                # ax.annotate(str(np.round(res.loc[res.index[i], res.columns[j]], decimals=2)),
-                #             xy=(j, i), xycoords='data',
-                #             xytext=(j + 3, 32), textcoords='data',
-                #             arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),
-                #             )
                 ax.text(j, i, "(**)", ha="center", va="center", color="black")
             elif res.loc[res.index[i], res.columns[j]] <= 0.05:
                 ax.text(j, i, "(*)", ha="center", va="center", color="black")
 
 
     fig.tight_layout()
-    fig.set_size_inches(13, 6)
+    fig.set_size_inches(9, 7)
 
-    plt.title("Amphiphilic Pseudo-Amino Acid Composition (APAAC)\nPaired t-test with corrected variance on classification error")
+    plt.title("Amphiphilic Pseudo-Amino Acid Composition (APAAC):\n" +
+              "paired t-test with corrected variance on classification error")
 
     plt.show()
 
-    # import seaborn as sns
-    # import scipy.spatial as sp, scipy.cluster.hierarchy as hc
-    #
-    # dist = 1 - res.values * res.values.transpose()
-    # tmp = pd.DataFrame(dist, index=res.index, columns=res.columns)
-    # linkage = hc.linkage(sp.distance.squareform(tmp), method='average')
-    #
-    # sns.clustermap(tmp, row_linkage=linkage, col_linkage=linkage, cmap="Purples")
-    # plt.show()
+
+PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
+                         "ksctriad", "geary", "moran", "nmbroto", "qsorder",
+                         "socnumber", "eaac", "egaac"]
+
+PARAM_FREE_ENCODINGS = ["binary", "aac", "gaac", "ctdt", "ctdc", "ctdd", "tpc",
+                        "gtpc", "gdpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
+
+REST_ENCODINGS = ["aaindex", "psekraac"]
+
+STRUC_ENCODINGS = ["disorder", "spinex", "psipred", "pssm"]
 
 
-file_paths = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/*.csv"),
-                        key=lambda x: int(re.match(".*?(\d{1,2}).csv", x).group(1)))
+# file_paths = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/*.csv"),
+#                         key=lambda x: int(re.match(".*?(\d{1,2}).csv", x).group(1)))
+#
+# names = list(map(lambda p: re.match(".*?apaacencoder_(.*).csv", p).group(1), file_paths))
 
-compute_all_vs_all_t_test_on_classification_error(file_paths)
+# file_paths_aaindex = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/aaindex/csv/normalized/*.csv"))
+# names_aaindex = list(map(lambda p: re.match(".*?aaindexencoder_aaindex-(.*?\d+).csv", p).group(1), file_paths_aaindex))
+# print(names_aaindex)
+# compute_all_vs_all_t_test_on_classification_error(file_paths_aaindex, names_aaindex)
 
+file_paths_psekraac = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/psekraac/csv/final/geom_median/tsne/normalized-yes/*.csv"))
+names_psekraac = list(map(lambda p: re.match(".*?psekraac(.*?)_subtype.*", p).group(1), file_paths_psekraac))
 
