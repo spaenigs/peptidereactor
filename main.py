@@ -105,4 +105,4 @@ STRUC_ENCODINGS = ["disorder", "spinex", "psipred", "pssm"]
 
 file_paths_psekraac = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/psekraac/csv/final/geom_median/tsne/normalized-yes/*.csv"))
 names_psekraac = list(map(lambda p: re.match(".*?psekraac(.*?)_subtype.*", p).group(1), file_paths_psekraac))
-
+print(names_psekraac)
