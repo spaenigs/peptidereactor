@@ -1,9 +1,9 @@
-#cwd: "/scratch/spaenigs/eb"
-cwd: "/home/spaenigs/PycharmProjects/eb"
-conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
-#conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
-#uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
-uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
+cwd: "/scratch/spaenigs/eb"
+#cwd: "/home/spaenigs/PycharmProjects/eb"
+#conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
+conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
+uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
+#uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
 
 datasets:
   processed:
@@ -152,7 +152,7 @@ psekraac:
   type7:
     name: "psekraactype7encoder"
     subtypes: ["g-gap", "lambda-correlation"]
-    raactypes: [5]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     ktuples: [1, 2, 3]
     glambdas: [1, 2, 3]
   type8:
