@@ -39,7 +39,7 @@ done
 if [ $preprocessing -eq 1 ]; then
   snakemake 00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated.joblib \
             00_data/out/$dataset/$dataset\_$part/joblib/$dataset\_$part\_annotated_msa.joblib \
-	    --config dataset=$dataset part=$part normalize=yes \
+	          --config dataset=$dataset part=$part normalize=yes \
             --jobs $jobs \
             --cluster-config cluster.yaml \
             --cluster "qsub -N snmk -S /bin/bash -l h_vmem={cluster.memory} -pe smp {cluster.cores} -l h_rt=172800 -e /scratch/spaenigs/error/ -o /scratch/spaenigs/out" \
