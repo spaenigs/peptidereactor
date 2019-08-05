@@ -152,7 +152,7 @@ psekraac:
   type7:
     name: "psekraactype7encoder"
     subtypes: ["g-gap", "lambda-correlation"]
-    raactypes: [5]
+    raactypes: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20]
     ktuples: [1, 2, 3]
     glambdas: [1, 2, 3]
   type8:
