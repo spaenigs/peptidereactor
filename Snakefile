@@ -14,8 +14,6 @@ include: "02_encoding/a_encode.smk"
 include: "02_encoding/b_filter_and_normalize.smk"
 include: "02_encoding/c_final_datasets.smk"
 
-# TODO check aaindex distance (1 -?)
-
 DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]
