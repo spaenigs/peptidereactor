@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 
-suppressWarnings(library(Interpol))
+#suppressWarnings(library(Interpol))
+library(Interpol)
 
 input <- commandArgs(trailingOnly = TRUE)
 filePath = input[1]
