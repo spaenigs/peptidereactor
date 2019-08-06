@@ -1,16 +1,7 @@
 from sklearn.externals import joblib as jl
 
-import sys
 import os
 os.environ["R_LIBS_USER"] = config["cwd"] + "/" + config["programs"]["rlibs"]
-
-try:
-    import encoder.ifeature.param_free.encoder as param_free_encoder
-except ModuleNotFoundError as e:
-    print()
-    print(e)
-    print("Loaded environment specific configuration?", file=sys.stderr)
-    sys.exit(1)
 
 localrules: generate_window_based_encodings,
             generate_lambda_based_encodings,

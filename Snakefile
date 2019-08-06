@@ -3,6 +3,14 @@ configfile: "config.yaml"
 import sys
 sys.path.append(config["cwd"] + "/" + config["programs"]["iFeature"])
 
+try:
+    import encoder.ifeature.param_free.encoder as param_free_encoder
+except ModuleNotFoundError as e:
+    print()
+    print(e)
+    print("Loaded environment specific configuration?", file=sys.stderr)
+    sys.exit(1)
+
 import scripts.utils as utils
 
 workdir: "."
