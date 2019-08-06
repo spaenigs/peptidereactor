@@ -32,6 +32,7 @@
     };
 
     const scale = d3.scaleOrdinal(d3.schemeCategory10),
+          shape = d3.scaleOrdinal(d3.symbols),
           width = 960,
           height = 600;
 
@@ -60,11 +61,14 @@
         const node = svg.append("g")
             .attr("stroke", "#fff")
             .attr("stroke-width", 1.5)
-            .selectAll("circle")
+            .selectAll("path")
             .data(nodes)
-            .join("circle")
-            .attr("r", 5)
-            .attr("fill", d => scale(d.group))
+            .join("path")
+                .attr("fill", function(d) { return scale(d.group); })
+                .attr("d", d3.symbol().type( function(d) {
+                    // return shape(d.group);
+                    return d3.symbolCross;
+                }))
             .call(drag(simulation));
 
         node.append("title")
@@ -77,11 +81,8 @@
                 .attr("x2", d => d.target.x)
                 .attr("y2", d => d.target.y);
             node
-                .attr("cx", d => d.x)
-                .attr("cy", d => d.y);
+                .attr('transform', function(d) { return 'translate('+d.x+','+d.y+')'; });
         });
-
-        // invalidation.then(() => simulation.stop());
 
         return svg.node();
 
