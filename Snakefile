@@ -22,6 +22,8 @@ include: "02_encoding/a_encode.smk"
 include: "02_encoding/b_filter_and_normalize.smk"
 include: "02_encoding/c_final_datasets.smk"
 
+include: "03_machine_learning/a_train_test_split.smk"
+
 DATASET = config["dataset"]
 PART = config["part"]
 NORMALIZE = config["normalize"]

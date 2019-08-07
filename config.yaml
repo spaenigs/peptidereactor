@@ -1,9 +1,9 @@
-cwd: "/scratch/spaenigs/eb"
-#cwd: "/home/spaenigs/PycharmProjects/eb"
-#conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
-conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
-uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
-#uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
+#cwd: "/scratch/spaenigs/eb"
+cwd: "/home/spaenigs/PycharmProjects/eb"
+conda_env: "/home/spaenigs/Apps/anaconda3/envs/encoding_benchmark"
+#conda_env: "/home/spaenigs/anaconda3/envs/encoding_benchmark"
+#uniref_db: "/home/data/blast_db/refseq_protein/refseq_protein"
+uniref_db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90/uniref90.db"
 
 datasets:
   processed:
