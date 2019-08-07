@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+from pandas.errors import EmptyDataError
 
 from scipy import stats
 
@@ -22,6 +23,7 @@ def get_classification_error(df):
     res = []
     train_size = []
     test_size = []
+    df = pd.DataFrame()
     for train_index, test_index in KFold(n_splits=10, random_state=42).split(X):
         X_train, X_validation = X[train_index], X[test_index]
         y_train, y_validation = y[train_index], y[test_index]
@@ -34,15 +36,20 @@ def get_classification_error(df):
     return np.array(res), train_size[0], test_size[0]
 
 
-def compute_all_vs_all_t_test_on_classification_error(file_paths, names):
+def compute_all_vs_all_t_test_on_classification_error(file_paths, names, plot_title):
 
     res = pd.DataFrame(np.zeros((len(names), len(names))) + 1.0,
                        index=names,
                        columns=names)
 
-    dfs = ((pd.read_csv(path, index_col=0), name) for (path, name) in zip(file_paths, names))
+    def get_dataframes():
+        for (path, name) in zip(file_paths, names):
+            try:
+                yield pd.read_csv(path, index_col=0), name
+            except EmptyDataError:
+                pass
 
-    for (df_tmp1, n1), (df_tmp2, n2) in itertools.combinations(dfs, 2):
+    for (df_tmp1, n1), (df_tmp2, n2) in itertools.combinations(get_dataframes(), 2):
         errors_e1, N_training, N_testing = get_classification_error(df_tmp1)
         errors_e2, _, _ = get_classification_error(df_tmp2)
         m_diff = np.abs(np.mean(errors_e1 - errors_e2))
@@ -71,38 +78,46 @@ def compute_all_vs_all_t_test_on_classification_error(file_paths, names):
             elif res.loc[res.index[i], res.columns[j]] <= 0.05:
                 ax.text(j, i, "(*)", ha="center", va="center", color="black")
 
-
     fig.tight_layout()
     fig.set_size_inches(9, 7)
 
-    plt.title("Amphiphilic Pseudo-Amino Acid Composition (APAAC):\n" +
-              "paired t-test with corrected variance on classification error")
+    plt.title()
 
     plt.show()
 
 
-PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
-                         "ksctriad", "geary", "moran", "nmbroto", "qsorder",
-                         "socnumber", "eaac", "egaac"]
 
 PARAM_FREE_ENCODINGS = ["binary", "aac", "gaac", "ctdt", "ctdc", "ctdd", "tpc",
                         "gtpc", "gdpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
 
-REST_ENCODINGS = ["aaindex", "psekraac"]
-
 STRUC_ENCODINGS = ["disorder", "spinex", "psipred", "pssm"]
 
+# PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
+#                          "ksctriad", "geary", "moran", "nmbroto", "qsorder",
+#                          "socnumber", "eaac", "egaac"]
 
-# file_paths = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/*.csv"),
-#                         key=lambda x: int(re.match(".*?(\d{1,2}).csv", x).group(1)))
-#
-# names = list(map(lambda p: re.match(".*?apaacencoder_(.*).csv", p).group(1), file_paths))
+file_paths = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/apaac/csv/normalized/*.csv"),
+                        key=lambda x: int(re.match(".*?(\d{1,2}).csv", x).group(1)))
 
-# file_paths_aaindex = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/aaindex/csv/normalized/*.csv"))
-# names_aaindex = list(map(lambda p: re.match(".*?aaindexencoder_aaindex-(.*?\d+).csv", p).group(1), file_paths_aaindex))
+names = list(map(lambda p: re.match(".*?apaacencoder_(.*).csv", p).group(1), file_paths))
+
+REST_ENCODINGS = ["aaindex", "psekraac"]
+
+file_paths_aaindex = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/aaindex/csv/final/geom_median/tsne/normalized-yes/*.csv"))
+names_aaindex = list(map(lambda p: re.match(".*?aaindexencoder_aaindex-(.*?\d+).csv", p).group(1), file_paths_aaindex))
 # print(names_aaindex)
-# compute_all_vs_all_t_test_on_classification_error(file_paths_aaindex, names_aaindex)
+compute_all_vs_all_t_test_on_classification_error(
+    file_paths=file_paths_aaindex[:30],
+    names=names_aaindex[:30],
+    plot_title="Amphiphilic Pseudo-Amino Acid Composition (APAAC):\n" +
+               "paired t-test with corrected variance on classification error"
+)
 
-file_paths_psekraac = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/psekraac/csv/final/geom_median/tsne/normalized-yes/*.csv"))
-names_psekraac = list(map(lambda p: re.match(".*?psekraac(.*?)_subtype.*", p).group(1), file_paths_psekraac))
-print(names_psekraac)
+# file_paths_psekraac = sorted(glob.glob("00_data/out/neuropeptides/neuropeptides_ds1/encodings/psekraac/csv/final/geom_median/tsne/normalized-yes/*.csv"))
+# names_psekraac = list(map(lambda p: re.match(".*?psekraac(.*?)_subtype.*", p).group(1), file_paths_psekraac))
+# print(names_psekraac)
+
+
+res_eval = Evaluation()
+
+res_eval.
