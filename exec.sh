@@ -48,6 +48,6 @@ if [ $preprocessing -eq 1 ]; then
 fi
 
 if [ $encoding -eq 1 ]; then
-  qsub -N scripts/submit.sh
+  qsub scripts/submit.sh
 fi
 
