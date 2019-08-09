@@ -187,3 +187,40 @@ def determine_input(wildcards, config):
 
     else:
         raise ValueError(f"Unknown encoding: {wildcards.encoding}.")
+
+
+def get_encoding_description(encoding):
+    descriptions = {
+        AAC: "Amino Acid Composition",
+        AAINDEX: "AAindex",
+        APAAC: "Amphiphilic Pseudo-Amino Acid Composition",
+        BINARY: "Binary",
+        BLOSUM62: "Blosum62",
+        CKSAAGP: "Composition of k-Spaced Amino Acid Group Pairs",
+        CKSAAP: "Composition of k-spaced Amino Acid Pairs",
+        CTDC: "Composition/Transition/Distribution - Composition",
+        CTDD: "Composition/Transition/Distribution - Distribution",
+        CTDT: "Composition/Transition/Distribution - Transition",
+        CTRIAD: "Conjoint Triad",
+        DDE: "Dipeptide Deviation from Expected Mean",
+        DISORDER: "Disorder content and binary",
+        DPC: "Di-Peptide Composition",
+        EAAC: " Enhanced Amino Acid Composition",
+        EGAAC: "Enhanced Grouped Amino Acid Composition",
+        GAAC: "Grouped Amino Acid Composition",
+        GDPC: "Grouped Di-Peptide Composition",
+        GTPC: "Grouped Tri-Peptide Composition",
+        GEARY: "Geary correlation",
+        KSCTRIAD: "k-Spaced Conjoint Triad",
+        MORAN: "Moran correlation",
+        NMBROTO: "Normalized Moreau-Broto Autocorrelation",
+        PAAC: "Pseudo-Amino Acid Composition",
+        PSEKRAAC: "48 pseudo K-tuple reduced amino acids composition",
+        PSIPRED: "PSIPRED - secondary structure content and binary",
+        PSSM: "PSSM profile",
+        QSORDER: "Quasi-sequence-order",
+        SOCNUMBER: "Sequence-Order-Coupling Number",
+        SPINEX: "SPINE-X - accessible solvent accessibility and torsion angle",
+        TPC: "Tri-Peptide Composition",
+        ZSCALE: "Z-Scale" }
+    return descriptions[encoding]
