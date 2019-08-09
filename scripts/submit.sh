@@ -2,7 +2,7 @@
 
 #$ -S /bin/bash
 #$ -l h_vmem=500M
-#$ -pe smp 16
+#$ -pe smp 32
 #$ -l h_rt=259200
 #$ -e /scratch/spaenigs/error
 #$ -o /scratch/spaenigs/out
@@ -14,5 +14,5 @@ module load tools/R-3.4.3
 source /home/spaenigs/.bashrc
 conda activate encoding_benchmark
 
-snakemake --config dataset=neuropeptides part=ds1 normalize=yes --cores 4
+snakemake --config dataset=neuropeptides part=ds1 normalize=yes --cores 8
 
