@@ -8,10 +8,18 @@ import pandas as pd
 import numpy as np
 import itertools
 
+
+def get_input_split_train_test(wildcards):
+    if wildcards.encoding in utils.REST_ENCODINGS:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" + \
+               "geom_median/tsne/normalized-yes/{dataset}_{part}_{type}.csv"
+    else:
+        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
+               "{dataset}_{part}_{type}.csv"
+
 rule split_train_test:
     input:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
-         "{dataset}_{part}_{type}.csv"
+         get_input_split_train_test
     output:
           "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/train/" + \
           "{dataset}_{part}_{type}_normalized-{normalized}.csv",
@@ -49,25 +57,10 @@ rule cross_validation:
         pd.DataFrame(res).to_csv(str(output))
 
 
-# def get_input(wildcards):
-#     if wildcards.encoding in \
-#             utils.PARAM_BASED_ENCODINGS + \
-#             utils.REST_ENCODINGS:  # aaindex, psekraac
-#         return expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-#                       "{dataset}_{part}_{type}_normalized-{normalized}.csv",
-#                       dataset=wildcards.dataset,
-#                       part=wildcards.part,
-#                       encoding=wildcards.encoding,
-#                       type=utils.get_type(wildcards.encoding, config),
-#                       normalized=wildcards.normalized)
-#     else:
-#         return expand("00_data/out/neuropeptides/neuropeptides_ds1/encodings/{encoding}/part/" + \
-#                       "csv/final/geom_median/tsne/normalized-{normalized}/{dataset}_{part}_{type}.csv",
-#                       dataset=wildcards.dataset,
-#                       part=wildcards.part,
-#                       encoding=utils.PARAM_FREE_ENCODINGS + utils.STRUC_ENCODINGS,
-#                       type=utils.get_type(wildcards.encoding, config),
-#                       normalized=wildcards.normalized)
+def get_single_type(wildcards):
+    type_, = glob_wildcards(f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/{wildcards.encoding}/" + \
+                                f"csv/final/geom_median/tsne/normalized-{wildcards.normalized}/{wildcards.dataset}_{wildcards.part}_{{type}}.csv")
+    return type_
 
 rule collect_cross_validation:
     input:
@@ -76,7 +69,7 @@ rule collect_cross_validation:
                                  dataset=wildcards.dataset,
                                  part=wildcards.part,
                                  encoding=wildcards.encoding,
-                                 type=utils.get_type(wildcards.encoding, config),
+                                 type=get_single_type(wildcards) if wildcards.encoding in utils.REST_ENCODINGS else utils.get_type(wildcards.encoding, config),
                                  normalized=wildcards.normalized)
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
@@ -93,48 +86,32 @@ rule collect_cross_validation:
         df_res.to_csv(str(output))  # reindex(sorted(df_res.columns, key=lambda x: int(x[4:])), axis=1)
 
 
-rule t_test_on_classification_error_single:
+rule t_test_on_classification_error:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
         "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
         "{dataset}_{part}_normalized-{normalized}_ttest_error.csv"
-    script:
-        "scripts/t_test_on_classification_error.py"
-
-
-rule combine_encodings_for_t_test:
-    input:
-        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-                                 "{dataset}_{part}_{type}_normalized-{normalized}.csv",
-                                 dataset=wildcards.dataset,
-                                 part=wildcards.part,
-                                 encoding=utils.PARAM_FREE_ENCODINGS + utils.STRUC_ENCODINGS,
-                                 type=utils.get_type(wildcards.encoding, config),
-                                 normalized=wildcards.normalized)
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/cv_combined/" + \
-        "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
     run:
-        res = pd.DataFrame()
-        for path in list(input):
-            res = pd.concat([res, pd.read_csv(path, index_col=0)], axis=0)
+        from scipy import stats
+        df = pd.read_csv(str(input), index_col=0)
+        names = df.index
+        res = pd.DataFrame(np.zeros((len(names), len(names))) + 1.0,
+                           index=names,
+                           columns=names)
+        for n1, n2 in itertools.combinations(names, 2):
+            errors_df1 = df.loc[n1, ~df.columns.isin(["train_size", "test_size"])]
+            errors_df2 = df.loc[n2, ~df.columns.isin(["train_size", "test_size"])]
+            m_diff = np.abs(np.mean(errors_df1 - errors_df2))
+            sd = np.std(errors_df1 - errors_df2, ddof=1)
+            N_training = df.loc[n1, "train_size"]
+            N_testing = df.loc[n1, "test_size"]
+            standard_error_mean_corr = sd * np.sqrt((1 / len(errors_df1)) + (N_testing / N_training))
+            deg_freedom = len(errors_df1) - 1
+            res.loc[n1, n2] = 2 * stats.t.cdf(-m_diff / standard_error_mean_corr, deg_freedom)
+        res = res.transpose() * res
         res.to_csv(str(output))
-
-"""
-00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/{dataset}_{part}_normalized-{normalized}_cross_validation.csv
-00_data/out/{dataset}/{dataset}_{part}/            cv_combined/{dataset}_{part}_normalized-{normalized}_cross_validation.csv
-"""
-rule t_test_on_classification_error_aggregated:
-    input:
-        "00_data/out/{dataset}/{dataset}_{part}/cv_combined/" + \
-        "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/cv_combined/" + \
-        "{dataset}_{part}_normalized-{normalized}_ttest_error.csv"
-    script:
-        "scripts/t_test_on_classification_error.py"
 
 
 rule plot_t_test_on_classification_error:
