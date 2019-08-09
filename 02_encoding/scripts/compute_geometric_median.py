@@ -1,7 +1,7 @@
 from scipy.spatial.distance import euclidean
 
 import pandas as pd
-
+import re
 
 def write_empty_file(path):
     with open(path, mode="w") as f:
@@ -12,7 +12,11 @@ def write_empty_file(path):
 df = pd.read_csv(str(snakemake.input), index_col=0)
 df["name"] = df.index
 
-df_type_filtered = df.loc[df.name.apply(lambda x: snakemake.wildcards.type in x), :]
+lambdaPsekraac= lambda x: snakemake.wildcards.type + "e" in x
+lambdaDiv = lambda x: snakemake.wildcards.type in x
+myLambda = lambdaPsekraac if snakemake.wildcards.encoding == "psekraac" else lambdaDiv
+
+df_type_filtered = df.loc[df.name.apply(myLambda), :]
 
 names = df_type_filtered.name
 points = dict(zip(names, map(lambda x: dict(zip(names, map(lambda x: 0.0, range(len(names))))),
@@ -40,7 +44,7 @@ if not res_df.empty:
 
     actual_total_min = 1e6
     actual_total_min_name = ""
-    for row in tmp2.loc[tmp2.name.apply(lambda x: snakemake.wildcards.type in x), :].iterrows():
+    for row in tmp2.loc[tmp2.name.apply(myLambda), :].iterrows():
         if row[1]["distance_gm"] < actual_total_min:
            actual_total_min = row[1]["distance_gm"]
            actual_total_min_name = row[0]
