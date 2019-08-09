@@ -1,24 +1,13 @@
 import scripts.utils as utils
 
-localrules: filter_datasets,
-            normalize_datasets,
+localrules: normalize_datasets,
             collect_normalized_datasets
-
-rule filter_datasets:
-    input:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
-          "{dataset}_{part}_{type}.csv"
-    output:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/filtered/" + \
-         "{dataset}_{part}_{type}.csv"
-    script:
-        "scripts/filter.py"
 
 
 rule normalize_datasets:
     input:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/filtered/" + \
-            "{dataset}_{part}_{type}.csv"
+         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/original/" + \
+          "{dataset}_{part}_{type}.csv"
     output:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
             "{dataset}_{part}_{type}.csv"
