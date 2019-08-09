@@ -46,7 +46,7 @@ if encoding == utils.AAINDEX:
 
 elif encoding in [utils.APAAC, utils.PAAC, utils.CKSAAGP, utils.CKSAAP, utils.CTRIAD, utils.KSCTRIAD,
                   utils.GEARY, utils.MORAN, utils.NMBROTO, utils.QSORDER, utils.SOCNUMBER,
-                  utils.EAAC, utils.EGAAC, utils.PSEKRAAC]:
+                  utils.EAAC, utils.EGAAC]:
 
     df_gm = pd.read_csv(str(snakemake.input), index_col=0)
 
@@ -59,6 +59,24 @@ elif encoding in [utils.APAAC, utils.PAAC, utils.CKSAAGP, utils.CKSAAP, utils.CT
         dst = f"00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" + \
               f"geom_median/tsne/normalized-{normalized}/{os.path.basename(src)}"
         write_and_copy(list(zip([src], [dst])), str(snakemake.output))
+
+    else:
+        write_empty_file(str(snakemake.output))
+
+elif encoding == utils.PSEKRAAC:
+
+    df_gm = pd.read_csv(str(snakemake.input), index_col=0)
+
+    if not df_gm.empty:
+
+        df_filtered = df_gm.loc[df_gm["min_gm"].apply(lambda x: x == True), :]
+        src = [glob.glob(f"00_data/out/{dataset}/{dataset}_{part}/encodings/" + \
+                         f"{encoding}/csv/original/*{t}.csv")[0]
+               for t in df_filtered.name.values]
+        dst = [f"00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" + \
+               f"geom_median/tsne/normalized-{normalized}/{os.path.basename(s)}"
+               for s in src]
+        write_and_copy(list(zip(src, dst)), str(snakemake.output))
 
     else:
         write_empty_file(str(snakemake.output))
