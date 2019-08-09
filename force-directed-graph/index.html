@@ -67,7 +67,7 @@
                 .attr("fill", function(d) { return scale(d.group); })
                 .attr("d", d3.symbol().type( function(d) {
                     // return shape(d.group);
-                    return d3.symbolCross;
+                    return d3.symbolCircle;
                 }))
             .call(drag(simulation));
 
