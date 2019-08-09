@@ -39,7 +39,7 @@ PARAM_BASED_ENCODINGS = ["apaac", "paac", "cksaagp", "cksaap", "ctriad",
                          "socnumber", "eaac", "egaac"]
 
 PARAM_FREE_ENCODINGS = ["binary", "aac", "gaac", "ctdt", "ctdc", "ctdd", "tpc",
-                        "gtpc", "gdpc", "dpc", "gdpc", "dde", "blosum62", "zscale"]
+                        "gtpc", "gdpc", "dpc", "dde", "blosum62", "zscale"]
 
 REST_ENCODINGS = ["aaindex", "psekraac"]
 
