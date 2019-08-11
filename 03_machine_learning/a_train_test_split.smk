@@ -26,6 +26,7 @@ rule split_train_test:
           "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/test/" + \
           "{dataset}_{part}_{type}_normalized-{normalized}.csv"
     run:
+        print(wildcards.encoding)
         df = pd.read_csv(str(input), index_col=0)
         df_train, df_test = train_test_split(df, test_size=0.1, random_state=42)
         df_train.to_csv(str(output[0]))
@@ -153,5 +154,115 @@ rule plot_t_test_on_classification_error:
 
         plt.title(f"{utils.get_encoding_description(wildcards.encoding)} ({wildcards.encoding.upper()}):\n" +
                   "paired t-test with corrected variance on classification error")
+
+        plt.savefig(str(output), bbox_inches="tight")
+
+
+rule combine:
+    input:
+        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
+                                 "{dataset}_{part}_normalized-{normalized}_cross_validation.csv",
+                                 dataset=wildcards.dataset,
+                                 part=wildcards.part,
+                                 # TODO
+                                 encoding=utils.PARAM_FREE_ENCODINGS + \
+                                          utils.REST_ENCODINGS + utils.STRUC_ENCODINGS + \
+                                          ["apaac", "paac",
+                                           "geary", "moran", "nmbroto", "qsorder",
+                                           "socnumber"],
+                                 normalized=wildcards.normalized)
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+        "{dataset}_{part}_normalized-{normalized}_cross_validation_all.csv"
+    run:
+        res = pd.DataFrame()
+        for path in list(input):
+            res = pd.concat([res, pd.read_csv(path, index_col=0)], axis=0, sort=True)
+        res.to_csv(str(output))
+
+
+rule all_vs_all_ttest:
+    input:
+        "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+        "{dataset}_{part}_normalized-{normalized}_cross_validation_all.csv"
+    output:
+         "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+         "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
+    threads:
+        8
+    run:
+        from pathos.multiprocessing import ProcessingPool as Pool
+        from scipy import stats
+
+        df = pd.read_csv(str(input), index_col=0)
+        names = df.index
+        res = pd.DataFrame(np.zeros((len(names), len(names))) + 1.0,
+                           index=names,
+                           columns=names)
+
+        def func(tuple):
+            n1, n2 = tuple[0], tuple[1]
+            errors_df1 = df.loc[n1, ~df.columns.isin(["train_size", "test_size"])]
+            errors_df2 = df.loc[n2, ~df.columns.isin(["train_size", "test_size"])]
+            # print(f"{n1}: {len(errors_df1)}, {errors_df1}")
+            # print(f"{n2}: {len(errors_df2)}, {errors_df2}")
+            m_diff = np.abs(np.mean(errors_df1 - errors_df2))
+            sd = np.std(errors_df1 - errors_df2, ddof=1)
+            N_training = df.loc[n1, "train_size"]
+            N_testing = df.loc[n1, "test_size"]
+            standard_error_mean_corr = sd * np.sqrt((1 / len(errors_df1)) + (N_testing / N_training))
+            deg_freedom = len(errors_df1) - 1
+            pv = 2 * stats.t.cdf(-m_diff / standard_error_mean_corr, deg_freedom)
+            return n1, n2, pv
+
+        p = Pool(threads)
+        pvs = p.map(func, list(itertools.combinations(res.index, 2)))
+
+        for n1, n2, pv in pvs:
+            res.loc[n1, n2] = pv
+
+        res = res.transpose() * res
+
+        res.to_csv(str(output))
+
+
+rule plot_t_test_on_classification_error_all_vs_all:
+    input:
+         "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+         "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
+    output:
+        "00_data/out/neuropeptides/plots/" + \
+        "{dataset}_{part}_normalized-{normalized}_ttest_error_all_vs_all.pdf"
+    run:
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+
+        res = pd.read_csv(str(input), index_col=0)
+
+        # https://matplotlib.org/3.1.1/gallery/images_contours_and_fields/image_annotated_heatmap.html
+        fig, ax = plt.subplots()
+        pc = ax.imshow(res.values, vmin=0, vmax=1, cmap='Greys')
+        ax.set_xticks(np.arange(len(res.columns)))
+        ax.set_yticks(np.arange(len(res.index)))
+        ax.set_xticklabels(res.columns)
+        ax.set_yticklabels(res.index)
+
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+        cbar = ax.figure.colorbar(pc)
+        cbar.ax.set_ylabel("p-value, (*): <= 0.05, (**): <= 0.01", rotation=-90, va="bottom")
+
+        # for i in range(len(res.index)):
+        #     for j in range(len(res.columns)):
+        #         if res.loc[res.index[i], res.columns[j]] <= 0.01:
+        #             ax.text(j, i, "(**)", ha="center", va="center", color="black")
+        #         elif res.loc[res.index[i], res.columns[j]] <= 0.05:
+        #             ax.text(j, i, "(*)", ha="center", va="center", color="black")
+
+        fig.tight_layout()
+        fig.set_size_inches(29, 27)
+
+        plt.title(f"all vs. all")
 
         plt.savefig(str(output), bbox_inches="tight")
