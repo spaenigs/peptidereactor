@@ -1,7 +1,7 @@
 import scripts.utils as utils
 
-localrules: normalize_datasets,
-            collect_normalized_datasets
+# localrules: normalize_datasets,
+#             collect_normalized_datasets
 
 
 rule normalize_datasets:
