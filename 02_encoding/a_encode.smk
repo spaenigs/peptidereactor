@@ -3,16 +3,16 @@ from sklearn.externals import joblib as jl
 import os
 os.environ["R_LIBS_USER"] = config["cwd"] + "/" + config["programs"]["rlibs"]
 
-localrules: generate_window_based_encodings,
-            generate_lambda_based_encodings,
-            generate_gap_based_encodings,
-            generate_nlag_based_encodings,
-            generate_psekraac_based_encodings,
-            generate_paramfree_based_encoding,
-            generate_aaindex_encoding,
-            generate_disorder_based_encodings,
-            generate_psipred_based_encodings,
-            generate_pssm_encoding
+# localrules: generate_window_based_encodings,
+#             generate_lambda_based_encodings,
+#             generate_gap_based_encodings,
+#             generate_nlag_based_encodings,
+#             generate_psekraac_based_encodings,
+#             generate_paramfree_based_encoding,
+#             generate_aaindex_encoding,
+#             generate_disorder_based_encodings,
+#             generate_psipred_based_encodings,
+#             generate_pssm_encoding
 
 rule generate_window_based_encodings:
     input:
