@@ -48,9 +48,9 @@ rule all:
         # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
         expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
                "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=utils.APAAC),
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS),
         # # TODO works only for param_based, psekraac and aaindex encoding:
         expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
-               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=utils.PSEKRAAC),
+               dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS_PLOT),
         # expand("00_data/out/{dataset}/plots/{encoding}/{dataset}_{part}_normalized-yes_ttest_error.pdf",
         #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=[utils.APAAC, utils.BINARY, utils.PSEKRAAC]),
