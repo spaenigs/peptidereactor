@@ -36,7 +36,9 @@
           width = 1024,
           height = 768;
 
-    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_scores_all.json")
+    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_aucs_all.json")
         .then(function(data) {
 
         const links = data.links.map(d => Object.create(d));
@@ -77,6 +79,22 @@
 
         node.append("title")
             .text(d => d.id);
+
+        const headline = svg.selectAll(".headline")
+            // .data(["t-test model-wise (1-classification error)"])
+            // .data(["t-test sample-wise (1-score)"])
+            .data(["t-test model-wise (AUC)"])
+            .enter()
+                .append("g")
+                .attr("class", "headline")
+                .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+        headline.append("text")
+            .attr("x", 350)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "end")
+            .text(function(d) { return d; });
 
         const legend = svg.selectAll(".legend")
             // .data(scale.domain())
