@@ -31,32 +31,38 @@
             .on("end", dragended);
     };
 
-    const scale = d3.scaleOrdinal(d3.schemeCategory10),
+    const scale = d3.scaleOrdinal(d3.schemeSet3.concat(d3.schemeCategory10).concat(d3.schemeSet1)),
           shape = d3.scaleOrdinal(d3.symbols),
-          width = 960,
-          height = 600;
+          width = 1024,
+          height = 768;
 
-    d3.json("data.json").then(function(data) {
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
+    d3.json("neuropeptides_ds1_normalized-yes_ttest_error_all.json")
+        .then(function(data) {
 
         const links = data.links.map(d => Object.create(d));
         const nodes = data.nodes.map(d => Object.create(d));
 
         const simulation = d3.forceSimulation(nodes)
             .force("link", d3.forceLink(links).id(d => d.id))
+            // .force("link", d3.forceLink(links).distance(80))
             .force("charge", d3.forceManyBody())
-            .force("x", d3.forceX(width / 2).strength(0.01))
-            .force("y", d3.forceY(height / 2).strength(0.01))
+            .force("x", d3.forceX(width / 2).strength(0.06))
+            .force("y", d3.forceY(height / 2).strength(0.06))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
         const svg = d3.select("#viz").attr("width", width).attr("height", height);
 
         const link = svg.append("g")
             .attr("stroke", "#999")
-            .attr("stroke-opacity", 0.6)
             .selectAll("line")
             .data(links)
             .join("line")
-            .attr("stroke-width", d => Math.sqrt(d.value));
+                .attr("stroke", d => d.pvalue <= 0.05 ? "#999" : "#fff")
+                .attr("stroke-width", d => d.pvalue <= 0.05 ? 1 : 0.001);
+
+        link.append("title")
+            .text(d => d.pvalue)
 
         const node = svg.append("g")
             .attr("stroke", "#fff")
@@ -73,6 +79,34 @@
 
         node.append("title")
             .text(d => d.id);
+
+        const legend = svg.selectAll(".legend")
+            // .data(scale.domain())
+            .data(["(*)"])
+            .enter()
+                .append("g")
+                .attr("class", "legend")
+                .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+        legend.append("line")
+            // line x1="0" y1="80" x2="100" y2="20" stroke="black"
+            .attr("x1", 5 + (width - 200))
+            .attr("y1", 9)
+            .attr("x2", 10 + (width - 70))
+            .attr("y2", 9)
+            .attr("stroke", "black");
+            // .attr("stroke-dasharray", d => d === "ns" ? 4 : null);
+            // .attr("x", width - 18)
+            // .attr("width", 18)
+            // .attr("height", 18)
+            // .style("fill", i => scale(1));
+
+        legend.append("text")
+            .attr("x", width - 24)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .style("text-anchor", "end")
+            .text(function(d) { return d; });
 
         simulation.on("tick", () => {
             link
