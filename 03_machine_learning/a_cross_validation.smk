@@ -1,6 +1,6 @@
 from pandas.errors import EmptyDataError
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, auc, roc_curve
 from sklearn.model_selection import train_test_split, KFold
 
 import scripts.utils as utils
@@ -39,12 +39,14 @@ rule cross_validation:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
         "{dataset}_{part}_{type}_normalized-{normalized}.csv",
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-        "{dataset}_{part}_{type}_normalized-{normalized}_scores.csv"
+        "{dataset}_{part}_{type}_normalized-{normalized}_scores.csv",
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
+        "{dataset}_{part}_{type}_normalized-{normalized}_aucs.csv"
     run:
         df = pd.read_csv(str(input), index_col=0)
         X, y = df.iloc[:, :-1].values, df["y"]
 
-        res, scores = {wildcards.type: {}}, {wildcards.type: np.array([])}
+        res, scores, aucs = {wildcards.type: {}}, {wildcards.type: np.array([])}, {wildcards.type: {}}
 
         cnt = 1
         for train_index, test_index in KFold(n_splits=10, random_state=42).split(X):
@@ -61,13 +63,16 @@ rule cross_validation:
             scores[wildcards.type] = \
                 np.append(scores[wildcards.type], np.round(1 - predsLDA_scores[:, 1], 2))
 
+            fpr, tpr, _ = roc_curve(y_validation, predsLDA_scores[:, 1])
+            aucs[wildcards.type]["run_" + str(cnt)] = np.round(auc(fpr, tpr), 2)
+
             cnt += 1
 
         res[wildcards.type]["train_size"] = X_train.shape[0]
         res[wildcards.type]["test_size"] = X_validation.shape[0]
         pd.DataFrame(res).to_csv(str(output[0]))
-
         pd.DataFrame(scores).to_csv(str(output[1]))
+        pd.DataFrame(aucs).to_csv(str(output[2]))
 
 
 def get_single_type(wildcards):
@@ -118,6 +123,33 @@ rule collect_cross_validation_scores:
     output:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
         "{dataset}_{part}_normalized-{normalized}_cross_validation_scores.csv"
+    run:
+        def concat_dfs(list_in):
+            df_res = pd.DataFrame()
+            for path in list_in:
+                try:
+                    df = pd.read_csv(path, index_col=0)
+                    df_res = pd.concat([df_res, df], axis=1, sort=True)
+                except EmptyDataError:
+                    pass
+            return df_res.transpose()
+        concat_dfs(list(input)).to_csv(str(output))
+
+
+rule collect_cross_validation_aucs:
+    input:
+        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
+                                 "{dataset}_{part}_{type}_normalized-{normalized}_aucs.csv",
+                                 dataset=wildcards.dataset,
+                                 part=wildcards.part,
+                                 encoding=wildcards.encoding,
+                                 type=get_single_type(wildcards) \
+                                     if wildcards.encoding in utils.REST_ENCODINGS \
+                                     else utils.get_type(wildcards.encoding, config),
+                                 normalized=wildcards.normalized)
+    output:
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
+        "{dataset}_{part}_normalized-{normalized}_cross_validation_aucs.csv"
     run:
         def concat_dfs(list_in):
             df_res = pd.DataFrame()
