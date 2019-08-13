@@ -39,43 +39,11 @@ rule plot_t_test_on_classification_error:
     output:
         "00_data/out/neuropeptides/plots/{encoding}/" + \
         "{dataset}_{part}_normalized-{normalized}_ttest_error.pdf"
-    run:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
-
-        res = pd.read_csv(str(input), index_col=0)
-
-        # https://matplotlib.org/3.1.1/gallery/images_contours_and_fields/image_annotated_heatmap.html
-        fig, ax = plt.subplots()
-        pc = ax.imshow(res.values, vmin=0, vmax=1, cmap='Greys')
-        ax.set_xticks(np.arange(len(res.columns)))
-        ax.set_yticks(np.arange(len(res.index)))
-        ax.set_xticklabels(res.columns)
-        ax.set_yticklabels(res.index)
-
-        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
-
-        cbar = ax.figure.colorbar(pc)
-        cbar.ax.set_ylabel("p-value, (*): <= 0.05, (**): <= 0.01", rotation=-90, va="bottom")
-
-        for i in range(len(res.index)):
-            for j in range(len(res.columns)):
-                if res.loc[res.index[i], res.columns[j]] <= 0.01:
-                    ax.text(j, i, "(**)", ha="center", va="center", color="black")
-                elif res.loc[res.index[i], res.columns[j]] <= 0.05:
-                    ax.text(j, i, "(*)", ha="center", va="center", color="black")
-
-        fig.tight_layout()
-        fig.set_size_inches(9, 7)
-
-        plt.title(f"{utils.get_encoding_description(wildcards.encoding)} ({wildcards.encoding.upper()}):\n" +
-                  "paired t-test with corrected variance on classification error")
-
-        plt.savefig(str(output), bbox_inches="tight")
+    script:
+          "scripts/plot_t_test.py"
 
 
-rule combine:
+rule combine_cv_classes:
     input:
         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
                                  "{dataset}_{part}_normalized-{normalized}_cross_validation.csv",
