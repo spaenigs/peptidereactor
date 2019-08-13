@@ -1,90 +1,7 @@
-from pandas.errors import EmptyDataError
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-from sklearn.metrics import f1_score
-
 import scripts.utils as utils
-from sklearn.model_selection import train_test_split, KFold
 import pandas as pd
 import numpy as np
 import itertools
-
-
-def get_input_split_train_test(wildcards):
-    if wildcards.encoding in utils.REST_ENCODINGS:
-        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" + \
-               "geom_median/tsne/normalized-yes/{dataset}_{part}_{type}.csv"
-    else:
-        return "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
-               "{dataset}_{part}_{type}.csv"
-
-rule split_train_test:
-    input:
-         get_input_split_train_test
-    output:
-          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/train/" + \
-          "{dataset}_{part}_{type}_normalized-{normalized}.csv",
-          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/test/" + \
-          "{dataset}_{part}_{type}_normalized-{normalized}.csv"
-    run:
-        print(wildcards.encoding)
-        df = pd.read_csv(str(input), index_col=0)
-        df_train, df_test = train_test_split(df, test_size=0.1, random_state=42)
-        df_train.to_csv(str(output[0]))
-        df_test.to_csv(str(output[1]))
-
-
-rule cross_validation:
-    input:
-         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/train/" + \
-         "{dataset}_{part}_{type}_normalized-{normalized}.csv"
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-        "{dataset}_{part}_{type}_normalized-{normalized}.csv"
-    run:
-        df = pd.read_csv(str(input), index_col=0)
-        X, y = df.iloc[:, :-1].values, df["y"]
-        res = {wildcards.type: {}}
-        cnt = 1
-        for train_index, test_index in KFold(n_splits=10, random_state=42).split(X):
-            X_train, X_validation = X[train_index], X[test_index]
-            y_train, y_validation = y[train_index], y[test_index]
-            clfLDA = LinearDiscriminantAnalysis()
-            clfLDA.fit(X_train, y_train)
-            predsLDA = clfLDA.predict(X_validation)
-            res[wildcards.type]["run_" + str(cnt)] = np.around((1 - f1_score(y_validation, predsLDA)) * 100, decimals=1)
-            cnt += 1
-        res[wildcards.type]["train_size"] = X_train.shape[0]
-        res[wildcards.type]["test_size"] = X_validation.shape[0]
-        pd.DataFrame(res).to_csv(str(output))
-
-
-def get_single_type(wildcards):
-    type_, = glob_wildcards(f"00_data/out/{wildcards.dataset}/{wildcards.dataset}_{wildcards.part}/encodings/{wildcards.encoding}/" + \
-                                f"csv/final/geom_median/tsne/normalized-{wildcards.normalized}/{wildcards.dataset}_{wildcards.part}_{{type}}.csv")
-    return type_
-
-rule collect_cross_validation:
-    input:
-        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-                                 "{dataset}_{part}_{type}_normalized-{normalized}.csv",
-                                 dataset=wildcards.dataset,
-                                 part=wildcards.part,
-                                 encoding=wildcards.encoding,
-                                 type=get_single_type(wildcards) if wildcards.encoding in utils.REST_ENCODINGS else utils.get_type(wildcards.encoding, config),
-                                 normalized=wildcards.normalized)
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
-        "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
-    run:
-        df_res = pd.DataFrame()
-        for path in list(input):
-            try:
-                df = pd.read_csv(path, index_col=0)
-                df_res = pd.concat([df_res, df], axis=1, sort=True)
-            except EmptyDataError:
-                pass
-        df_res = df_res.transpose()
-        df_res.to_csv(str(output))  # reindex(sorted(df_res.columns, key=lambda x: int(x[4:])), axis=1)
 
 
 rule t_test_on_classification_error:
@@ -204,8 +121,6 @@ rule all_vs_all_ttest:
             n1, n2 = tuple[0], tuple[1]
             errors_df1 = df.loc[n1, ~df.columns.isin(["train_size", "test_size"])]
             errors_df2 = df.loc[n2, ~df.columns.isin(["train_size", "test_size"])]
-            # print(f"{n1}: {len(errors_df1)}, {errors_df1}")
-            # print(f"{n2}: {len(errors_df2)}, {errors_df2}")
             m_diff = np.abs(np.mean(errors_df1 - errors_df2))
             sd = np.std(errors_df1 - errors_df2, ddof=1)
             N_training = df.loc[n1, "train_size"]
@@ -213,7 +128,7 @@ rule all_vs_all_ttest:
             standard_error_mean_corr = sd * np.sqrt((1 / len(errors_df1)) + (N_testing / N_training))
             deg_freedom = len(errors_df1) - 1
             pv = 2 * stats.t.cdf(-m_diff / standard_error_mean_corr, deg_freedom)
-            return n1, n2, pv
+            return n1, n2, 1.0 if np.isnan(pv) else pv
 
         p = Pool(threads)
         pvs = p.map(func, list(itertools.combinations(res.index, 2)))
@@ -226,43 +141,44 @@ rule all_vs_all_ttest:
         res.to_csv(str(output))
 
 
-rule plot_t_test_on_classification_error_all_vs_all:
+rule generate_network_data:
     input:
-         "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
-         "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+        "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
     output:
-        "00_data/out/neuropeptides/plots/" + \
-        "{dataset}_{part}_normalized-{normalized}_ttest_error_all_vs_all.pdf"
+        "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+        "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json"
     run:
-        import matplotlib
-        matplotlib.use('Agg')
-        import matplotlib.pyplot as plt
+        import json
+        import re
+        df = pd.read_csv(str(input), index_col=0)
 
-        res = pd.read_csv(str(input), index_col=0)
+        # TODO blosum62
+        nodes = [{"id": idx, "group": re.match("(.*?)(\d{1,2}[ABC]?)?encoder.*", idx).group(1)}
+                 for idx in df.index]
 
-        # https://matplotlib.org/3.1.1/gallery/images_contours_and_fields/image_annotated_heatmap.html
-        fig, ax = plt.subplots()
-        pc = ax.imshow(res.values, vmin=0, vmax=1, cmap='Greys')
-        ax.set_xticks(np.arange(len(res.columns)))
-        ax.set_yticks(np.arange(len(res.index)))
-        ax.set_xticklabels(res.columns)
-        ax.set_yticklabels(res.index)
+        groups = set(list(map(lambda idx: re.match("(.*?)(type\d{1,2}[ABC]?)?encoder.*", idx).group(1), df.index)))
 
-        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        links = []
+        for g1, g2 in itertools.combinations(groups, 2):
+            df_filtered = df.filter(regex=f"^{g1}(type\d{{1,2}}[ABC]?)?encoder.*", axis=0)  # filter by rows
+            df_filtered = df_filtered.filter(regex=f"^{g2}(type\d{{1,2}}[ABC]?)?encoder.*")  # filter by columns
+            min_index_idx, min_col_idx, val = \
+                sorted([(n1, n2, df_filtered.loc[n1, n2])
+                        for n1, n2 in zip(df_filtered.index, df_filtered.idxmin(axis=1).values)],
+                       key=lambda triple: triple[2])[0]
+            if val <= 0.05:
+                links += [{"source": min_index_idx, "target": min_col_idx, "pvalue": val, "within": 0}]
 
-        cbar = ax.figure.colorbar(pc)
-        cbar.ax.set_ylabel("p-value, (*): <= 0.05, (**): <= 0.01", rotation=-90, va="bottom")
+        for group in groups:
+            df_f2 = df.filter(regex=f"^{group}(type\d{{1,2}}[ABC]?)?encoder.*", axis=0)
+            df_f2 = df_f2.filter(regex=f"^{group}(type\d{{1,2}}[ABC]?)?encoder.*", axis=1)
+            if np.sum(df_f2.shape) > 2:
+                for n1, n2 in itertools.combinations(df_f2.index, 2):
+                    links += [{"source": n1, "target": n2, "pvalue": df_f2.loc[n1, n2], "within": 1}]
 
-        # for i in range(len(res.index)):
-        #     for j in range(len(res.columns)):
-        #         if res.loc[res.index[i], res.columns[j]] <= 0.01:
-        #             ax.text(j, i, "(**)", ha="center", va="center", color="black")
-        #         elif res.loc[res.index[i], res.columns[j]] <= 0.05:
-        #             ax.text(j, i, "(*)", ha="center", va="center", color="black")
+        res = json.dumps({"nodes": nodes, "links": links})
 
-        fig.tight_layout()
-        fig.set_size_inches(29, 27)
-
-        plt.title(f"all vs. all")
-
-        plt.savefig(str(output), bbox_inches="tight")
+        with open(str(output), mode="a") as f:
+            f.write(res)
+            f.flush()
