@@ -22,7 +22,11 @@ workdir: "."
 # include: "02_encoding/b_normalize.smk"
 # include: "02_encoding/c_final_datasets.smk"
 
-include: "03_machine_learning/a_train_test_split.smk"
+include: "03_machine_learning/a_cross_validation.smk"
+include: "03_machine_learning/b_t_test_classes.smk"
+include: "03_machine_learning/c_t_test_scores.smk"
+include: "03_machine_learning/d_t_test_aucs.smk"
+
 
 DATASET = config["dataset"]
 PART = config["part"]
@@ -42,21 +46,31 @@ ENCODINGS_PLOT = sorted([utils.PSEKRAAC] + utils.PARAM_BASED_ENCODINGS)
 
 rule all:
     input:
-        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" +
-        #        "{dataset}_{part}_normalized-{normalized}.txt",
-        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=ENCODINGS)
-        # expand("00_data/out/{dataset}/plots/{dataset}_length_distribution.svg", dataset=DATASET),
+        ### Create (all) datasets ###
         # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
         #        "geom_median/tsne/normalized-{normalized}/final_datasets.txt",
         #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=utils.APAAC),
+        ### Create (all) clustering plots ###
         # # TODO works only for param_based, psekraac and aaindex encoding:
         # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
         #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=utils.PSEKRAAC),
-        # expand("00_data/out/{dataset}/plots/{encoding}/{dataset}_{part}_normalized-yes_ttest_error.pdf",
-        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=[utils.APAAC, utils.BINARY, utils.PSEKRAAC]),
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/" + \
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
                "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv",
                dataset=DATASET, part=PART, normalized=NORMALIZE),
-         expand("00_data/out/neuropeptides/plots/" + \
-                "{dataset}_{part}_normalized-{normalized}_ttest_error_all_vs_all.pdf",
-                dataset=DATASET, part=PART, normalized=NORMALIZE)
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json",
+               dataset=DATASET, part=PART, normalized=NORMALIZE),
+
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/scores/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv",
+               dataset=DATASET, part=PART, normalized=NORMALIZE),
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/scores/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json",
+               dataset=DATASET, part=PART, normalized=NORMALIZE),
+
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/aucs/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_all.csv",
+               dataset=DATASET, part=PART, normalized=NORMALIZE),
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/aucs/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_all.json",
+               dataset=DATASET, part=PART, normalized=NORMALIZE),
