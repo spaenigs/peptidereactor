@@ -1,134 +1,148 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/webcola@3.4.0/WebCola/cola.min.js"></script>
 <body>
 <svg id='viz'></svg>
 </body>
 <script>
 
-    const drag = simulation => {
-
-        function dragstarted(d) {
-            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-
-        function dragged(d) {
-            d.fx = d3.event.x;
-            d.fy = d3.event.y;
-        }
-
-        function dragended(d) {
-            if (!d3.event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-        }
-
-        return d3.drag()
-            .on("start", dragstarted)
-            .on("drag", dragged)
-            .on("end", dragended);
-    };
+    // const drag = simulation => {
+    //
+    //     function dragstarted(d) {
+    //         if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+    //         d.fx = d.x;
+    //         d.fy = d.y;
+    //     }
+    //
+    //     function dragged(d) {
+    //         d.fx = d3.event.x;
+    //         d.fy = d3.event.y;
+    //     }
+    //
+    //     function dragended(d) {
+    //         if (!d3.event.active) simulation.alphaTarget(0);
+    //         d.fx = null;
+    //         d.fy = null;
+    //     }
+    //
+    //     return d3.drag()
+    //         .on("start", dragstarted)
+    //         .on("drag", dragged)
+    //         .on("end", dragended);
+    // };
 
     const scale = d3.scaleOrdinal(d3.schemeSet3.concat(d3.schemeCategory10).concat(d3.schemeSet1)),
           shape = d3.scaleOrdinal(d3.symbols),
           width = 1024,
           height = 768;
 
-    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
+    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/classes/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
     // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_scores_all.json")
-    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_aucs_all.json")
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_aucs_all.json")
+    // d3.json("data.json")
+    // d3.json("https://gist.githubusercontent.com/mbostock/4062045/raw/5916d145c8c048a6e3086915a6be464467391c62/miserables.json")
         .then(function(data) {
 
-        const links = data.links.map(d => Object.create(d));
-        const nodes = data.nodes.map(d => Object.create(d));
+            const nodes = data.nodes.map(d => Object.create(d));
+            const index = new Map(nodes.map(d => [d.id, d]));
+            const links = data.links.map(d => Object.assign(Object.create(d), {
+                source: index.get(d.source),
+                target: index.get(d.target)
+            }));
 
-        const simulation = d3.forceSimulation(nodes)
-            .force("link", d3.forceLink(links).id(d => d.id))
-            .force("charge", d3.forceManyBody())
-            .force("x", d3.forceX(width / 2).strength(0.06))
-            .force("y", d3.forceY(height / 2).strength(0.06))
-            .force("center", d3.forceCenter(width / 2, height / 2));
+            const layout = cola.d3adaptor(d3)
+                .size([width, height])
+                .nodes(nodes)
+                .links(links)
+                .jaccardLinkLengths(40, 0.7)
+                .start(100);
 
-        const svg = d3.select("#viz").attr("width", width).attr("height", height);
+            // const simulation = d3.forceSimulation(nodes)
+            //     .force("link", d3.forceLink(links).id(d => d.id))
+            //     .force("charge", d3.forceManyBody())
+            //     .force("x", d3.forceX(width / 2).strength(0.06))
+            //     .force("y", d3.forceY(height / 2).strength(0.06))
+            //     .force("center", d3.forceCenter(width / 2, height / 2));
 
-        const link = svg.append("g")
-            .attr("stroke", "#999")
-            .selectAll("line")
-            .data(links)
-            .join("line")
-                .attr("stroke", d => d.pvalue <= 0.05 ? "#999" : "#fff")
-                .attr("stroke-width", d => d.pvalue <= 0.05 ? 1 : 0.001);
+            const svg = d3.select("#viz").attr("width", width).attr("height", height);
 
-        link.append("title")
-            .text(d => d.pvalue);
+            const link = svg.append("g")
+                .attr("stroke", "#999")
+                .selectAll("line")
+                .data(links)
+                .join("line")
+                    .attr("stroke", d => d.pvalue <= 0.05 ? "#999" : "#fff")
+                    .attr("stroke-width", d => d.pvalue <= 0.05 ? 1 : 0.001);
 
-        const node = svg.append("g")
-            .attr("stroke", "#fff")
-            .attr("stroke-width", 1.5)
-            .selectAll("path")
-            .data(nodes)
-            .join("path")
-                .attr("fill", function(d) { return scale(d.group); })
-                .attr("d", d3.symbol().type( function(d) {
-                    // return shape(d.group);
-                    return d3.symbolCircle;
-                }))
-            .call(drag(simulation));
+            link.append("title")
+                .text(d => d.pvalue);
 
-        node.append("title")
-            .text(d => d.id);
+            const node = svg.append("g")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1.5)
+                .selectAll("path")
+                .data(nodes)
+                .join("path")
+                    .attr("fill", function(d) { return scale(d.group); })
+                    .attr("d", d3.symbol().type( function(d) {
+                        // return shape(d.group);
+                        return d3.symbolCircle;
+                    }))
+                .call(layout.drag);
 
-        const headline = svg.selectAll(".headline")
-            // .data(["t-test model-wise (1-classification error)"])
-            // .data(["t-test sample-wise (1-score)"])
-            .data(["t-test model-wise (AUC)"])
-            .enter()
-                .append("g")
-                .attr("class", "headline")
-                .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+            node.append("title")
+                .text(d => d.id);
 
-        headline.append("text")
-            .attr("x", 350)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "end")
-            .text(function(d) { return d; });
+            const headline = svg.selectAll(".headline")
+                .data(["t-test model-wise (1-classification error)"])
+                .data(["t-test sample-wise (1-score)"])
+                // .data(["t-test model-wise (AUC)"])
+                .enter()
+                    .append("g")
+                    .attr("class", "headline")
+                    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-        const legend = svg.selectAll(".legend")
-            // .data(scale.domain())
-            .data(["(*)"])
-            .enter()
-                .append("g")
-                .attr("class", "legend")
-                .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+            headline.append("text")
+                .attr("x", 350)
+                .attr("y", 9)
+                .attr("dy", ".35em")
+                .style("text-anchor", "end")
+                .text(function(d) { return d; });
 
-        legend.append("line")
-            .attr("x1", 5 + (width - 200))
-            .attr("y1", 9)
-            .attr("x2", 10 + (width - 70))
-            .attr("y2", 9)
-            .attr("stroke", "black");
+            const legend = svg.selectAll(".legend")
+                // .data(scale.domain())
+                .data(["(*)"])
+                .enter()
+                    .append("g")
+                    .attr("class", "legend")
+                    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
 
-        legend.append("text")
-            .attr("x", width - 24)
-            .attr("y", 9)
-            .attr("dy", ".35em")
-            .style("text-anchor", "end")
-            .text(function(d) { return d; });
+            legend.append("line")
+                .attr("x1", 5 + (width - 200))
+                .attr("y1", 9)
+                .attr("x2", 10 + (width - 70))
+                .attr("y2", 9)
+                .attr("stroke", "black");
 
-        simulation.on("tick", () => {
-            link
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
-            node
-                .attr('transform', function(d) { return 'translate('+d.x+','+d.y+')'; });
-        });
+            legend.append("text")
+                .attr("x", width - 24)
+                .attr("y", 9)
+                .attr("dy", ".35em")
+                .style("text-anchor", "end")
+                .text(function(d) { return d; });
 
-        return svg.node();
+            layout.on("tick", () => {
+                link
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+                node
+                    .attr('transform', function(d) { return 'translate('+d.x+','+d.y+')'; });
+            });
+
+            return svg.node();
 
     });
 
