@@ -36,12 +36,12 @@ rule cross_validation:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/splitted/train/" + \
          "{dataset}_{part}_{type}_normalized-{normalized}.csv"
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/classes/" + \
         "{dataset}_{part}_{type}_normalized-{normalized}.csv",
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-        "{dataset}_{part}_{type}_normalized-{normalized}_scores.csv",
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-        "{dataset}_{part}_{type}_normalized-{normalized}_aucs.csv"
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/scores/" + \
+        "{dataset}_{part}_{type}_normalized-{normalized}.csv",
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/aucs/" + \
+        "{dataset}_{part}_{type}_normalized-{normalized}.csv"
     run:
         df = pd.read_csv(str(input), index_col=0)
         X, y = df.iloc[:, :-1].values, df["y"]
@@ -82,74 +82,75 @@ def get_single_type(wildcards):
                             f"{wildcards.dataset}_{wildcards.part}_{{type}}.csv")
     return type_
 
-rule collect_cross_validation_classes:
+# rule collect_cross_validation_classes:
+#     input:
+#         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
+#                                  "{dataset}_{part}_{type}_normalized-{normalized}.csv",
+#                                  dataset=wildcards.dataset,
+#                                  part=wildcards.part,
+#                                  encoding=wildcards.encoding,
+#                                  type=get_single_type(wildcards) \
+#                                      if wildcards.encoding in utils.REST_ENCODINGS \
+#                                      else utils.get_type(wildcards.encoding, config),
+#                                  normalized=wildcards.normalized),
+#     output:
+#         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
+#         "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
+#     run:
+#         def concat_dfs(list_in):
+#             df_res = pd.DataFrame()
+#             for path in list_in:
+#                 try:
+#                     df = pd.read_csv(path, index_col=0)
+#                     df_res = pd.concat([df_res, df], axis=1, sort=True)
+#                 except EmptyDataError:
+#                     pass
+#             return df_res.transpose()
+#         concat_dfs(list(input)).to_csv(str(output))
+#
+#
+# rule collect_cross_validation_scores:
+#     input:
+#         lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
+#                                  "{dataset}_{part}_{type}_normalized-{normalized}_scores.csv",
+#                                  dataset=wildcards.dataset,
+#                                  part=wildcards.part,
+#                                  encoding=wildcards.encoding,
+#                                  type=get_single_type(wildcards) \
+#                                      if wildcards.encoding in utils.REST_ENCODINGS \
+#                                      else utils.get_type(wildcards.encoding, config),
+#                                  normalized=wildcards.normalized)
+#     output:
+#         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
+#         "{dataset}_{part}_normalized-{normalized}_cross_validation_scores.csv"
+#     run:
+#         def concat_dfs(list_in):
+#             df_res = pd.DataFrame()
+#             for path in list_in:
+#                 try:
+#                     df = pd.read_csv(path, index_col=0)
+#                     df_res = pd.concat([df_res, df], axis=1, sort=True)
+#                 except EmptyDataError:
+#                     pass
+#             return df_res.transpose()
+#         concat_dfs(list(input)).to_csv(str(output))
+#
+
+rule collect_cross_validation:
     input:
-        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-                                 "{dataset}_{part}_{type}_normalized-{normalized}.csv",
+        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/"
+                                 "part/{computation}/{dataset}_{part}_{type}_normalized-{normalized}.csv",
                                  dataset=wildcards.dataset,
                                  part=wildcards.part,
                                  encoding=wildcards.encoding,
+                                 computation=wildcards.computation,
                                  type=get_single_type(wildcards) \
                                      if wildcards.encoding in utils.REST_ENCODINGS \
                                      else utils.get_type(wildcards.encoding, config),
-                                 normalized=wildcards.normalized),
+                                 normalized=wildcards.normalized)
     output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
+        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/{computation}/" + \
         "{dataset}_{part}_normalized-{normalized}_cross_validation.csv"
-    run:
-        def concat_dfs(list_in):
-            df_res = pd.DataFrame()
-            for path in list_in:
-                try:
-                    df = pd.read_csv(path, index_col=0)
-                    df_res = pd.concat([df_res, df], axis=1, sort=True)
-                except EmptyDataError:
-                    pass
-            return df_res.transpose()
-        concat_dfs(list(input)).to_csv(str(output))
-
-
-rule collect_cross_validation_scores:
-    input:
-        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-                                 "{dataset}_{part}_{type}_normalized-{normalized}_scores.csv",
-                                 dataset=wildcards.dataset,
-                                 part=wildcards.part,
-                                 encoding=wildcards.encoding,
-                                 type=get_single_type(wildcards) \
-                                     if wildcards.encoding in utils.REST_ENCODINGS \
-                                     else utils.get_type(wildcards.encoding, config),
-                                 normalized=wildcards.normalized)
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
-        "{dataset}_{part}_normalized-{normalized}_cross_validation_scores.csv"
-    run:
-        def concat_dfs(list_in):
-            df_res = pd.DataFrame()
-            for path in list_in:
-                try:
-                    df = pd.read_csv(path, index_col=0)
-                    df_res = pd.concat([df_res, df], axis=1, sort=True)
-                except EmptyDataError:
-                    pass
-            return df_res.transpose()
-        concat_dfs(list(input)).to_csv(str(output))
-
-
-rule collect_cross_validation_aucs:
-    input:
-        lambda wildcards: expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/part/" + \
-                                 "{dataset}_{part}_{type}_normalized-{normalized}_aucs.csv",
-                                 dataset=wildcards.dataset,
-                                 part=wildcards.part,
-                                 encoding=wildcards.encoding,
-                                 type=get_single_type(wildcards) \
-                                     if wildcards.encoding in utils.REST_ENCODINGS \
-                                     else utils.get_type(wildcards.encoding, config),
-                                 normalized=wildcards.normalized)
-    output:
-        "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/" + \
-        "{dataset}_{part}_normalized-{normalized}_cross_validation_aucs.csv"
     run:
         def concat_dfs(list_in):
             df_res = pd.DataFrame()
