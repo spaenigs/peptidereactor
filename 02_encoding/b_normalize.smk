@@ -12,7 +12,7 @@ rule normalize_datasets:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/normalized/" + \
             "{dataset}_{part}_{type}.csv"
     script:
-          "scripts/normalize.py"
+          "scripts/i_normalize.py"
 
 
 rule collect_normalized_datasets:

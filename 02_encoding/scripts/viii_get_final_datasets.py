@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 sys.path.append(os.getcwd() + "/apps")
 
 import scripts.utils as utils
-from get_aaindex_files import get_aaindex_files
+from ix_get_aaindex_files import get_aaindex_files
 
 def write_empty_file(path):
     with open(path, mode="w") as f:

@@ -31,7 +31,7 @@ rule compute_distance_matrix:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/correlation/" + \
         "{dataset}_{part}_{type}_normalized-{normalized}_vs_rest.csv"
     script:
-        "scripts/compute_distance_matrix.py"
+        "scripts/ii_compute_distance_matrix.py"
 
 
 rule collect_distance_matrix:
@@ -59,7 +59,7 @@ rule collect_distance_matrix:
           "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/" + \
           "{dataset}_{part}_normalized-{normalized}_distance_matrix.csv"
     script:
-        "scripts/collect_distance_matrix.py"
+        "scripts/iii_collect_distance_matrix.py"
 
 
 rule run_clustering:
@@ -85,7 +85,7 @@ rule run_clustering:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
         "{dataset}_{part}_normalized-{normalized,yes|no}.csv"
     run:
-        from scripts.run_clustering import run_clustering
+        from scripts.iv_run_clustering import run_clustering
         run_clustering(utils.ENCODING_PATTERN[wildcards.encoding], # TODO replace with get_unique_types
                        str(input),
                        str(output))
@@ -114,7 +114,7 @@ rule compute_geometric_median:
         "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/geom_median/" + \
         "{dataset}_{part}_normalized-{normalized,yes|no}_{type}_vs_rest.csv"
     script:
-        "scripts/compute_geometric_median.py"
+        "scripts/v_compute_geometric_median.py"
 
 
 rule collect_geometric_median:
@@ -141,7 +141,7 @@ rule collect_geometric_median:
          "00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/tsne/" + \
          "{dataset}_{part}_normalized-{normalized}_geometric_median.csv"
     script:
-        "scripts/collect_geometric_median.py"
+        "scripts/vi_collect_geometric_median.py"
 
 
 rule plot_clustering:
@@ -163,7 +163,7 @@ rule plot_clustering:
     output:
         "00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg"
     script:
-        "scripts/plot_clustering.py"
+        "scripts/vii_plot_clustering.py"
 
 
 rule get_final_datasets:
@@ -187,4 +187,4 @@ rule get_final_datasets:
         temp("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/csv/final/" +
              "geom_median/tsne/normalized-{normalized}/final_datasets.txt")
     script:
-        "scripts/get_final_datasets.py"
+        "scripts/viii_get_final_datasets.py"
