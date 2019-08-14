@@ -12,11 +12,9 @@
           width = 1024,
           height = 768;
 
-    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/classes/neuropeptides_ds1_normalized-yes_ttest_error_all.json")
-    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_error_scores_all.json")
-    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/neuropeptides_ds1_normalized-yes_ttest_aucs_all.json")
-    // d3.json("data.json")
-    // d3.json("https://gist.githubusercontent.com/mbostock/4062045/raw/5916d145c8c048a6e3086915a6be464467391c62/miserables.json")
+    d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/classes/neuropeptides_ds1_normalized-yes_ttest_all.json")
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/scores/neuropeptides_ds1_normalized-yes_ttest_all.json")
+    // d3.json("../00_data/out/neuropeptides/neuropeptides_ds1/analyis/t_test/aucs/neuropeptides_ds1_normalized-yes_ttest_all.json")
         .then(function(data) {
 
             const nodes = data.nodes.map(d => Object.create(d));
@@ -64,7 +62,7 @@
 
             const headline = svg.selectAll(".headline")
                 .data(["t-test model-wise (1-classification error)"])
-                .data(["t-test sample-wise (1-score)"])
+                // .data(["t-test sample-wise (1-score)"])
                 // .data(["t-test model-wise (AUC)"])
                 .enter()
                     .append("g")
