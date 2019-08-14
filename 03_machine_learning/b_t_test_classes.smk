@@ -72,11 +72,12 @@ rule all_vs_all_ttest_classes:
         "{dataset}_{part}_normalized-{normalized}_cross_validation_all.csv"
     output:
          "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
-         "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
+         "{dataset}_{part}_normalized-{normalized}_ttest_all.csv"
     threads:
         8
     run:
         from pathos.multiprocessing import ProcessingPool as Pool
+        from statsmodels.stats.multitest import multipletests
         from scipy import stats
 
         df = pd.read_csv(str(input), index_col=0)
@@ -99,22 +100,37 @@ rule all_vs_all_ttest_classes:
             return n1, n2, 1.0 if np.isnan(pv) else pv
 
         p = Pool(threads)
-        pvs = p.map(func, list(itertools.combinations(res.index, 2)))
+        pvs_triple = p.map(func, list(itertools.combinations(res.index, 2)))
 
-        for n1, n2, pv in pvs:
+        for n1, n2, pv in pvs_triple:
             res.loc[n1, n2] = pv
 
         res = res.transpose() * res
 
-        res.to_csv(str(output))
+        idxs = np.tril_indices(len(res.index), k=-1)
+        pvs = res.values[idxs]
+
+        # p-value correction for multiple tests using Benjamini/Hochberg (Biostatistics p.90)
+        # if rejected = true, accept H1
+        reject, pvalues_corrected, _, _ = multipletests(pvs, method="fdr_by")
+
+        print(f"before: {sum(list(map(lambda t: t[2] <= 0.05, pvs_triple)))}")
+        print(f"after: {sum(reject)}")
+
+        new_df_array = np.ones(res.shape)
+        new_df_array[idxs] = pvalues_corrected
+
+        new_df = pd.DataFrame(new_df_array.transpose() * new_df_array)
+        new_df.index, new_df.columns = res.index, res.columns
+        new_df.to_csv(str(output))
 
 
 rule generate_network_data_from_classes:
     input:
         "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
-        "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv"
+        "{dataset}_{part}_normalized-{normalized}_ttest_all.csv"
     output:
         "00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
-        "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json"
+        "{dataset}_{part}_normalized-{normalized}_ttest_all.json"
     script:
          "scripts/generate_network_data.py"
