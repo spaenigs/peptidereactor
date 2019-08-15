@@ -24,8 +24,6 @@ workdir: "."
 
 include: "03_machine_learning/a_cross_validation.smk"
 include: "03_machine_learning/b_t_test_classes.smk"
-include: "03_machine_learning/c_t_test_scores.smk"
-include: "03_machine_learning/d_t_test_aucs.smk"
 
 
 DATASET = config["dataset"]
@@ -54,23 +52,10 @@ rule all:
         # # TODO works only for param_based, psekraac and aaindex encoding:
         # expand("00_data/out/{dataset}/plots/{dataset}_{part}_{encoding}_normalized-{normalized}_tsne.svg",
         #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=utils.PSEKRAAC),
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/classes/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
-
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/scores/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.csv",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/scores/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_error_all.json",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
-
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/aucs/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_all.csv",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
-        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/aucs/" + \
-               "{dataset}_{part}_normalized-{normalized}_ttest_all.json",
-               dataset=DATASET, part=PART, normalized=NORMALIZE),
+        # expand("00_data/out/{dataset}/{dataset}_{part}/encodings/{encoding}/cv/{computation}/" + \
+        #        "{dataset}_{part}_normalized-{normalized}_ttest.csv",
+        #        dataset=DATASET, part=PART, normalized=NORMALIZE, encoding=[utils.APAAC], computation=["classes"]),
+        expand("00_data/out/{dataset}/{dataset}_{part}/analyis/t_test/{computation}/" + \
+               "{dataset}_{part}_normalized-{normalized}_ttest_all.{ftype}",
+               dataset=DATASET, part=PART, normalized=NORMALIZE,
+               computation=["classes", "scores", "aucs"], ftype=["csv", "json"])
