@@ -1,0 +1,13 @@
+name: utils_split_normalize
+channels:
+  - bioconda
+  - anaconda
+  - conda-forge
+dependencies:
+  - python
+  - snakemake-minimal
+  - biopython
+  - joblib
+  - pip
+  - pip:
+    - modlamp
