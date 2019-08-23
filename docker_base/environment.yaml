@@ -1,17 +1,17 @@
-name: encoding_benchmark
+name: eb_base
 channels:
   - bioconda
-  - anaconda
-  - conda-forge
-  - biocore
-  - salilab
+#  - anaconda
+#  - conda-forge
+#  - biocore
+#  - salilab
 dependencies:
 #  - biopython=1.72=py37h04863e7_0
 #  - numpy=1.16.2=py37h7e9f1db_0
 #  - numpy-base=1.16.2=py37hde5b4d6_0
 #  - pandas=0.24.2=py37he6710b0_0
 #  - pip=19.0.3=py37_0
-  - python=3.7.3=h0371630_0
+#  - python=3.7.3=h0371630_0
 #  - scikit-learn=0.20.3=py37hd81dba3_0
 #  - scipy=1.2.1=py37h7c811a0_0
   - snakemake-minimal=5.4.5=py_0
