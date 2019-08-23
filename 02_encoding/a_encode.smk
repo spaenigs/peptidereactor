@@ -102,12 +102,12 @@ rule generate_gap_based_encodings:
                         in_data=jl.load(str(input)), cores=4,
                         gap=int(wildcards.gapValue)).encode():
                     df.to_csv(str(output))
-        elif wildcards.encoding == "cksaagpencoder":
+        elif wildcards.encoding == "cksaagp":
                 for df in param_gap_encoder.CKSAAGPEncoder(
                         in_data=jl.load(str(input)), cores=4,
                         gap=int(wildcards.gapValue)).encode():
                     df.to_csv(str(output))
-        elif wildcards.encoding == "ctriadencoder":
+        elif wildcards.encoding == "ctriad":
                 for df in param_gap_encoder.CTriadEncoder(
                         in_data=jl.load(str(input)), cores=4,
                         gap=int(wildcards.gapValue)).encode():
