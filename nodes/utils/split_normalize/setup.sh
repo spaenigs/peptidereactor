@@ -13,11 +13,12 @@ channels:
   - anaconda
   - conda-forge
 dependencies:
-  - python
-  - snakemake-minimal
-  - biopython
-  - joblib
-  - pip
+  - biopython=1.74
+  - numpy=1.17.1
+  - pip=19.2.3
+  - python=3.7.4
+  - scipy=1.3.1
+  - snakemake-minimal=5.5.4
   - pip:
     - modlamp
 EOF
@@ -42,8 +43,8 @@ if docker image inspect $image_name > /dev/null 2>&1; then
 else
   echo "Building image $image_name..."
   docker build -t $image_name .
-  cp Dockerfile docker/
-  cp environment.yaml snakemake/environment.yaml
+  mv Dockerfile docker/
+  mv environment.yaml snakemake/environment.yaml
 fi
 
 

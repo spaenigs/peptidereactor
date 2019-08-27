@@ -1,22 +1,30 @@
 from typing import List
 import joblib as jl
 
+import sklearn
+print(sklearn.__version__)
+
+import sys
+print(sys.version)
+print(sys.path)
+
 from Bio import SeqIO
+
 
 rule all:
     input:
-         # TODO expand me
-        "data/{dataset}_{part}.fasta",
-        "data/{dataset}_{part}_classes.txt"
+        expand("data/{dataset}_{part}.fasta",
+               dataset=config["dataset"], part=["ds1", "ds2"]),
+        expand("data/{dataset}_{part}_classes.txt",
+               dataset=config["dataset"], part=["ds1", "ds2"])
 
 rule read_fasta:
     input:
          "data/{dataset}.fasta"
     output:
-        "data/{dataset}_from_fasta.joblib"
+        temp("data/{dataset}_from_fasta.joblib")
     run:
-        raw_data: List[List[str]] = []
-        seq_names = []
+        raw_data, seq_names = [], []
         for record in SeqIO.parse(str(input), "fasta"):
             seq_names.append(record.name)
             raw_data.append([record.name, str(record.seq)])
@@ -29,7 +37,7 @@ rule read_classes:
     input:
         "data/{dataset}_classes.txt"
     output:
-        "data/{dataset}_from_classes.joblib"
+        temp("data/{dataset}_from_classes.joblib")
     run:
         f = open(str(input), mode="r")
         target = [int(line.rstrip()) for line in f.readlines()]
@@ -41,7 +49,7 @@ rule create_input_data:
         "data/{dataset}_from_fasta.joblib",
         "data/{dataset}_from_classes.joblib"
     output:
-        "data/{dataset,[A-Za-z]+}.joblib"
+        temp("data/{dataset,[A-Za-z]+}.joblib")
     run:
         from_fasta = jl.load(filename=str(input[0]))
         from_classes = jl.load(filename=str(input[1]))
@@ -56,9 +64,9 @@ rule create_normal_distributed_input_data:
     input:
         "data/{dataset}.joblib"
     output:
-        "data/{dataset,[A-Za-z]+}_normal_distributed.joblib",
-        "data/{dataset}_ds1_normal_distributed.joblib",
-        "data/{dataset}_ds2_normal_distributed.joblib",
+        temp("data/{dataset,[A-Za-z]+}_normal_distributed.joblib"),
+        temp("data/{dataset}_ds1_normal_distributed.joblib"),
+        temp("data/{dataset}_ds2_normal_distributed.joblib"),
     script:
         "scripts/create_normal_distributed_input_data.py"
 
