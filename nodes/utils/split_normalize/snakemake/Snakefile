@@ -1,13 +1,4 @@
-from typing import List
 import joblib as jl
-
-import sklearn
-print(sklearn.__version__)
-
-import sys
-print(sys.version)
-print(sys.path)
-
 from Bio import SeqIO
 
 
