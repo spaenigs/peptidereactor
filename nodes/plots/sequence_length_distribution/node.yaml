@@ -1,0 +1,20 @@
+node_group: "plots"
+node_name: "sequence_length_distribution"
+requires:
+  - "*.fasta"
+  - "*_classes.txt"
+  - "*_ds1.fasta"
+  - "*_ds1_classes.txt"
+  - "*_ds2.fasta"
+  - "*_ds2_classes.txt"
+env: |
+  channels:
+    - anaconda
+    - conda-forge
+    - bioconda
+  dependencies:
+    - pip=19.2.3
+    - python=3.7.4
+    - snakemake-minimal=5.5.4
+    - pip:
+      - modlamp

@@ -1,0 +1,7 @@
+nodes:
+  sequence_length_distribution: "nodes/plots/sequence_length_distribution"
+  split_normalize: "nodes/utils/split_normalize"
+
+order:
+  - split_normalize
+  - sequence_length_distribution

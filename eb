@@ -1,0 +1,20 @@
+#!/usr/bin/env python
+
+import yaml
+import os
+
+from snakemake import shell
+
+root = os.getcwd()
+script_dir = root + "/scripts/"
+
+with open("tree.yaml", 'r') as stream:
+    y = yaml.safe_load(stream)
+
+for node in y["order"]:
+    os.chdir(y["nodes"][node])
+    with open("node.yaml", 'r') as stream:
+        y_node = yaml.safe_load(stream)
+    shell(f"""source {script_dir}/setup.sh {y_node['node_group']} {y_node['node_name']} '{y_node['env']}'
+              sh {script_dir}/exec.sh {os.getcwd()} {root} '--config dataset=neuropeptides'""")
+    os.chdir(root)
