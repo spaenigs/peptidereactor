@@ -1,6 +1,8 @@
 node_group: "utils"
 node_name: "split_normalize"
-requires: []
+requires:
+  - "*.fasta"
+  - "*_classes.txt"
 env: |
   channels:
     - bioconda
