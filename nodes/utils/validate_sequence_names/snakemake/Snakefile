@@ -1,0 +1,17 @@
+from modlamp.core import read_fasta, save_fasta
+import re
+
+rule all:
+    input:
+        expand("data/{dataset}_validated.fasta", dataset=config["dataset"])
+
+
+rule validate:
+    input:
+         "data/{dataset}.fasta"
+    output:
+         "data/{dataset}_validated.fasta"
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        names_new = [re.sub("\W", "", n) for n in names]
+        save_fasta(str(output[0]), seqs, names_new)

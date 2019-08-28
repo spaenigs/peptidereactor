@@ -1,0 +1,15 @@
+node_group: "utils"
+node_name: "validate_sequence_names"
+requires:
+  - "*.fasta"
+env: |
+  channels:
+    - bioconda
+    - anaconda
+    - conda-forge
+  dependencies:
+    - pip=19.2.3
+    - python=3.7.4
+    - snakemake-minimal=5.5.4
+    - pip:
+      - modlamp
