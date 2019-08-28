@@ -1,0 +1,30 @@
+from modlamp.core import read_fasta, save_fasta
+
+rule all:
+    input:
+        expand("data/{dataset}_msa.fasta", dataset=config["dataset"])
+
+
+rule generate_multiple_sequence_alignment:
+    input:
+        "data/{dataset}.fasta",
+        "data/{dataset}_classes.txt"
+    output:
+        "data/{dataset}_msa.fasta"
+    run:
+        from encoder.encoder import BaseEncoder as base_encoder
+
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+        input_data = [[[n, s] for n, s in zip(names, seqs)], classes]
+        # d_old = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+
+        _, fastas_aligned = base_encoder.run_muscle(input_data)
+        d_new = dict((name, tup) for name, tup in fastas_aligned)
+
+        # undo internal sorting from muscle
+        seqs_sorted = [d_new[n] for n in names]
+
+        save_fasta(str(output[0]), seqs_sorted, names)
