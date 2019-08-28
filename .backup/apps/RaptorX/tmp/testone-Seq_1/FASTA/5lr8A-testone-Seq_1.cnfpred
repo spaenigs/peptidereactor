@@ -1,0 +1,11 @@
+
+T sse_real            CCCCCHHHHHHHHHHHHHHHHHHHHHHHHHHHH           
+T acc_real            EEMEMMMMBBBBBBMBBBMMBMEMBEMBMEMBM           
+T 5lr8A            48 PEHSSPLKAYHATAKSVFDSLIMNWNATYDYYN   80 (938)
+                      ~~*****+||||||++||++|+* .+*+*+**+           
+S testone-Seq_1     1 MTIISDSQIVVALISALVTGILA-LRLGRELYR   32 (32)
+S acc_pred            EEEMEEEMBBBBBBMBBBMBBBB-BMMEEEMME           
+S acc_conf            98755645687566458644776-654469649           
+S sse_pred            CCEECHHHHHHHHHHHHHHHHHH-HHHHHHHHC           
+S sse_conf            95435899999999999999999-998666669           
+

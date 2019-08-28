@@ -1,0 +1,11 @@
+
+T sse_real            CCCCCHHHHHHHHHHHHHHHHHHHHHHHHHHHHH           
+T acc_real            EEMBMMMBBBBBBBBBBBMMBBMBBBBBBBBBMB           
+T 3bujA           215 RGLMSRNEIVSTVVTFIFTGHETVASQVGNAVLS  248 (397)
+                      ~~*+***+||+|||++||++|  .+++++*++**           
+S testone-Seq_1     1 MTIISDSQIVVALISALVTGI--LALRLGRELYR   32 (32)
+S acc_pred            EEEMEEEMBBBBBBMBBBMBB--BBBMMEEEMME           
+S acc_conf            987556456875664586447--76654469649           
+S sse_pred            CCEECHHHHHHHHHHHHHHHH--HHHHHHHHHHC           
+S sse_conf            954358999999999999999--99998666669           
+

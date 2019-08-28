@@ -1,0 +1,34 @@
+#!/bin/sh
+
+echo "Which compiler to try? (ifort,gfortran)"
+echo "If you get a bunch of error messages, find a fortran compiler"
+echo "and edit $0 accordingly, see README for additional details"
+read complr
+
+case $complr in 
+ifort)
+  echo -n "Trying ifort"
+  compln="ifort -132 -O2 -o"
+  ;;
+
+gfortran)
+  echo -n "Trying gfortran"
+  compln="gfortran -ffixed-line-length-none -O2 -o"
+  ;;
+
+*)
+  echo "Aborting, lo hevanty"
+  exit
+  ;;
+esac
+
+for nm in ss0 rsa phipsi0 ss1 phipsi1 ; do
+  $compln phipsi_$nm.e phipsi_$nm.f
+done
+echo " ..."
+mv *.e ../bin/
+$compln phipsi_dssp.e phipsi_dssp.f 
+mv phipsi_dssp.e  ../
+
+echo "Done"
+exit

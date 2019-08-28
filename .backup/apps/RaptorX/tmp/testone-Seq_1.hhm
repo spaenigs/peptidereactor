@@ -1,0 +1,130 @@
+HHsearch 1.5
+NAME  testone-Seq_1
+FAM   
+FILE  testone-Seq_1
+COM   ./hhmake -i /home/spaenigs/PycharmProjects/encoding_benchmark/snakemake/apps/RaptorX/tmp/testone-Seq_1.a3m 
+DATE  Wed Jun 12 16:07:52 2019
+LENG  32 match states, 32 columns in multiple alignment
+FILT  6 out of 8 sequences passed filter (-id 90 -cov 0 -qid 0 -qsc -20.00 -diff 100)
+NEFF  1.4 
+SEQ
+>ss_pred
+CCEECHHHHHHHHHHHHHHHHHHHHHHHHHHC
+>ss_conf
+92002478999999999999989986232339
+>Consensus
+mtxisdsqivxalxsaxitgilalrlgxelyr
+>testone-Seq_1
+MTIISDSQIVVALISALVTGILALRLGRELYR
+>gi|108796811|ref|YP_636408.1|(1-32:32) M polypeptide of photosystem I (chloroplast) [Staurastrum punctulatum]   gi|122211797|sp|Q32RW8.1|PSAM_STAPU RecName: Full=Photosystem I reaction center subunit XII; AltName: Full=PSI-M (chloroplast) [Staurastrum punctulatum]   gi|61393579|gb|AAX45720.1| M polypeptide of photosystem I (chloroplast) [Staurastrum punctulatum]  E=8e-07 s/c=1.83 id=88% cov=103%
+MTLISDSQIVVALVSAFVTGILALRLGRELYR
+>gi|34501427|ref|NP_904214.1|(1-32:32) photosystem I protein M [Physcomitrella patens]   gi|34494797|dbj|BAC85064.1| PSI M-protein (chloroplast) [Physcomitrella patens]  E=0.0001 s/c=1.60 id=73% cov=103%
+MTSISDSQIIVALVSAFITGILALRLGKSLYQ
+>gi|224178059|ref|YP_002600900.1|(3-33:33) M polypeptide of photosystem I (chloroplast) [Pyramimonas parkeae]   gi|215882726|gb|ACJ71099.1| M polypeptide of photosystem I (chloroplast) [Pyramimonas parkeae]  E=0.0002 s/c=1.63 id=72% cov=100%
+-TILSDSQIVIALFTALITGIFALRLGTELYK
+>gi|60117208|ref|YP_209542.1|(1-32:32) photosystem I protein M (chloroplast) [Huperzia lucidula]   gi|50660016|gb|AAT80738.1| photosystem I protein M (chloroplast) [Huperzia lucidula]  E=0.0003 s/c=1.55 id=73% cov=103%
+MTSISDSQIILALISAFITSILAIRLGNELYR
+>gi|189312745|gb|ACD88351.1|(1-32:32) PsaM (chloroplast) [Danaea elliptica]   gi|189312751|gb|ACD88355.1| PsaM (chloroplast) [Danaea nodosa]   gi|189312754|gb|ACD88357.1| PsaM (chloroplast) [Danaea nodosa]   gi|189312757|gb|ACD88359.1| PsaM (chloroplast) [Danaea nodosa]  E=0.0008 s/c=1.52 id=73% cov=103%
+MTSISDSQIILALISACITSILAVRLGSELYR
+#
+NULL   3706	5728	4211	4064	4839	3729	4763	4308	4069	3323	5509	4640	4464	4937	4285	4423	3815	3783	6325	4665	
+HMM    A	C	D	E	F	G	H	I	K	L	M	N	P	Q	R	S	T	V	W	Y	
+       M->M	M->I	M->D	I->M	I->I	D->M	D->D	Neff	Neff_I	Neff_D
+       0	*	*	0	*	0	*	*	*	*	
+M 1    *	*	*	*	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	1
+       0	*	*	*	*	*	*	1307	0	0	
+
+T 2    *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	2
+       0	*	*	*	*	*	*	1444	0	0	
+
+I 3    *	*	*	*	*	*	*	1486	*	2702	*	*	*	*	*	1031	*	*	*	*	3
+       0	*	*	*	*	*	*	1444	0	0	
+
+I 4    *	*	*	*	*	*	*	338	*	2261	*	*	*	*	*	*	*	*	*	*	4
+       0	*	*	*	*	*	*	1444	0	0	
+
+S 5    *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	*	5
+       0	*	*	*	*	*	*	1444	0	0	
+
+D 6    *	*	0	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	6
+       0	*	*	*	*	*	*	1444	0	0	
+
+S 7    *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	*	7
+       0	*	*	*	*	*	*	1444	0	0	
+
+Q 8    *	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	*	*	*	8
+       0	*	*	*	*	*	*	1444	0	0	
+
+I 9    *	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	*	*	9
+       0	*	*	*	*	*	*	1444	0	0	
+
+V 10   *	*	*	*	*	*	*	1031	*	*	*	*	*	*	*	*	*	970	*	*	10
+       0	*	*	*	*	*	*	1444	0	0	
+
+V 11   *	*	*	*	*	*	*	2261	*	1631	*	*	*	*	*	*	*	1093	*	*	11
+       0	*	*	*	*	*	*	1444	0	0	
+
+A 12   0	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	12
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 13   *	*	*	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	13
+       0	*	*	*	*	*	*	1444	0	0	
+
+I 14   *	*	*	*	2261	*	*	1086	*	*	*	*	*	*	*	*	*	1642	*	*	14
+       0	*	*	*	*	*	*	1444	0	0	
+
+S 15   *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	338	2261	*	*	*	15
+       0	*	*	*	*	*	*	1444	0	0	
+
+A 16   0	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	16
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 17   *	2600	*	*	1065	*	*	*	*	1486	*	*	*	*	*	*	*	*	*	*	17
+       0	*	*	*	*	*	*	1444	0	0	
+
+V 18   *	*	*	*	*	*	*	519	*	*	*	*	*	*	*	*	*	1728	*	*	18
+       0	*	*	*	*	*	*	1444	0	0	
+
+T 19   *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	19
+       0	*	*	*	*	*	*	1444	0	0	
+
+G 20   *	*	*	*	*	562	*	*	*	*	*	*	*	*	*	1631	*	*	*	*	20
+       0	*	*	*	*	*	*	1444	0	0	
+
+I 21   *	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	*	*	21
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 22   *	*	*	*	2261	*	*	*	*	338	*	*	*	*	*	*	*	*	*	*	22
+       0	*	*	*	*	*	*	1444	0	0	
+
+A 23   0	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	23
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 24   *	*	*	*	*	*	*	2664	*	562	*	*	*	*	*	*	*	2600	*	*	24
+       0	*	*	*	*	*	*	1444	0	0	
+
+R 25   *	*	*	*	*	*	*	*	*	*	*	*	*	*	0	*	*	*	*	*	25
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 26   *	*	*	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	26
+       0	*	*	*	*	*	*	1444	0	0	
+
+G 27   *	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	*	*	*	*	27
+       0	*	*	*	*	*	*	1444	0	0	
+
+R 28   *	*	*	*	*	*	*	*	2585	*	*	2664	*	*	1728	2600	2261	*	*	*	28
+       0	*	*	*	*	*	*	1444	0	0	
+
+E 29   *	*	*	263	*	*	*	*	*	*	*	*	*	*	*	2585	*	*	*	*	29
+       0	*	*	*	*	*	*	1444	0	0	
+
+L 30   *	*	*	*	*	*	*	*	*	0	*	*	*	*	*	*	*	*	*	*	30
+       0	*	*	*	*	*	*	1444	0	0	
+
+Y 31   *	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	*	0	31
+       0	*	*	*	*	*	*	1444	0	0	
+
+R 32   *	*	*	*	*	*	*	*	2261	*	*	*	*	2585	679	*	*	*	*	*	32
+       0	*	*	0	*	*	*	1444	0	0	
+
+//

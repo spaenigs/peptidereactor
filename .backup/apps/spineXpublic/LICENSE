@@ -1,0 +1,82 @@
+PLEASE READ THE FOLLOWING LICENSE AGREEMENT. BY USING THE PROGRAM YOU ARE
+ACKNOWLEDGING THE FACT THAT YOU AGREE TO THE TERMS OUTLINED IN THIS
+AGREEMENT. USERS WISHING TO USE THE SOFTWARE FOR COMMERCIAL ACTIVITIES
+NOT COVERED BY THIS AGREEMENT SHOULD SEND E-MAIL TO: yqzhou@iupui.edu
+
+ SPINE-X -- PROTEIN STRUCTURE PREDICTION PROGRAM BY Eshel Faraggi
+ ----------------------------------------------------------------------
+
+                          GENERAL LICENSE &
+                          -----------------
+
+		     CONFIDENTIALITY AGREEMENT
+		     -------------------------
+
+
+
+In regard to the protein structure prediction program (SPINE-X)
+herewith (the Software) the copyright and other intellectual property
+rights to which belong to the Author(s).
+
+Any user (the User) of the program undertakes to the Copyright holder that he
+or she shall be bound by the following terms and conditions:-
+
+=============================================================================
+0. The User understands that THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW. EXCEPT WHEN OTHERWISE STATED IN WRITING, THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU. SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+IN NO EVENT, UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+=============================================================================
+
+1. The User will receive the Software and any related documentation in
+confidence and will not use the same except for the purpose of their own 
+research. The Software will be used only by such of the User's officers or
+employees to whom it must reasonably be communicated to enable them to
+undertake their research and who agree to be bound by the same confidence.
+The User shall procure and enforce such agreement from his or her staff for
+the benefit of the Copyright holder.
+
+2. The publication of research using the Software must include appropriate citations to the method:
+
+a. If you are using predicted accessible surface area please cite:
+-  E. Faraggi et al., ``Improving the prediction accuracy of residue solvent accessibility and real-value backbone torsion angles of proteins by fast guided-learning through a two-layer neural network.'', Proteins 74, 857-871 (2009)
+
+b. If you are using predicted phi/psi angles please cite:
+-  E. Faraggi et al., ``Predicting continuous local structure and the effect of 
+its substitution for secondary structure in fragment-free protein structure 
+prediction'', Structure 17,1515-1527 (2009)
+
+c. If you are using predicted secondary structure please cite:
+-  E. Faraggi et al., ``SPINE X: Improving protein secondary structure prediction 
+by multi-step learning coupled with prediction of solvent accessible surface area 
+and backbone torsion angles'', Journal of Computational Chemistry, In press (2011)
+
+Please use citation b. as a general citation to the software.
+
+3. All forms of the Software will be kept in a reasonably secure place to
+prevent unauthorized access.
+
+4. Each copy of the Software or, if not practicable then, any package
+associated therewith shall be suitably marked (and such marking maintained) 
+with the following copyright notice: "Copyright 2011 E.Faraggi. All Rights
+Reserved.".
+
+5. The Software may be modified, but any changes made shall be communicated
+to the Author(s) and made freely available.
+
+6. The Software may not be sold as a standalone package, or incorporated into
+a commercial software package without the written permission of the Copyright
+holder. The Software may be used freely for individual academic research. 
+The Software may also be made freely available for training or teaching purposes.
+
+7. The results produced by the Software may not be incorporated into any
+data banks or databases which are subject to the payment of access or
+license fees without the written permission of the Copyright holder.
+
+8. The Software may be made available to users over a local network or
+wide area network (including the Internet), but only if access is granted
+free of charge to all authorized users. Incorporation of the Software into
+a commercial Web site or other fee paying service is not allowed without
+the written permission of the Copyright holder. If SPINE-X results are
+returned to the user via such a network service, then a suitable
+acknowledgment of the SPINE-X method must be returned near to the
+output text.
+
