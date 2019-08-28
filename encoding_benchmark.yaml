@@ -1,0 +1,15 @@
+db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90"
+
+nodes:
+#  sequence_length_distribution: "nodes/plots/sequence_length_distribution"
+#  split_normalize: "nodes/utils/split_normalize"
+  secondary_structure_profile: "nodes/utils/secondary_structure_profile"
+  multiple_sequence_alignment: "nodes/utils/multiple_sequence_alignment"
+  validate_sequence_names: "nodes/utils/validate_sequence_names"
+
+order:
+#  - split_normalize
+#  - sequence_length_distribution
+  - validate_sequence_names
+  - multiple_sequence_alignment
+  - secondary_structure_profile
