@@ -1,17 +1,34 @@
 from modlamp.core import read_fasta, save_fasta
 import re
 
+
 rule all:
     input:
-        expand("data/{dataset}_validated.fasta", dataset=config["dataset"])
+        expand("data/{prefix}_validated.fasta", prefix=config["prefix"]),
+        expand("data/{prefix}_validated_classes.txt", prefix=config["prefix"])
+
+
+# rule init:
+#     output:
+#         temp(f"data/{{dataset,{config['dataset']}\.}}.fasta"),
+#         temp(f"data/{{dataset,{config['dataset']}_classes}}_classes.txt")
+#     shell:
+#         """
+#         echo {config["input_files"][0]}
+#         cp {config["input_files"][0]} {output[0]}
+#         cp {config["input_files"][1]} {output[1]}
+#         """
 
 
 rule validate:
     input:
-         "data/{dataset}.fasta"
+         "data/{prefix}.fasta",
+         "data/{prefix}_classes.txt"
     output:
-         "data/{dataset}_validated.fasta"
+         "data/{prefix}_validated.fasta",
+         "data/{prefix}_validated_classes.txt"
     run:
         seqs, names = read_fasta(str(input[0]))
-        names_new = [re.sub("\W", "", n) for n in names]
+        names_new = [re.sub("[\W\s]", "", n) for n in names]
         save_fasta(str(output[0]), seqs, names_new)
+        shell("cp {input[1]} {output[1]}")
