@@ -1,4 +1,4 @@
-from sklearn.externals import joblib as jl
+import joblib as jl
 import numpy as np
 import re
 
