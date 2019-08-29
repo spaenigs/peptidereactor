@@ -1,0 +1,10 @@
+ random seed =        39015
+ -------------------seconds-------------------
+         186        2640  0.808146541335262     
+ Q10P:  0.820691314735557     
+ #After filter
+ #------------
+         410        2640  0.812416072719760     
+ Q10P:  0.828254181061895     
+41510.44user 6.24system 11:35:10elapsed 99%CPU (0avgtext+0avgdata 0maxresident)k
+107760inputs+0outputs (0major+50495minor)pagefaults 0swaps

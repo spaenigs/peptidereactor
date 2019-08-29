@@ -1,0 +1,33 @@
+#!/bin/tcsh
+
+# set path_to_fasta = $1
+set fasta_seq = $1
+set path_to_psipred_profile = $2
+set path_to_working_dir = $3
+set out_files_base_name = $4
+set path_to_vsl2 = $5
+
+set basename = $path_to_working_dir # $1:r
+# echo "basename: " $basename
+set rootname =  "$basename/$out_files_base_name" # $basename:t
+# echo "rootname: " $rootname
+
+# Generate a "unique" temporary filename root
+set hostid = `hostid`
+set tmproot = psitmp$$$hostid
+    
+# \cp -f $1 $tmproot.flat
+
+# \tail -n 1 $path_to_fasta > $tmproot.flat
+
+echo $fasta_seq > $tmproot.flat
+
+# echo $path_to_psipred_profile
+
+# echo "java -jar VSL2.jar -s:$tmproot.flat -i:$path_to_psipred_profile/$out_files_base_name.ss2 > $rootname.dis"
+
+# \cat $tmproot.flat
+
+java -jar $path_to_vsl2/VSL2.jar -s:$tmproot.flat -i:$path_to_psipred_profile/$out_files_base_name.ss2 > $rootname.dis
+
+rm -f $cwd/$tmproot.* error.log

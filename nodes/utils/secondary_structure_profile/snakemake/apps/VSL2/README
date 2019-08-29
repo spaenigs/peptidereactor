@@ -1,0 +1,203 @@
+===================================================================================
+Setup the VSL2 Protein Disorder Predictor on Your Own Machine
+===================================================================================
+
+Kang Peng, Center for Information Science and Technology, Temple University
+
+
+-----------------------------------------------------------------------------------
+ATTENTION: PLEASE READ THE FOLLOWING TERMS AND CONDITIONS CAREFULLY BEFORE USING
+THE VSL2 PREDICTOR SOFTWARE. BY USING THIS SOFTWARE, YOU AGREE TO BE BOUND BY THE
+FOLLOWING TERMS AND CONDITIONS. IF YOU DO NOT ACCEPT THESE TERMS ("TERMS"), DO
+NOT USE THIS SOFTWARE.
+
+1) The software should be used for non-commercial purpose only;
+2) The software may not be redistributed in any forms, either as a standalone
+   package or incorporated into another software or website, without the
+   author's permission;
+3) The software is provided "as is". There is no warranty of any kind. The
+   author is not liable for any damages, harms or other consequences, which may
+   result from the use or inability to use of the software.
+-----------------------------------------------------------------------------------
+
+
+1. SYSTEM REQUIREMENTS
+
+   Since the VSL2 itself is implemented in Java, it should be able to run on any
+   systems with Java Runtime Environment installed. However, its actual usability
+   depends on whether the PSI-BLAST, PHDsec and PSIPRED software can be setup on
+   you system.
+
+   The current VSL2 predictor has been tested on several Linux/Unix systems with
+   x86 architecture. Two VSL2 variants, VSL2B and VSL2P, were also tested on Windows
+   systems.
+
+
+2. INSTALLATION
+
+   Let's assume that $VSL2DIR is the directory where VSL2 predictor will be installed.
+
+   1) Download and install the Java(TM) Runtime Environment (JRE), version 1.4.2
+      or higher. You may want to update the PATH environment variable to include
+      the JRE executable directory.
+
+          http://java.sun.com/j2se/desktopjava/jre/index.jsp
+
+   2) Uncompress the downloaded file "VSL2.tar.gz" into directory $VSL2DIR
+
+          % cp VSL2.tar.gz $VSL2DIR
+          % cd $VSL2DIR
+          % tar zxvf VSL2.tar.gz
+
+      "VSL2.jar" is the executable file, which contains 8 predictor models,
+      including VSL2B, VSL2P and VSL2, each using different features combinations.
+      Please see the manuscript and the USAGE below for more details.
+
+   NOTE: If you just want to use VSL2B, Step 1)-2) are enough. If you want to
+   use VSL2P, Step 5) and 6) can be omitted.
+
+
+   3) Download the PSI-BLAST package "blast-2.2.12-ia32-linux.tar.gz" from
+
+          ftp://ftp.ncbi.nlm.nih.gov/blast/executables/release/2.2.12/
+
+      Copy it to directory $VSL2DIR, and uncompress it there
+
+          % cp blast-2.2.12-ia32-linux.tar.gz $VSL2DIR
+          % cd $VSL2DIR
+          % tar zxvf blast-2.2.12-ia32-linux.tar.gz
+          % mv blast-2.2.12-ia32-linux/ blast/
+          % cd blast/
+          % mv blast/bin/* .
+
+
+   4) Download the UniRef100 sequence database "uniref100.fasta.gz" from
+
+          ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/
+
+      Copy it to directory $VSL2DIR/blast/, and uncompress it there
+
+          % cp uniref100.fasta.gz $VSL2DIR/blast/
+          % cd $VSL2DIR/blast/
+          % gzip -d uniref100.fasta.gz
+
+      Use the formatdb program comes with PSI-BLAST to format the UniRef100
+      database
+
+          % ./formatdb -i uniref100.fasta -p T -o T -n ur100
+
+
+   5) Download the PHDsec (v2.1) predictor from
+
+          ftp://cubic.bioc.columbia.edu/pub/rost/phd/install.pl
+          ftp://cubic.bioc.columbia.edu/pub/rost/phd/phd_LINUX.tar.gz
+
+      Please follow its instruction to install it into directory $VSL2DIR/phd/
+
+
+   6) Download the PSIPRED (v2.4) predictor from
+
+          http://bioinf.cs.ucl.ac.uk/psipred/
+
+      Please follow its instruction to install it into directory $VSL2DIR/psipred/,
+      make necessary changes to its main file "runpsipred" and prepare the
+      uniref100 database as required.
+
+
+3. USAGE
+
+   The command line to run the VSL2 predictor is,
+
+       % java -jar VSL2.jar <options>
+
+   where possible options are:
+
+       -s:<sequence file>  REQUIRED - Sequence should include the single-letter AA
+                           code only; no FASTA header, no 'X', 'Y', 'Z' or other
+                           characters
+       -p:<PSSM file>      OPTIONAL - PSI-BLAST profile (PSSM)
+       -h:<PHDsec file>    OPTIONAL - PHDsec prediction (*.rdbPhd file)
+       -i:<PSIPRED file>   OPTIONAL - PSIPRED prediction (*.ss2 file)
+       -w:<output window>  OPTIONAL - Must be an odd integer; default value is 1
+
+   The predictor program contains 8 models, each using different features
+   combination. Based on the options used, the program determines which model to
+   invoke. Following are three examples.
+
+       options used        predictor invoked
+       ----------------------------------------
+       -s                  VSL2B
+       -s, -p              VSL2P
+       -s, -p, -h, -i      VSL2
+
+   Other combinations are also possible. Please refer to the manuscript for details.
+
+
+4. AN EXAMPLE
+
+   Assume file "testseq.fasta" contains the sequence in FASTA format, file
+   "testseq.flat" contains the sequence only (i.e. no FASTA header), and both files
+   are located in VSL2 installation directory $VSL2DIR.
+
+   1) Generating PSI-BLAST profile.
+
+       % cd $VSL2DIR/blast
+       % ./blastpgp -i ../testseq.fasta -d ur100 \
+                    -h 0.0001 -e 0.0001 -j 3 -Q ../testseq.pssm > trash.txt
+
+      Where "blastpgp" is the PSI-BLAST program, "trash.txt" will contain all outputs
+      and is not used, and "testseq.pssm" is the file receiving the PSI-BLAST profile.
+
+
+   3) Make PHDsec secondary structure prediction
+
+       % cd $VSL2DIR/phd
+       % ./phd.pl ../testseq.fasta sec
+       % mv testseq.rdbPhd ../
+       % rm testseq.*
+
+      Where file "testseq.rdbPhd" contains the PHDsec prediction, all other output
+      files are discarded.
+
+
+   4) Make PSIPRED secondary structure prediction
+
+       % cd $VSL2DIR/psipred
+       % ./runpsipred ../testseq.fasta
+       % mv testseq.ss2 ../
+       % rm testseq.*
+
+      Where file "testseq.ss2" contains the PSIPRED prediction, all other output
+      files are discarded.
+
+
+   5) Finally, make the prediction
+
+       % cd $VSL2DIR
+       % java -jar VSL2.jar -s:testseq.flat -p:testseq.pssm \
+              -h:testseq.rdbPhd -i:testseq.ss2 -w:1 > testseq.pred
+
+      Where file "testseq.flat" contains the sequence without FASTA header, and the
+      final (numeric) prediction will be written into file "testseq.pred"
+
+5. WEB SERVICE
+
+   The VSL2B and VSL2P predictors are also freely accessible for non-commericial
+   use via our web service at
+
+      http://www.ist.temple.edu/disprot/predictorVSL2.php
+
+   However, due to available computational resources, only limited number of
+   predictions can be provided per IP address per day.
+
+CITATION
+
+   Peng K., Radivojac P., Vucetic S., Dunker A.K., and Obradovic Z., Length-Dependent
+   Prediction of Protein Intrinsic Disorder, BMC Bioinformatics 7:208, 2006.
+
+   Obradovic Z., Peng K., Vucetic S., Radivojac P., and Dunker A.K., Exploiting 
+   Heterogeneous Sequence Properties Improves Prediction of Protein Disorder, Proteins
+   61(S7):176-182, 2005.
+
+ 
+

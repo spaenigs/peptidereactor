@@ -1,0 +1,193 @@
+import joblib as jl
+import os
+from modlamp.core import read_fasta, save_fasta
+
+
+rule all:
+    input:
+        expand("data/{dataset}_annotated.fasta", dataset=config["dataset"]),
+        expand("data/{dataset}_annotated_msa.fasta", dataset=config["dataset"]),
+        expand("data/{dataset}_annotated_classes.txt", dataset=config["dataset"])
+
+
+rule split_input_data:
+    input:
+         "data/{dataset}.fasta",
+         "data/{dataset}_classes.txt"
+    output:
+         "data/profile/{dataset}_{seq_name}.joblib"
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+        seq_tuple = seq_tuples[wildcards.seq_name]
+        print(seq_tuple)
+        jl.dump(value=([seq_tuple[0]], seq_tuple[1]), filename=str(output))
+
+
+rule generate_pssm_profile:
+    input:
+        "data/{dataset}_{seq_name}.joblib"
+    output:
+        "data/profile/{dataset}_{seq_name}.pssm",
+        "data/profile/{dataset}_{seq_name}.asn.pssm",
+        "data/profile/{dataset}_{seq_name}.mat"
+    run:
+        import encoder.ifeature.pssm.utils as pssm_utils
+        input_data = jl.load(str(input))
+        input_data[0][0][0] = f"{wildcards.dataset}_{wildcards.seq_name}"
+        for o in output[:3]:
+            with open(str(o), mode="w") as f:
+                f.write("")
+        pssm_utils.PSSMUtils.generate_profile(
+            input_data,
+            f"data/profile",
+            cores=1,
+            db="db/")
+
+
+rule generate_psipred_profile:
+    input:
+        "data/profile/{dataset}_{seq_name}.joblib",
+        "data/profile/{dataset}_{seq_name}.asn.pssm"
+    output:
+        "data/profile/{dataset}_{seq_name}.ss2",
+        "data/profile/{dataset}_{seq_name}.horiz",
+        temp("data/profile/{dataset}_{seq_name}.ss"),
+        temp("data/profile/{dataset}_{seq_name}.mtx")
+    shell:
+        """
+        export datadir=/opt/conda/envs/utils_secondary_structure_profile/share/psipred_4.01/data;
+        if [ -s {input[1]} ]
+        then
+            chkparse '{input[1]}' > '{output[3]}';
+            psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
+                > '{output[2]}';    
+            psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
+                > '{output[1]}';
+        else
+            touch '{output[0]}'
+            touch '{output[1]}'
+            touch '{output[2]}'
+            touch '{output[3]}'
+        fi
+        """
+
+
+rule generate_vsl2_profile:
+    input:
+        "data/{dataset}_{seq_name}.joblib",
+        "data/profile/{dataset}_{seq_name}.asn.pssm",
+        "data/profile/{dataset}_{seq_name}.ss2"
+    output:
+        "data/profile/{dataset}_{seq_name}.dis",
+        "data/profile/{dataset}_{seq_name}.flat"
+    run:
+        input_data = jl.load(str(input[0]))
+        seq_tup, class_ = input_data[0][0], input_data[1]
+        fasta_name, fasta_seq = seq_tup[0], seq_tup[1]
+        shell(f"echo {fasta_seq} > '{str(output[1])}'")
+        shell("""
+            if [ -s {input[1]} ] 
+            then
+                java -Duser.country=US -Duser.language=en -jar /snakemake/apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
+                    > '{output[0]}'
+            else
+                touch '{output[0]}'
+                touch '{output[1]}'
+            fi
+        """)
+
+
+rule generate_spx_profile:
+    input:
+        "data/{dataset}_{seq_name}.joblib",
+        "data/profile/{dataset}_{seq_name}.mat"
+    output:
+        "data/profile/{dataset}_{seq_name}.spXout",
+        temp("data/profile/{dataset}_protein-list-file_{seq_name}.txt")
+    shell:
+        """
+        export spineXcodir=/snakemake/apps/spineXpublic;
+        echo '{wildcards.dataset}_{wildcards.seq_name}' > '{output[1]}';
+        if [ -s {input[1]} ]
+        then
+            $spineXcodir/spX.pl '{output[1]}' data/profile data/profile
+        else 
+            touch '{output[0]}';
+            touch '{output[1]}';
+        fi
+        """
+
+
+rule remove_non_pssm_hits:
+    input:
+         "data/{dataset}.fasta",
+         "data/{dataset}_msa.fasta",
+         "data/{dataset}_classes.txt",
+         lambda wildcards: expand("data/profile/{dataset}_{seq_name}.{ftype}",
+                                  dataset=wildcards.dataset,
+                                  ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
+                                  seq_name=read_fasta(f"data/{wildcards.dataset}.fasta")[1])
+    output:
+        temp("data/{dataset}_filtered.joblib"),
+        temp("data/{dataset}_filtered_msa.joblib")
+    run:
+        def _filter(input_data_):
+            filtered_seq_names = \
+                [fi.replace(f"data/profile/{wildcards.dataset}_", "").replace(".mat", "")
+                 for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[2:]))]
+            res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
+            return res_seqs, res_classes
+
+        seqs, names = read_fasta(str(input[0]))
+        seqs_msa, names_msa = read_fasta(str(input[1]))
+        with open(str(input[2])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+        in_da = [[[n, s] for n, s in zip(names, seqs)], classes]
+        in_da_msa = [[[n, s] for n, s in zip(names_msa, seqs_msa)], classes]
+        print(in_da)
+
+        jl.dump(value=_filter(in_da), filename=str(output[0]))
+        jl.dump(value=_filter(in_da), filename=str(output[1]))
+
+
+rule annotate_sequence_names:
+    input:
+        "data/{dataset}_filtered.joblib",
+        "data/{dataset}_filtered_msa.joblib"
+    output:
+        "data/{dataset}_annotated.fasta",
+        "data/{dataset}_annotated_msa.fasta",
+        "data/{dataset}_annotated_classes.txt"
+    run:
+        def add_names(input_data_):
+            res_seqs, res_classes = [], []
+            for tup in zip(*input_data_):
+                seq_tup = tup[0]
+                print(f"original seq: {seq_tup[0]}")
+                print(f"with wildcards: {wildcards.dataset}_{seq_tup[0]}")
+                seq_tup[0] = f"{wildcards.dataset}_{seq_tup[0]}"
+                res_seqs.append(seq_tup)
+                res_classes.append(tup[1])
+            return res_seqs, res_classes
+        input_data, input_data_msa = jl.load(str(input[0])), jl.load(str(input[1]))
+
+        out = add_names(input_data)
+        out_msa = add_names(input_data_msa)
+
+        print(out)
+
+        names, seqs = zip(*out[0])
+        save_fasta(str(output[0]), seqs, names)
+
+        names_msa, seqs_msa = zip(*out_msa[0])
+        save_fasta(str(output[1]), seqs_msa, names_msa)
+
+        with open(str(output[2]), mode="a") as f:
+            for c in out[1]:
+                f.write(f"{str(c)}\n")
+                f.flush()
+

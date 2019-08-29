@@ -2,19 +2,42 @@
 
 import yaml
 import os
+import glob
+import sys
 
 from snakemake import shell
+# from subprocess import Popen, PIPE
 
+def check_data_dir(node_name, required_files):
+    for file_regex in required_files:
+        if len(glob.glob(f"/{data_dir}/{file_regex}")) == 0:
+            raise FileNotFoundError(f"Node '{node_name}' requires the following "
+                                    f"files to be present: '{file_regex}'")
+
+
+project_yaml = sys.argv[1]
+dataset = sys.argv[2]
 root = os.getcwd()
-script_dir = root + "/scripts/"
+script_dir = root + "/scripts"
+data_dir = root + "/data"
 
-with open("tree.yaml", 'r') as stream:
+with open(project_yaml, 'r') as stream:
     y = yaml.safe_load(stream)
+
+db_dir = y["db"]
 
 for node in y["order"]:
     os.chdir(y["nodes"][node])
     with open("node.yaml", 'r') as stream:
         y_node = yaml.safe_load(stream)
+    check_data_dir(node, y_node["requires"])
     shell(f"""source {script_dir}/setup.sh {y_node['node_group']} {y_node['node_name']} '{y_node['env']}'
-              sh {script_dir}/exec.sh {os.getcwd()} {root} '--config dataset=neuropeptides'""")
+              sh {script_dir}/exec.sh {os.getcwd()} {root} {db_dir} '--config dataset={dataset}'""")
+    # cmd1 = ["source", f"{script_dir}/setup.sh", y_node['node_group'], y_node['node_name'], y_node['env']]
+    # cmd2 = ["sh", f"{script_dir}/exec.sh", os.getcwd(), root, db_dir, f"--config dataset={dataset}"]
+    #
+    # for cmd in [cmd1, cmd2]:
+    #     p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    #     o, e = p.communicate()
+    #     print((o.decode(), e.decode()))
     os.chdir(root)
