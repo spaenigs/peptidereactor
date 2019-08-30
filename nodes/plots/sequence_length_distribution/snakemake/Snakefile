@@ -11,6 +11,20 @@ rule all:
         expand("data/{dataset}_length_distribution.svg", dataset=config['dataset'])
 
 
+rule init:
+    input:
+        config["input_file_0"],
+        config["input_file_1"]
+    output:
+        temp("data/interim.fasta"),
+        temp("data/interim_classes.txt")
+    shell:
+        """
+        cp {input[0]} {output[0]}
+        cp {input[1]} {output[1]}
+        """
+
+
 rule plot_sequence_length_distribution:
     input:
        "data/{dataset}.fasta",
