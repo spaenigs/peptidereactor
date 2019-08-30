@@ -4,31 +4,30 @@ import re
 
 rule all:
     input:
-        expand("data/{prefix}_validated.fasta", prefix=config["prefix"]),
-        expand("data/{prefix}_validated_classes.txt", prefix=config["prefix"])
+        config["output_file_0"],
 
 
-# rule init:
-#     output:
-#         temp(f"data/{{dataset,{config['dataset']}\.}}.fasta"),
-#         temp(f"data/{{dataset,{config['dataset']}_classes}}_classes.txt")
-#     shell:
-#         """
-#         echo {config["input_files"][0]}
-#         cp {config["input_files"][0]} {output[0]}
-#         cp {config["input_files"][1]} {output[1]}
-#         """
+rule init:
+    input:
+        config["input_file_0"],
+        config["input_file_1"]
+    output:
+        temp("data/interim.fasta"),
+        temp("data/interim_classes.txt")
+    shell:
+        """
+        cp {input[0]} {output[0]}
+        cp {input[1]} {output[1]}
+        """
 
 
 rule validate:
     input:
-         "data/{prefix}.fasta",
-         "data/{prefix}_classes.txt"
+        "data/interim.fasta",
+        "data/interim_classes.txt"
     output:
-         "data/{prefix}_validated.fasta",
-         "data/{prefix}_validated_classes.txt"
+        config["output_file_0"]
     run:
         seqs, names = read_fasta(str(input[0]))
         names_new = [re.sub("[\W\s]", "", n) for n in names]
         save_fasta(str(output[0]), seqs, names_new)
-        shell("cp {input[1]} {output[1]}")
