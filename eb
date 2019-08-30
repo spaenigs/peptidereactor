@@ -15,14 +15,14 @@ def check_input_files(node_name, required_files, data_dir):
                                 f"files to be present: {required_files}")
 
 
-def get_input_files_str(required_files):
-    return " ".join([f"input_file_{i}=data/{required_files[i]}"
-                     for i in range(len(required_files))])
+def get_files_str(files_dict):
+    return " ".join([f"{k}={v}" for k, v in files_dict.items()])
 
 
-def get_output_files_str(required_files):
-    return " ".join([f"output_file_{i}=data/{required_files[i]}"
-                     for i in range(len(required_files))])
+def replace_dataset_name(input_dict, dataset):
+    for k in input_dict.keys():
+        input_dict[k] = input_dict[k].replace("*", dataset)
+    return input_dict
 
 project_yaml = sys.argv[1]
 dataset = sys.argv[2]
@@ -42,18 +42,17 @@ for node in y["order"]:
     with open("node.yaml", 'r') as stream:
         y_node = yaml.safe_load(stream)
 
-    required_input_files = list(map(lambda f: f.replace("*", dataset),
-                                    y["nodes"][node]["input"]))
-
-    required_output_files = list(map(lambda f: f.replace("*", dataset),
-                                     y["nodes"][node]["output"]))
+    input_files_dict = replace_dataset_name(y["nodes"][node]["input"], dataset)
+    output_files_dict = replace_dataset_name(y["nodes"][node]["output"], dataset)
 
     check_input_files(node_name=y_node["node_name"],
-                      required_files=required_input_files,
+                      required_files=input_files_dict.values(),
                       data_dir=root + "/data")
 
-    in_files = get_input_files_str(required_input_files)
-    out_files = get_output_files_str(required_output_files)
+    in_files_str = get_files_str(input_files_dict)
+    out_files_str = get_files_str(output_files_dict)
+    print(in_files_str)
+    print(out_files_str)
 
     shell(f"""source {script_dir}/setup.sh \
                      {y_node['node_group']} \
@@ -61,6 +60,6 @@ for node in y["order"]:
                      '{y_node['env']}'
               sh {script_dir}/exec.sh \
                  {os.getcwd()} {root} {db_dir} \
-                 '--config dataset={dataset} {in_files} {out_files}'""")
+                 '--config dataset={dataset} {in_files_str} {out_files_str}'""")
 
     os.chdir(root)

@@ -2,15 +2,22 @@ db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90"
 
 nodes:
 
-#  sequence_length_distribution:
-#    path: "nodes/plots/sequence_length_distribution"
-#    input: ["*_ds1.fasta", "*_ds2.fasta", "*_ds1_classes.txt", "*_ds2_classes.txt"]
-#    output: "*_length_distribution.svg"
-#
-#  split_normalize:
-#    path: "nodes/utils/split_normalize"
-#    input: ["*.fasta", "*_classes.txt"]
-#    output: ["*_ds1.fasta", "*_ds2.fasta", "*_ds1_classes.txt", "*_ds2_classes.txt"]
+  sequence_length_distribution:
+    path: "nodes/plots/sequence_length_distribution"
+    input:
+      fasta: "*.fasta"
+      classes: "*_classes.txt"
+      fasta_ds1: "*_ds1.fasta"
+      fasta_ds2: "*_ds2.fasta"
+      classes_ds1: "*_ds1_classes.txt"
+      classes_ds2: "*_ds2_classes.txt"
+    output:
+      svg: "*_length_distribution.svg"
+
+  split_normalize:
+    path: "nodes/utils/split_normalize"
+    input: ["*.fasta", "*_classes.txt"]
+    output: ["*_ds1.fasta", "*_ds2.fasta", "*_ds1_classes.txt", "*_ds2_classes.txt"]
 
   validate_sequence_names:
     path: "nodes/utils/validate_sequence_names"
@@ -37,7 +44,7 @@ nodes:
 
 order:
 #  - split_normalize
-#  - sequence_length_distribution
-  - validate_sequence_names
-  - multiple_sequence_alignment
+  - sequence_length_distribution
+#  - validate_sequence_names
+#  - multiple_sequence_alignment
 #  - secondary_structure_profile
