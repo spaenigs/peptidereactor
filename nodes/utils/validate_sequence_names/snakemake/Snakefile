@@ -4,7 +4,7 @@ import re
 
 rule all:
     input:
-        config["output_file_0"],
+        config["output_file_0"]
 
 
 rule init:
