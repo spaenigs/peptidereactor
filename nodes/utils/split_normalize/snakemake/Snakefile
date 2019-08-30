@@ -8,10 +8,6 @@ rule all:
          config["output_file_1"],
          config["output_file_2"],
          config["output_file_3"]
-        # expand("data/{dataset}_{part}.fasta",
-        #        dataset=config["dataset"], part=["ds1", "ds2"]),
-        # expand("data/{dataset}_{part}_classes.txt",
-        #        dataset=config["dataset"], part=["ds1", "ds2"])
 
 
 rule init:
@@ -31,7 +27,6 @@ rule init:
 rule read_fasta:
     input:
         "data/interim.fasta"
-         # "data/{dataset}.fasta"
     output:
         temp("data/interim_from_fasta.joblib")
     run:
@@ -47,7 +42,6 @@ rule read_fasta:
 rule read_classes:
     input:
          "data/interim_classes.txt"
-        # "data/{dataset}_classes.txt"
     output:
         temp("data/interim_from_classes.joblib")
     run:
