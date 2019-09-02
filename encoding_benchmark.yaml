@@ -16,24 +16,37 @@ nodes:
 
   split_normalize:
     path: "nodes/utils/split_normalize"
-    input: ["*.fasta", "*_classes.txt"]
-    output: ["*_ds1.fasta", "*_ds2.fasta", "*_ds1_classes.txt", "*_ds2_classes.txt"]
+    input:
+      fasta: "*.fasta"
+      classes: "*_classes.txt"
+    output:
+      fasta_ds1: "*_ds1.fasta"
+      fasta_ds2: "*_ds2.fasta"
+      classes_ds1: "*_ds1_classes.txt"
+      classes_ds2: "*_ds2_classes.txt"
 
   validate_sequence_names:
     path: "nodes/utils/validate_sequence_names"
-    input: ["*.fasta", "*_classes.txt"]
-    output: ["*_validated.fasta"]
+    input:
+      fasta: "*.fasta"
+    output:
+      fasta_val: "*_validated.fasta"
 
   multiple_sequence_alignment:
     path: "nodes/utils/multiple_sequence_alignment"
-    input: ["*_validated.fasta", "*_classes.txt"]
-    output: ["*_validated_msa.fasta"]
+    input:
+      fasta: "*_validated.fasta"
+      classes: "*_classes.txt"
+    output:
+      fasta_msa: "*_validated_msa.fasta"
 
   secondary_structure_profile:
     path:
       "nodes/utils/secondary_structure_profile"
     input:
-      ["*_validated.fasta", "*_validated_msa.fasta", "*_classes.txt"]
+      fasta: "*_validated.fasta"
+      fasta_msa: "*_validated_msa.fasta"
+      classes: "*_classes.txt"
     output:
       ["*_annotated.fasta", "*_annotated_msa.fasta", "*_annotated_classes.txt",
        "*_#.asn.pssm", "*_#.dis", "*_#.flat", "*_#.horiz", "*_#.mat", "*_#.pssm",
@@ -44,7 +57,7 @@ nodes:
 
 order:
 #  - split_normalize
-  - sequence_length_distribution
-#  - validate_sequence_names
-#  - multiple_sequence_alignment
+#  - sequence_length_distribution
+  - validate_sequence_names
+  - multiple_sequence_alignment
 #  - secondary_structure_profile
