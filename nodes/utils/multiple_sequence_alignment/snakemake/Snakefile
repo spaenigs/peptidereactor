@@ -25,7 +25,7 @@ rule generate_multiple_sequence_alignment:
         "data/interim.fasta",
         "data/interim_classes.fasta"
     output:
-        config["fasta_msa"]
+        "data/interim_msa.fasta"
     run:
         from encoder.encoder import BaseEncoder as base_encoder
 
@@ -44,3 +44,11 @@ rule generate_multiple_sequence_alignment:
 
         save_fasta(str(output[0]), seqs_sorted, names)
 
+
+rule exit:
+    input:
+        "data/interim_msa.fasta"
+    output:
+        config["fasta_msa"]
+    shell:
+         "cp {input[0]} {output[0]}"
