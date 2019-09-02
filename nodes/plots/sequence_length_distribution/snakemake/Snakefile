@@ -135,7 +135,7 @@ rule plot_sequence_length_distribution:
         plt.ylabel("Sequence length")
 
         # set global plot attributes
-        fig.suptitle(wildcards.dataset.upper())
+        # fig.suptitle(wildcards.dataset.upper())
         fig.legend(labels=totalClasses, prop={'size': 10})
         fig.tight_layout()
         fig.set_size_inches(w=11,h=7)
