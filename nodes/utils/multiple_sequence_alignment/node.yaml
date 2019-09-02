@@ -1,8 +1,10 @@
 node_group: "utils"
 node_name: "multiple_sequence_alignment"
-requires:
-  - "*.fasta"
-  - "*_classes.txt"
+input:
+  fasta: "<dataset>.fasta"
+  classes: "<dataset>_classes.txt"
+output:
+  fasta_out: "<dataset>_msa.fasta"
 env: |
   channels:
     - bioconda
@@ -19,3 +21,4 @@ env: |
     - muscle=3.8.1551
     - pip:
       - modlamp
+#      - -e ../encoder

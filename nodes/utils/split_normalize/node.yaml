@@ -1,8 +1,13 @@
 node_group: "utils"
 node_name: "split_normalize"
-requires:
-  - "*.fasta"
-  - "*_classes.txt"
+input:
+  fasta: "<dataset>.fasta"
+  classes: "<dataset>_classes.txt"
+output:
+  fasta_ds1: "<dataset>_ds1.fasta"
+  fasta_ds2: "<dataset>_ds2.fasta"
+  classes_ds1: "<dataset>_ds1_classes.txt"
+  classes_ds2: "<dataset>_ds2_classes.txt"
 env: |
   channels:
     - bioconda

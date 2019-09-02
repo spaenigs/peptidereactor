@@ -1,12 +1,14 @@
 node_group: "plots"
 node_name: "sequence_length_distribution"
-requires:
-  - "*.fasta"
-  - "*_classes.txt"
-  - "*_ds1.fasta"
-  - "*_ds1_classes.txt"
-  - "*_ds2.fasta"
-  - "*_ds2_classes.txt"
+input:
+  fasta: "<dataset>.fasta"
+  classes: "<dataset>_classes.txt"
+  fasta_ds1: "<dataset>_ds1.fasta"
+  fasta_ds2: "<dataset>_ds2.fasta"
+  classes_ds1: "<dataset>_ds1_classes.txt"
+  classes_ds2: "<dataset>_ds2_classes.txt"
+output:
+  svg: "<dataset>_length_distribution.svg"
 env: |
   channels:
     - anaconda
