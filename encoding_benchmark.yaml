@@ -2,6 +2,15 @@ db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90"
 
 nodes:
 
+  binary:
+    path: "nodes/encodings/binary"
+    input:
+      fasta_msa: "*_validated_msa.fasta"
+      classes: "*_classes.txt"
+    output:
+      csv_out: "csv/binary/*_binary.fasta"
+
+
   sequence_length_distribution:
     path: "nodes/plots/sequence_length_distribution"
     input:
@@ -48,9 +57,11 @@ nodes:
       fasta_msa: "*_validated_msa.fasta"
       classes: "*_classes.txt"
     output:
-      ["*_annotated.fasta", "*_annotated_msa.fasta", "*_annotated_classes.txt",
-       "*_#.asn.pssm", "*_#.dis", "*_#.flat", "*_#.horiz", "*_#.mat", "*_#.pssm",
-       "*_#.spXout", "*_#.ss2"]
+      fasta_anno: "*_annotated.fasta"
+      fasta_msa_anno: "*_annotated_msa.fasta"
+      classes_anno: "*_annotated_classes.txt"
+#      misc:  ["*_#.asn.pssm", "*_#.dis", "*_#.flat", "*_#.horiz", "*_#.mat",
+#              "*_#.pssm", "*_#.spXout", "*_#.ss2"]
 
 
 
@@ -58,6 +69,7 @@ nodes:
 order:
 #  - split_normalize
 #  - sequence_length_distribution
-  - validate_sequence_names
-  - multiple_sequence_alignment
+#  - validate_sequence_names
+#  - multiple_sequence_alignment
+  - binary
 #  - secondary_structure_profile
