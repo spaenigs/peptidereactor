@@ -6,60 +6,153 @@ import glob
 import sys
 
 from snakemake import shell
+from shutil import copyfile, rmtree
 
 
-PROJECT_YAML = sys.argv[1]
-DATASET = sys.argv[2]
-ROOT = os.getcwd()
-SCRIPT_DIR = ROOT + "/scripts"
-DATA_DIR = ROOT + "/data"
+class Snakemake:
+
+    @staticmethod
+    def __set_shell_cmd(file_len):
+        cmds = [f"cp {{input[{i}]}} {{output[{i}]}}"
+                for i in range(0, file_len)]
+        return [f"\"{x}\"" for x in ["; ".join(cmds)]]
+
+    @staticmethod
+    def __set_smk_file(in_files_dict, out_files_dict):
+        len_in_files, len_out_files = len(in_files_dict.keys()), len(out_files_dict.keys())
+        rules = [{"all": {"input": [f"config['{k}']" for k in out_files_dict.keys()]}},
+                 {"init": {"input": [f"config['{k}']" for k in in_files_dict.keys()],
+                           "output": ["\"temp(*)\"" for i in range(0, len_in_files)],
+                           "shell": Snakemake.__set_shell_cmd(len_in_files)}},
+                 {"exit": {"input": ["\"*\"" for i in range(0, len_out_files)],
+                           "output": [f"config['{k}']" for k in out_files_dict.keys()],
+                           "shell": Snakemake.__set_shell_cmd(len_out_files)}}]
+        return rules
+
+    def dump(self, dst):
+        with open(dst, mode="a") as f:
+            for rule_dict in self.smk_file:
+                rule = list(rule_dict.keys())[0]
+                f.write(f"rule {rule}:\n")
+                f.flush()
+                for k in rule_dict[rule].keys():
+                    f.write(" " * 4 + f"{k}:\n")
+                    f.flush()
+                    len_i = len(rule_dict[rule][k])
+                    for i, content in zip(range(len_i), rule_dict[rule][k]):
+                        f.write(" " * 8 + f"{content}{',' if (i + 1) < len_i else ''}\n")
+                        f.flush()
+                f.write("\n")
+                f.flush()
 
 
-def check_input_files(node_name, required_files, data_dir):
-    is_ = (os.path.basename(p) for p in glob.glob(data_dir + "/*"))
-    if len(list(filter(lambda p: p in required_files, is_))) != len(required_files):
-        raise FileNotFoundError(f"Node '{node_name}' requires the following "
-                                f"files to be present: {required_files}")
+    def __init__(self, in_file_keys, out_file_keys):
+        self.smk_file = self.__set_smk_file(in_file_keys, out_file_keys)
 
 
-def get_files_str(files_dict):
-    return " ".join([f"{k}=data/{v}" for k, v in files_dict.items()])
+class Node:
+
+    @staticmethod
+    def __parse_yaml(path):
+        with open(path) as stream:
+            y = yaml.safe_load(stream)
+        return y
+
+    def dump(self):
+        node_path = f"{self.node_root}/{self.node_group}/{self.node_name}"
+        smk_path = node_path + "/snakemake"
+        try:
+            os.makedirs(node_path)
+        except FileExistsError:
+            print("Node already existing...")
+            sys.exit(0)
+        copyfile(self.yaml_path, node_path + "/node.yaml")
+        try:
+            os.mkdir(smk_path)
+        except FileExistsError:
+            print("Directory 'snakemake' already existing...")
+            sys.exit(0)
+        self.snakemake.dump(smk_path + "/Snakefile")
+
+    def __init__(self, node_yaml, node_root):
+        self.yaml_path = node_yaml
+        self.node_root = node_root
+        self.config = self.__parse_yaml(node_yaml)
+        self.node_name = self.config["node_name"]
+        self.node_group = self.config["node_group"]
+        self.snakemake = Snakemake(self.config["input"], self.config["output"])
 
 
-def replace_dataset_name(input_dict, dataset):
-    for k in input_dict.keys():
-        input_dict[k] = input_dict[k].replace("*", dataset)
-    return input_dict
+class Executor:
+
+    @staticmethod
+    def __parse_yaml(path):
+        with open(path) as stream:
+            y = yaml.safe_load(stream)
+        return y
+
+    @staticmethod
+    def __check_input_files(node_name, required_files, data_dir):
+        is_ = (os.path.basename(p) for p in glob.glob(data_dir + "/*"))
+        if len(list(filter(lambda p: p in required_files, is_))) != len(required_files):
+            raise FileNotFoundError(f"Node '{node_name}' requires the following "
+                                    f"files to be present: {required_files}")
+
+    @staticmethod
+    def __get_files_str(files_dict):
+        return " ".join([f"{k}=data/{v}" for k, v in files_dict.items()])
+
+    def __replace_dataset_name(self, input_dict):
+        for k in input_dict.keys():
+            input_dict[k] = input_dict[k].replace("*", self.dataset)
+        return input_dict
+
+    def run(self, root_dir, script_dir, data_dir):
+        y: dict = self.config
+        for node in y["order"]:
+            os.chdir(y["nodes"][node]["path"])
+            with open("node.yaml", 'r') as stream:
+                y_node = yaml.safe_load(stream)
+
+            input_files_dict = self.__replace_dataset_name(y["nodes"][node]["input"])
+            output_files_dict = self.__replace_dataset_name(y["nodes"][node]["output"])
+
+            self.__check_input_files(node_name=y_node["node_name"],
+                                     required_files=input_files_dict.values(),
+                                     data_dir=data_dir)
+
+            in_files_str = self.__get_files_str(input_files_dict)
+            out_files_str = self.__get_files_str(output_files_dict)
+
+            shell(f"""source {script_dir}/setup.sh \
+                             {y_node['node_group']} \
+                             {y_node['node_name']} \
+                             '{y_node['env']}'
+                      sh {script_dir}/exec.sh \
+                         {os.getcwd()} {root_dir} {self.db_dir} \
+                         '--config dataset={self.dataset} {in_files_str} {out_files_str}'""")
+
+            os.chdir(root_dir)
+
+    def __init__(self, project_yaml, dataset):
+        self.config = self.__parse_yaml(project_yaml)
+        self.db_dir = self.config["db"]
+        self.dataset = dataset
 
 
-with open(PROJECT_YAML, 'r') as stream:
-    y = yaml.safe_load(stream)
-
-db_dir = y["db"]
-
-for node in y["order"]:
-
-    os.chdir(y["nodes"][node]["path"])
-
-    with open("node.yaml", 'r') as stream:
-        y_node = yaml.safe_load(stream)
-
-    input_files_dict = replace_dataset_name(y["nodes"][node]["input"], DATASET)
-    output_files_dict = replace_dataset_name(y["nodes"][node]["output"], DATASET)
-
-    check_input_files(node_name=y_node["node_name"],
-                      required_files=input_files_dict.values(),
-                      data_dir=DATA_DIR)
-
-    in_files_str = get_files_str(input_files_dict)
-    out_files_str = get_files_str(output_files_dict)
-
-    shell(f"""source {SCRIPT_DIR}/setup.sh \
-                     {y_node['node_group']} \
-                     {y_node['node_name']} \
-                     '{y_node['env']}'
-              sh {SCRIPT_DIR}/exec.sh \
-                 {os.getcwd()} {ROOT} {db_dir} \
-                 '--config dataset={DATASET} {in_files_str} {out_files_str}'""")
-
-    os.chdir(ROOT)
+if sys.argv[1] == "add":
+    node_yaml_path, nodes = sys.argv[2:4]
+    n = Node(node_yaml_path, nodes)
+    n.dump()
+elif sys.argv[1] == "rm":
+    node_root, node_group, node_name = sys.argv[2:5]
+    if input(f"Delete node {node_root}/{node_group}/{node_name}? [y/n]") == "y":
+        rmtree(f"{node_root}/{node_group}/{node_name}")
+elif sys.argv[1] == "run":
+    project_yaml, dataset, root_dir = sys.argv[2:5]
+    e = Executor(project_yaml, dataset)
+    e.run(root_dir=root_dir,
+          script_dir=root_dir + "/scripts",
+          data_dir=root_dir + "/data")
+else:
+    print("Unknown program: " + sys.argv[1])
