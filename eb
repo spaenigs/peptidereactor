@@ -22,9 +22,9 @@ class Snakemake:
         len_in_files, len_out_files = len(in_files_dict.keys()), len(out_files_dict.keys())
         rules = [{"all": {"input": [f"config['{k}']" for k in out_files_dict.keys()]}},
                  {"init": {"input": [f"config['{k}']" for k in in_files_dict.keys()],
-                           "output": ["\"temp(*)\"" for i in range(0, len_in_files)],
+                           "output": ["temp(\"*\")" for i in range(len_in_files)],
                            "shell": Snakemake.__set_shell_cmd(len_in_files)}},
-                 {"exit": {"input": ["\"*\"" for i in range(0, len_out_files)],
+                 {"exit": {"input": ["\"*\"" for i in range(len_out_files)],
                            "output": [f"config['{k}']" for k in out_files_dict.keys()],
                            "shell": Snakemake.__set_shell_cmd(len_out_files)}}]
         return rules
@@ -104,7 +104,7 @@ class Executor:
 
     def __replace_dataset_name(self, input_dict):
         for k in input_dict.keys():
-            input_dict[k] = input_dict[k].replace("*", self.dataset)
+            input_dict[k] = input_dict[k].replace("<dataset>", self.dataset)
         return input_dict
 
     def run(self, root_dir, script_dir, data_dir):
