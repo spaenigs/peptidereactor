@@ -2,13 +2,21 @@ db: "/media/spaenigs/4B1DB7375F3291A1/uniprot_db/uniref90"
 
 nodes:
 
+  eaac:
+    path: "nodes/encodings/eaac"
+    input:
+      fasta: "<dataset>_validated.fasta"
+      classes: "<dataset>_classes.txt"
+    output:
+      csv_out: "eeac/<dataset>_eaac_window-#1.csv"
+
   binary:
     path: "nodes/encodings/binary"
     input:
-      fasta_msa: "*_validated_msa.fasta"
-      classes: "*_classes.txt"
+      fasta_msa: "<dataset>_validated_msa.fasta"
+      classes: "<dataset>_classes.txt"
     output:
-      csv_out: "csv/binary/*_binary.fasta"
+      csv_out: "csv/binary/<dataset>_binary.fasta"
 
 
   sequence_length_distribution:
@@ -72,4 +80,5 @@ order:
 #  - validate_sequence_names
 #  - multiple_sequence_alignment
   - binary
+  - eaac
 #  - secondary_structure_profile
