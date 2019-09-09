@@ -1,0 +1,36 @@
+from modlamp.core import read_fasta
+
+import os
+os.environ["R_LIBS_USER"] = "."
+
+rule all:
+    input:
+        config['csv_out']
+
+rule init:
+    input:
+        config['fasta'],
+        config['classes']
+    output:
+        temp("data/interim.fasta"),
+        temp("data/interim_classes.txt")
+    shell:
+        "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
+
+
+rule generate_gdpc_encoding:
+    input:
+         "data/interim.fasta",
+         "data/interim_classes.txt"
+    output:
+          config['csv_out']
+    run:
+        import encoder.ifeature.param_free.encoder as param_free_encoder
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
+        for df in param_free_encoder.GDPCEncoder(
+            in_data=in_da, cores=4).encode():
+            df.to_csv(str(output))
+
