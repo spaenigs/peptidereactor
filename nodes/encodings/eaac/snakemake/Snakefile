@@ -5,7 +5,7 @@ os.environ["R_LIBS_USER"] = "."
 
 rule all:
     input:
-        expand(config['csv_out'].replace("#1", "{window}"), window=[1,2,3])
+        expand(config['csv_out'].replace("#1", "{window}"), window=list(range(1, 31)))
 
 rule init:
     input:
@@ -25,7 +25,7 @@ rule init:
 #     shell:
 #         "cp {input[0]} {output[0]}"
 
-rule generate_eeac_encoding:
+rule generate_eaac_encoding:
     input:
          "data/interim.fasta",
          "data/interim_classes.txt"

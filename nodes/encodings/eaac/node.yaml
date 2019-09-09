@@ -4,7 +4,7 @@ input:
   fasta: "<dataset>.fasta"
   classes: "<dataset>_classes.txt"
 output:
-  csv_out: "eeac/<dataset>_eaac_window-#1.csv"
+  csv_out: "csv/eaac/<dataset>_eaac_window-#1.csv"
 env: |
   channels:
     - bioconda
