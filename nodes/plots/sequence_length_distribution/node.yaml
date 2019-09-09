@@ -9,14 +9,3 @@ input:
   classes_ds2: "<dataset>_ds2_classes.txt"
 output:
   svg: "<dataset>_length_distribution.svg"
-env: |
-  channels:
-    - anaconda
-    - conda-forge
-    - bioconda
-  dependencies:
-    - pip=19.2.3
-    - python=3.7.4
-    - snakemake-minimal=5.5.4
-    - pip:
-      - modlamp
