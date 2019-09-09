@@ -1,0 +1,36 @@
+from modlamp.core import read_fasta
+
+import os
+os.environ["R_LIBS_USER"] = "."
+
+rule all:
+    input:
+        expand(config['csv_out'].replace("#1", "{gap}"), gap=list(range(1, 4)))
+
+rule init:
+    input:
+        config['fasta'],
+        config['classes']
+    output:
+        temp("data/interim.fasta"),
+        temp("data/interim_classes.txt")
+    shell:
+        "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
+
+
+rule generate_ctriad_encoding:
+    input:
+         "data/interim.fasta",
+         "data/interim_classes.txt"
+    output:
+          config['csv_out'].replace("#1", "gap}")
+    run:
+        import encoder.ifeature.param_gap.encoder as param_gap_encoder
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
+        for df in param_gap_encoder.CTriadEncoder(
+            in_data=in_da, cores=4, gap=int(wildcards.gap)).encode():
+            df.to_csv(str(output))
+
