@@ -1,4 +1,4 @@
-name: encodings_aac
+name: encodings_cksaap
 channels:
     - bioconda
     - anaconda
