@@ -1,0 +1,36 @@
+from modlamp.core import read_fasta
+
+import os
+os.environ["R_LIBS_USER"] = "."
+
+rule all:
+    input:
+        expand(config['csv_out'].replace("#1", "{nlag}"), nlag=list(range(1, 4)))
+
+rule init:
+    input:
+        config['fasta'],
+        config['classes']
+    output:
+        temp("data/interim.fasta"),
+        temp("data/interim_classes.txt")
+    shell:
+        "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
+
+
+rule generate_nmbroto_encoding:
+    input:
+         "data/interim.fasta",
+         "data/interim_classes.txt"
+    output:
+          config['csv_out'].replace("#1", "nlag}")
+    run:
+        import encoder.ifeature.param_nlag.encoder as param_nlag_encoder
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
+        for df in param_nlag_encoder.NMBrotoEncoder(
+            in_data=in_da, cores=4, nlag=int(wildcards.nlag)).encode():
+            df.to_csv(str(output))
+
