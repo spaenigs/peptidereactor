@@ -5,20 +5,3 @@ input:
   classes: "<dataset>_classes.txt"
 output:
   fasta_out: "<dataset>_msa.fasta"
-env: |
-  channels:
-    - bioconda
-    - anaconda
-    - conda-forge
-    - biocore
-  dependencies:
-    - biopython=1.74
-    - numpy=1.17.1
-    - pip=19.2.3
-    - python=3.7.4
-    - scipy=1.3.1
-    - snakemake-minimal=5.5.4
-    - muscle=3.8.1551
-    - pip:
-      - modlamp
-#      - -e ../encoder
