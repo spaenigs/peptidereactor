@@ -5,29 +5,29 @@ nodes:
   disorderc:
     path: "nodes/encodings/disorderc"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/annotated.fasta"
+      classes: "<dataset>/annotated_classes.txt"
       profile: "<dataset>/profile/"
     output:
-      csv_out: "csv/disorderc/<dataset>_disorderc.csv"
+      csv_out: "<dataset>/csv/disorderc.csv"
 
   disorderb:
     path: "nodes/encodings/disorderb"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/annotated_msa.fasta"
+      classes: "<dataset>/annotated_classes.txt"
       profile: "<dataset>/profile/"
     output:
-      csv_out: "csv/disorderb/<dataset>_disorderb.csv"
+      csv_out: "<dataset>/csv/disorderb.csv"
 
   disorder:
     path: "nodes/encodings/disorder"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/annotated.fasta"
+      classes: "<dataset>/annotated_classes.txt"
       profile: "<dataset>/profile/"
     output:
-      csv_out: "csv/disorder/<dataset>_disorder.csv"
+      csv_out: "<dataset>/csv/disorder.csv"
 
   zscale:
     path: "nodes/encodings/zscale"
@@ -200,42 +200,42 @@ nodes:
   apaac:
     path: "nodes/encodings/apaac"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/validated.fasta"
+      classes: "<dataset>/classes.txt"
     output:
       csv_out: "csv/apaac/<dataset>_apaac_lambda-#1.csv"
 
   paac:
     path: "nodes/encodings/paac"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/validated.fasta"
+      classes: "<dataset>/classes.txt"
     output:
-      csv_out: "csv/paac/<dataset>_paac_lambda-#1.csv"
+      csv_out: "<dataset>/csv/paac_lambda-[1,2,3].csv"
 
   egaac:
     path: "nodes/encodings/egaac"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/validated.fasta"
+      classes: "<dataset>/classes.txt"
     output:
-      csv_out: "csv/egaac/<dataset>_egaac_window-#1.csv"
+      csv_out: "<dataset>/csv/egaac_window-#1.csv"
 
   eaac:
     path: "nodes/encodings/eaac"
     input:
-      fasta: "<dataset>_validated.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta: "<dataset>/validated.fasta"
+      classes: "<dataset>/classes.txt"
     output:
-      csv_out: "csv/eeac/<dataset>_eaac_window-#1.csv"
+      csv_out: "<dataset>/csv/eaac_window-#1.csv"
 
   binary:
     path: "nodes/encodings/binary"
     input:
-      fasta_msa: "<dataset>_validated_msa.fasta"
-      classes: "<dataset>_classes.txt"
+      fasta_msa: "<dataset>/validated_msa.fasta"
+      classes: "<dataset>/classes.txt"
     output:
-      csv_out: "csv/binary/<dataset>_binary.fasta"
+      csv_out: "<dataset>/csv/binary.csv"
 
 
   sequence_length_distribution:
@@ -280,14 +280,14 @@ nodes:
     path:
       "nodes/utils/secondary_structure_profile"
     input:
-      fasta: "*_validated.fasta"
-      fasta_msa: "*_validated_msa.fasta"
-      classes: "*_classes.txt"
+      fasta: "<dataset>/validated.fasta"
+      fasta_msa: "<dataset>/validated_msa.fasta"
+      classes: "<dataset>/classes.txt"
     output:
-      fasta_anno: "*_annotated.fasta"
-      fasta_msa_anno: "*_annotated_msa.fasta"
-      classes_anno: "*_annotated_classes.txt"
-      profile: "<dataset>/profile"
+      fasta_anno: "<dataset>/annotated.fasta"
+      fasta_msa_anno: "<dataset>/annotated_msa.fasta"
+      classes_anno: "<dataset>/annotated_classes.txt"
+      profile: "<dataset>/profile/"
 #      misc:  ["*_#.asn.pssm", "*_#.dis", "*_#.flat", "*_#.horiz", "*_#.mat",
 #              "*_#.pssm", "*_#.spXout", "*_#.ss2"]
 
@@ -299,10 +299,14 @@ order:
 #  - sequence_length_distribution
 #  - validate_sequence_names
 #  - multiple_sequence_alignment
-  - binary
+  - secondary_structure_profile
+#  - disorder
+#  - disorderb
+#  - disorderc
+#  - binary
 #  - eaac
 #  - egaac
-#  - paac
+  - paac
 #  - apaac
 #  - moran
 #  - geary
@@ -325,7 +329,4 @@ order:
 #  - dde
 #  - blosum62
 #  - zscale
-#  - disorder
-#  - disorderb
-#  - disorderc
-#  - secondary_structure_profile
+

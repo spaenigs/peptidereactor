@@ -4,7 +4,6 @@ import subprocess as sp
 import pandas as pd
 import numpy as np
 import functools as ft
-from pathos.multiprocessing import ProcessingPool as Pool
 
 from iFeature.codes.SSEB import SSEB
 from iFeature.codes.SSEC import SSEC

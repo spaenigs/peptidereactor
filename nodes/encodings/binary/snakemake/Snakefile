@@ -11,36 +11,23 @@ rule init:
         config['fasta_msa'],
         config['classes'],
     output:
-       temp("data/interim.fasta"),
-       temp("data/interim_classes.fasta")
+       temp("data/tmp/interim.fasta"),
+       temp("data/tmp/interim_classes.fasta")
     shell:
         "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
 
 
-rule exit:
-    input:
-        "data/csv/interim.csv",
-    output:
-        config['csv_out'],
-    shell:
-        "cp {input[0]} {output[0]}"
-
-
 rule generate_binary_encoding:
     input:
-         "data/interim.fasta",
-         "data/interim_classes.fasta"
+         "data/tmp/interim.fasta",
+         "data/tmp/interim_classes.fasta"
     output:
-         temp("data/csv/interim.csv")
+         config['csv_out']
     run:
         import encoder.ifeature.param_free.encoder as param_free_encoder
         seqs, names = read_fasta(str(input[0]))
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
         in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        print(len(in_da[0]))
-        print(len(in_da[1]))
-        df = param_free_encoder.BinaryEncoder(
-            in_data=in_da, cores=4, run_msa=False
-        ).encode()
+        df = param_free_encoder.BinaryEncoder(in_data=in_da, cores=4, run_msa=False).encode()
         df.to_csv(str(output))

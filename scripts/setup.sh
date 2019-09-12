@@ -36,7 +36,7 @@ if docker image inspect $image_name > /dev/null 2>&1; then
   echo "Image $image_name already existing. Skipping..."
 else
   echo "Building image $image_name..."
-  docker build -t $image_name .
+  docker build -t $image_name . --force-rm=true
 fi
 
 #rm Dockerfile environment.yaml

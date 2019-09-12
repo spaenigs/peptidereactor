@@ -4,7 +4,6 @@ import re
 from typing import List, Iterator
 
 from Bio.Blast.Applications import NcbipsiblastCommandline
-from pathos.multiprocessing import ProcessingPool as Pool
 
 from Bio import SeqIO
 from Bio.Seq import Seq

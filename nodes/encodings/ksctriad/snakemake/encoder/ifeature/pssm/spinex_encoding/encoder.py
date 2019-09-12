@@ -3,7 +3,6 @@ from typing import List
 import pandas as pd
 import functools as ft
 import subprocess as sp
-from pathos.multiprocessing import ProcessingPool as Pool
 
 from iFeature.codes.ASA import ASA
 from iFeature.codes.TA import TA

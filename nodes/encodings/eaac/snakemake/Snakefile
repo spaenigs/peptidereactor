@@ -5,7 +5,7 @@ os.environ["R_LIBS_USER"] = "."
 
 rule all:
     input:
-        expand(config['csv_out'].replace("#1", "{window}"), window=list(range(1, 31)))
+        expand(config['csv_out'].replace("#1", "{window}"), window=list(range(1, 4)))
 
 rule init:
     input:
@@ -17,13 +17,6 @@ rule init:
     shell:
         "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
 
-# rule exit:
-#     input:
-#          expand("csv/eaac/interim_window-{window}.csv", window=[1,2,3])
-#     output:
-#         config['csv_out']
-#     shell:
-#         "cp {input[0]} {output[0]}"
 
 rule generate_eaac_encoding:
     input:

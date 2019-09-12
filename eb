@@ -4,6 +4,8 @@ import yaml
 import os
 import glob
 import sys
+import re
+import itertools, more_itertools
 
 from snakemake import shell
 from shutil import copyfile, rmtree
@@ -93,19 +95,61 @@ class Executor:
 
     @staticmethod
     def __check_input_files(node_name, required_files, data_dir):
-        is_ = (os.path.basename(p) for p in glob.glob(data_dir + "/*"))
-        if len(list(filter(lambda p: p in required_files, is_))) != len(required_files):
+        # is_ = (os.path.basename(p) for p in glob.glob(data_dir + "/*"))
+        # if len(list(filter(lambda p: p in required_files, is_))) != len(required_files):
+        if not all([os.path.exists(f"{data_dir}/{f}") for f in required_files]):
             raise FileNotFoundError(f"Node '{node_name}' requires the following "
                                     f"files to be present: {required_files}")
 
     @staticmethod
+    def __check_output_files(files, data_dir):
+        if len(files) == 1:
+            files = list(more_itertools.flatten(files))
+        print([os.path.exists(f"{data_dir}/{f}") for f in files])
+        if all([os.path.exists(f"{data_dir}/{f}") for f in files]):
+            return True
+        return False
+
+    @staticmethod
     def __get_files_str(files_dict):
-        return " ".join([f"{k}=data/{v}" for k, v in files_dict.items()])
+        res = []
+        for k, v in files_dict.items():
+            if type(v) == str:
+                res += [f"{k}=data/{v}"]
+            else:
+                res += [f"{k}=" + ",".join([f"data/{i}" for i in v])]
+        return res
+
+
+    def set_smk_params(self, smk_params):
+        self.smk_params = smk_params
 
     def __replace_dataset_name(self, input_dict):
         for k in input_dict.keys():
             input_dict[k] = input_dict[k].replace("<dataset>", self.dataset)
         return input_dict
+
+    def __replace_encoding_param_str(self, out_files_dict):
+        for k in out_files_dict.keys():
+            file_str = out_files_dict[k]
+            groups = re.findall("(\[.*?\])", file_str)
+            if len(groups) == 0:
+                continue
+            elif len(groups) == 1:
+                g = groups[0]
+                out_files_dict[k] = [file_str.replace(g, str(i)) for i in eval(g)]
+            elif len(groups) > 1:
+                res = [eval(g) for g in groups]
+                files = []
+                for trip in itertools.product(*res):
+                    tmp = file_str
+                    for tup in zip(re.findall("(\[.*?\])", file_str), trip):
+                        tmp = tmp.replace(tup[0], str(tup[1]))
+                    files += [tmp]
+                out_files_dict[k] = files
+            else:
+                raise ValueError("Unknown parameter pattern observed in " + file_str)
+        return out_files_dict
 
     def run(self, root_dir, script_dir, data_dir):
         y: dict = self.config
@@ -115,29 +159,45 @@ class Executor:
                 y_node = yaml.safe_load(stream)
 
             input_files_dict = self.__replace_dataset_name(y["nodes"][node]["input"])
-            output_files_dict = self.__replace_dataset_name(y["nodes"][node]["output"])
 
             self.__check_input_files(node_name=y_node["node_name"],
                                      required_files=input_files_dict.values(),
                                      data_dir=data_dir)
 
-            in_files_str = self.__get_files_str(input_files_dict)
-            out_files_str = self.__get_files_str(output_files_dict)
 
-            shell(f"""source {script_dir}/setup.sh \
-                             {y_node['node_group']} \
-                             {y_node['node_name']} \
-                             '{y_node['env']}'
-                      sh {script_dir}/exec.sh \
-                         {os.getcwd()} {root_dir} {self.db_dir} \
-                         '--config dataset={self.dataset} {in_files_str} {out_files_str}'""")
+            ## 1) replace dataset name
+            output_files_dict = self.__replace_dataset_name(y["nodes"][node]["output"])
+
+            ## 2) expand files, if necessary
+            out_files_dict = self.__replace_encoding_param_str(output_files_dict)
+            # print(out_files_dict)
+
+            ## 3) get out files strings
+            out_files_str = self.__get_files_str(output_files_dict)
+            # print(out_files_str)
+
+
+            if self.__check_output_files(output_files_dict.values(), data_dir):
+                print(f"Output files for node '{y_node['node_name']}' are already present. Skipping...")
+                os.chdir(root_dir)
+                continue
+
+            # in_files_str = self.__get_files_str(input_files_dict)
+            #
+            # shell(f"""source {script_dir}/setup.sh \
+            #                  {y_node['node_group']} \
+            #                  {y_node['node_name']}
+            #           sh {script_dir}/exec.sh \
+            #              {os.getcwd()} {root_dir} {self.db_dir} \
+            #              '--config dataset={self.dataset} {in_files_str} {out_files_str} {self.smk_params}'""")
 
             os.chdir(root_dir)
 
-    def __init__(self, project_yaml, dataset):
+    def __init__(self, project_yaml, dataset, smk_params):
         self.config = self.__parse_yaml(project_yaml)
         self.db_dir = self.config["db"]
         self.dataset = dataset
+        self.smk_params = smk_params
 
 
 if sys.argv[1] == "add":
@@ -149,10 +209,10 @@ elif sys.argv[1] == "rm":
     if input(f"Delete node {node_root}/{node_group}/{node_name}? [y/n]") == "y":
         rmtree(f"{node_root}/{node_group}/{node_name}")
 elif sys.argv[1] == "run":
-    project_yaml, dataset, root_dir = sys.argv[2:5]
-    e = Executor(project_yaml, dataset)
-    e.run(root_dir=root_dir,
-          script_dir=root_dir + "/scripts",
-          data_dir=root_dir + "/data")
+   project_yaml, dataset, root_dir, smk_params = sys.argv[2:6]
+   e = Executor(project_yaml, dataset, smk_params)
+   e.run(root_dir=root_dir,
+         script_dir=root_dir + "/scripts",
+         data_dir=root_dir + "/data")
 else:
     print("Unknown program: " + sys.argv[1])

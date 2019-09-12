@@ -3,6 +3,8 @@ from modlamp.core import read_fasta
 import os
 os.environ["R_LIBS_USER"] = "."
 
+PROFILE_DIR = config["profile"]
+
 rule all:
     input:
         config['csv_out']
@@ -12,16 +14,16 @@ rule init:
         config['fasta'],
         config['classes']
     output:
-        temp("data/interim.fasta"),
-        temp("data/interim_classes.txt")
+        temp("data/tmp/interim.fasta"),
+        temp("data/tmp/interim_classes.txt")
     shell:
         "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
 
 
 rule generate_disorderc_encoding:
     input:
-         "data/interim.fasta",
-         "data/interim_classes.txt"
+         "data/tmp/interim.fasta",
+         "data/tmp/interim_classes.txt"
     output:
           config['csv_out']
     run:
@@ -30,7 +32,6 @@ rule generate_disorderc_encoding:
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
         in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        for df in disprot_encoder.DisorderCEncoder(
-            in_data=in_da, profile_dir=f"profile", cores=4).encode():
-            df.to_csv(str(output))
+        df = disprot_encoder.DisorderCEncoder(in_data=in_da, profile_dir=PROFILE_DIR, cores=4).encode()
+        df.to_csv(str(output))
 

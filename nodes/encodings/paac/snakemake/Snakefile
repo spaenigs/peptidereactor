@@ -12,18 +12,18 @@ rule init:
         config['fasta'],
         config['classes']
     output:
-        temp("data/interim.fasta"),
-        temp("data/interim_classes.txt")
+        temp("data/tmp/interim.fasta"),
+        temp("data/tmp/interim_classes.txt")
     shell:
         "cp {input[0]} {output[0]}; cp {input[1]} {output[1]}"
 
 
 rule generate_paac_encoding:
     input:
-         "data/interim.fasta",
-         "data/interim_classes.txt"
+         "data/tmp/interim.fasta",
+         "data/tmp/interim_classes.txt"
     output:
-          config['csv_out'].replace("#1", "lambdaValue}")
+          config['csv_out'].replace("#1", "{lambdaValue}")
     run:
         import encoder.ifeature.param_lambda.encoder as param_lambda_encoder
         seqs, names = read_fasta(str(input[0]))
