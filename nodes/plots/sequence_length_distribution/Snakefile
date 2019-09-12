@@ -5,42 +5,16 @@ import matplotlib.gridspec as gridspec
 
 from modlamp.core import read_fasta
 
-
-rule all:
-    input:
-        config["svg"]
-
-
-rule init:
-    input:
-        config["fasta"], config["classes"],
-        config["fasta_ds1"], config["classes_ds1"],
-        config["fasta_ds2"], config["classes_ds2"]
-    output:
-        temp("data/interim.fasta"), temp("data/interim_classes.txt"),
-        temp("data/interim_ds1.fasta"), temp("data/interim_ds1_classes.txt"),
-        temp("data/interim_ds2.fasta"), temp("data/interim_ds2_classes.txt")
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        cp {input[2]} {output[2]}
-        cp {input[3]} {output[3]}
-        cp {input[4]} {output[4]}
-        cp {input[5]} {output[5]}
-        """
-
-
 rule plot_sequence_length_distribution:
     input:
-       "data/interim.fasta",
-       "data/interim_classes.txt",
-       "data/interim_ds1.fasta",
-       "data/interim_ds1_classes.txt",
-       "data/interim_ds2.fasta",
-       "data/interim_ds2_classes.txt",
+       "data/{dataset}/seqs.fasta",
+       "data/{dataset}/classes.txt",
+       "data/{dataset}_ds1/seqs.fasta",
+       "data/{dataset}_ds1/classes.txt",
+       "data/{dataset}_ds2/seqs.fasta",
+       "data/{dataset}_ds2/classes.txt",
     output:
-        config["svg"]
+        "data/{dataset}/sequence_length_distribution.svg"
     run:
         def filter_by_classes(name, fasta_seqs, classes):
             neg_classes, pos_classes = [], []
