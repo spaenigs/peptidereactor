@@ -1,34 +1,11 @@
 import joblib as jl
 from Bio import SeqIO
 
-
-rule all:
-    input:
-         config["fasta_ds1"],
-         config["fasta_ds2"],
-         config["classes_ds1"],
-         config["classes_ds2"]
-
-
-rule init:
-    input:
-        config["fasta"],
-        config["classes"]
-    output:
-        temp("data/interim.fasta"),
-        temp("data/interim_classes.txt")
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        """
-
-
 rule read_fasta:
     input:
-        "data/interim.fasta"
+        "data/{dataset}/seqs.fasta"
     output:
-        temp("data/interim_from_fasta.joblib")
+        temp("data/tmp/{dataset}_from_fasta.joblib")
     run:
         raw_data, seq_names = [], []
         for record in SeqIO.parse(str(input), "fasta"):
@@ -38,24 +15,22 @@ rule read_fasta:
             raise Exception("Seqence names should be unique!")
         jl.dump(value=raw_data, filename=str(output))
 
-
 rule read_classes:
     input:
-         "data/interim_classes.txt"
+         "data/{dataset}/classes.txt"
     output:
-        temp("data/interim_from_classes.joblib")
+        temp("data/tmp/{dataset}_from_classes.joblib")
     run:
         f = open(str(input), mode="r")
         target = [int(line.rstrip()) for line in f.readlines()]
         jl.dump(value=target, filename=str(output))
 
-
 rule create_input_data:
     input:
-        "data/interim_from_fasta.joblib",
-        "data/interim_from_classes.joblib"
+        "data/tmp/{dataset}_from_fasta.joblib",
+        "data/tmp/{dataset}_from_classes.joblib"
     output:
-        temp("data/interim.joblib")
+        temp("data/tmp/{dataset,[A-Za-z0-9]*}.joblib")
     run:
         from_fasta = jl.load(filename=str(input[0]))
         from_classes = jl.load(filename=str(input[1]))
@@ -65,27 +40,24 @@ rule create_input_data:
         input_data = (from_fasta_sorted, from_classes_sorted)
         jl.dump(value=input_data, filename=str(output))
 
-
 rule create_normal_distributed_input_data:
     input:
-        "data/interim.joblib"
+        "data/tmp/{dataset}.joblib"
     output:
-        temp("data/interim_normal_distributed.joblib"),
-        temp("data/interim_ds1_normal_distributed.joblib"),
-        temp("data/interim_ds2_normal_distributed.joblib"),
+        temp("data/tmp/{dataset}_normal_distributed.joblib"),
+        temp("data/tmp/{dataset}_ds1_normal_distributed.joblib"),
+        temp("data/tmp/{dataset}_ds2_normal_distributed.joblib")
     script:
         "scripts/create_normal_distributed_input_data.py"
 
-
 rule save_as_fasta:
     input:
-         "data/interim_{part}_normal_distributed.joblib"
+         "data/tmp/{dataset}_{part}_normal_distributed.joblib"
     output:
-        temp("data/interim_{part}.fasta"),
-        temp("data/interim_{part}_classes.txt")
+        "data/{dataset}_{part}/seqs.fasta",
+        "data/{dataset}_{part}/classes.txt"
     run:
         from modlamp.core import save_fasta
-        print("hi")
         def create_fasta(input_data_):
             seq_tups = input_data_[0]
             classes = input_data_[1]
@@ -99,20 +71,3 @@ rule save_as_fasta:
             for c_ in c:
                 f.write(str(c_) + "\n")
                 f.flush()
-
-rule collect:
-    input:
-         lambda wildcards: expand("data/interim_{part}.fasta", part=["ds1", "ds2"]) + \
-                           expand("data/interim_{part}_classes.txt", part=["ds1", "ds2"])
-    output:
-         config["fasta_ds1"],
-         config["fasta_ds2"],
-         config["classes_ds1"],
-         config["classes_ds2"]
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        cp {input[2]} {output[2]}
-        cp {input[3]} {output[3]}
-        """
