@@ -1,6 +1,0 @@
-node_group: "utils"
-node_name: "secondary_structure_profile"
-requires:
-  - "<dataset>.fasta"
-  - "<dataset>_msa.fasta"
-  - "<dataset>_classes.txt"

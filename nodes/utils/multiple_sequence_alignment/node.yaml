@@ -1,7 +1,0 @@
-node_group: "utils"
-node_name: "multiple_sequence_alignment"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  fasta_out: "<dataset>_msa.fasta"
