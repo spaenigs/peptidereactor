@@ -2,40 +2,12 @@ import joblib as jl
 import os
 from modlamp.core import read_fasta, save_fasta
 
-
-PROFILE_DIR = config["profile"]
-
-
-rule all:
-    input:
-        ancient(config["fasta_anno"]),
-        ancient(config["fasta_msa_anno"]),
-        ancient(config["classes_anno"])
-
-
-rule init:
-    input:
-        config["fasta"],
-        config["fasta_msa"],
-        config["classes"]
-    output:
-        temp("data/tmp/interim.fasta"),
-        temp("data/tmp/interim_msa.fasta"),
-        temp("data/tmp/interim_classes.txt")
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        cp {input[2]} {output[2]}
-        """
-
-
 rule split_input_data:
     input:
-         "data/tmp/interim.fasta",
-         "data/tmp/interim_classes.txt"
+         "data/{dataset}/seqs.fasta",
+         "data/{dataset}/classes.txt"
     output:
-         temp(PROFILE_DIR + "{seq_name}.joblib")
+         temp("data/{dataset}/profile/{seq_name}.joblib")
     run:
         seqs, names = read_fasta(str(input[0]))
         with open(str(input[1])) as f:
@@ -44,14 +16,13 @@ rule split_input_data:
         seq_tuple = seq_tuples[wildcards.seq_name]
         jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]), filename=str(output))
 
-
 rule generate_pssm_profile:
     input:
-        PROFILE_DIR + "{seq_name}.joblib"
+        "data/{dataset}/profile/{seq_name}.joblib"
     output:
-        PROFILE_DIR + "{seq_name}.pssm",
-        PROFILE_DIR + "{seq_name}.asn.pssm",
-        PROFILE_DIR + "{seq_name}.mat"
+        "data/{dataset}/profile/{seq_name}.pssm",
+        "data/{dataset}/profile/{seq_name}.asn.pssm",
+        "data/{dataset}/profile/{seq_name}.mat"
     run:
         import encoder.ifeature.pssm.utils as pssm_utils
         input_data = jl.load(str(input))
@@ -60,22 +31,21 @@ rule generate_pssm_profile:
             with open(str(o), mode="w") as f:
                 f.write("")
         pssm_utils.PSSMUtils.generate_profile(
-            input_data, PROFILE_DIR, cores=1,
+            input_data, f"data/{wildcards.dataset}/profile", cores=1,
             db="db/uniref90.db")
-
 
 rule generate_psipred_profile:
     input:
-        PROFILE_DIR + "{seq_name}.joblib",
-        PROFILE_DIR + "{seq_name}.asn.pssm"
+        "data/{dataset}/profile/{seq_name}.joblib",
+        "data/{dataset}/profile/{seq_name}.asn.pssm"
     output:
-        PROFILE_DIR + "{seq_name}.ss2",
-        PROFILE_DIR + "{seq_name}.horiz",
-        temp(PROFILE_DIR + "{seq_name}.ss"),
-        temp(PROFILE_DIR + "{seq_name}.mtx")
+        "data/{dataset}/profile/{seq_name}.ss2",
+        "data/{dataset}/profile/{seq_name}.horiz",
+        temp("data/{dataset}/profile/{seq_name}.ss"),
+        temp("data/{dataset}/profile/{seq_name}.mtx")
     shell:
         """
-        export datadir=/opt/conda/envs/utils_secondary_structure_profile/share/psipred_4.01/data;
+        export datadir=/opt/conda/envs/encoding_benchmark/share/psipred_4.01/data;
         if [ -s {input[1]} ]
         then
             chkparse '{input[1]}' > '{output[3]}';
@@ -91,15 +61,14 @@ rule generate_psipred_profile:
         fi
         """
 
-
 rule generate_vsl2_profile:
     input:
-        PROFILE_DIR + "{seq_name}.joblib",
-        PROFILE_DIR + "{seq_name}.asn.pssm",
-        PROFILE_DIR + "{seq_name}.ss2"
+        "data/{dataset}/profile/{seq_name}.joblib",
+        "data/{dataset}/profile/{seq_name}.asn.pssm",
+        "data/{dataset}/profile/{seq_name}.ss2"
     output:
-        PROFILE_DIR + "{seq_name}.dis",
-        PROFILE_DIR + "{seq_name}.flat"
+        "data/{dataset}/profile/{seq_name}.dis",
+        "data/{dataset}/profile/{seq_name}.flat"
     run:
         input_data = jl.load(str(input[0]))
         seq_tup, class_ = input_data[0][0], input_data[1]
@@ -108,7 +77,7 @@ rule generate_vsl2_profile:
         shell("""
             if [ -s {input[1]} ] 
             then
-                java -Duser.country=US -Duser.language=en -jar /snakemake/apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
+                java -Duser.country=US -Duser.language=en -jar apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
                     > '{output[0]}'
             else
                 touch '{output[0]}'
@@ -116,44 +85,44 @@ rule generate_vsl2_profile:
             fi
         """)
 
-
 rule generate_spx_profile:
     input:
-        PROFILE_DIR + "{seq_name}.joblib",
-        PROFILE_DIR + "{seq_name}.mat"
+        "data/{dataset}/profile/{seq_name}.joblib",
+        "data/{dataset}/profile/{seq_name}.mat"
     output:
-        PROFILE_DIR + "{seq_name}.spXout",
-        temp(PROFILE_DIR + "protein-list-file_{seq_name}.txt")
+        "data/{dataset}/profile/{seq_name}.spXout",
+        temp("data/{dataset}/profile/protein-list-file_{seq_name}.txt")
     shell:
         f"""
-        export spineXcodir=/snakemake/apps/spineXpublic;
+        export spineXcodir=apps/spineXpublic;
         echo '{{wildcards.seq_name}}' > '{{output[1]}}';
         if [ -s {{input[1]}} ]
         then
-            $spineXcodir/spX.pl '{{output[1]}}' {PROFILE_DIR} {PROFILE_DIR}
+            $spineXcodir/spX.pl '{{output[1]}}' data/{{wildcards.dataset}}/profile data/{{wildcards.dataset}}/profile
         else 
             touch '{{output[0]}}';
             touch '{{output[1]}}';
         fi
         """
 
-
 rule remove_non_pssm_hits:
     input:
-         "data/tmp/interim.fasta",
-         "data/tmp/interim_msa.fasta",
-         "data/tmp/interim_classes.txt",
-         expand(PROFILE_DIR + "{seq_name}.{ftype}",
-                ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
-                seq_name=read_fasta(config["fasta"])[1])
+         "data/{dataset}/seqs.fasta",
+         "data/{dataset}/seqs_msa.fasta",
+         "data/{dataset}/classes.txt",
+         lambda wildcards: \
+            expand("data/{dataset}/profile/{seq_name}.{ftype}",
+                   dataset=wildcards.dataset,
+                   ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
+                   seq_name=read_fasta(f"data/{wildcards.dataset}/seqs.fasta")[1])
     output:
-        temp("data/tmp/interim_filtered.joblib"),
-        temp("data/tmp/interim_filtered_msa.joblib")
+        temp("data/tmp/{dataset}_filtered.joblib"),
+        temp("data/tmp/{dataset}_filtered_msa.joblib")
     run:
         def _filter(input_data_):
             filtered_seq_names = \
-                [fi.replace(PROFILE_DIR, "").replace(".mat", "")
-                 for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[2:]))]
+                [fi.replace(f"data/{wildcards.dataset}/profile/", "").replace(".mat", "")
+                 for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[3:]))]
             res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
             return res_seqs, res_classes
 
@@ -168,15 +137,14 @@ rule remove_non_pssm_hits:
         jl.dump(value=_filter(in_da), filename=str(output[0]))
         jl.dump(value=_filter(in_da_msa), filename=str(output[1]))
 
-
 rule annotate_sequence_names:
     input:
-        "data/tmp/interim_filtered.joblib",
-        "data/tmp/interim_filtered_msa.joblib"
+        "data/tmp/{dataset}_filtered.joblib",
+        "data/tmp/{dataset}_filtered_msa.joblib"
     output:
-        temp("data/tmp/interim_annotated.fasta"),
-        temp("data/tmp/interim_annotated_msa.fasta"),
-        temp("data/tmp/interim_annotated_classes.txt")
+        "data/{dataset}/annotated_seqs.fasta",
+        "data/{dataset}/annotated_seqs_msa.fasta",
+        "data/{dataset}/annotated_classes.txt"
     run:
         def add_names(input_data_):
             res_seqs, res_classes = [], []
@@ -204,20 +172,3 @@ rule annotate_sequence_names:
             for c in out[1]:
                 f.write(f"{str(c)}\n")
                 f.flush()
-
-    
-rule exit:
-    input:
-        "data/tmp/interim_annotated.fasta",
-        "data/tmp/interim_annotated_msa.fasta",
-        "data/tmp/interim_annotated_classes.txt"
-    output:
-        config["fasta_anno"],
-        config["fasta_msa_anno"],
-        config["classes_anno"]
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        cp {input[2]} {output[2]}
-        """
