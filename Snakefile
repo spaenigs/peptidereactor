@@ -13,15 +13,22 @@ sequence_length_distribution = Trigger(
     swf=sequence_length_distribution_swf,
     files=expand("data/{dataset}/sequence_length_distribution.svg", dataset=DATASET))
 
+DATASET = "neuropeptides_ds3"
+
 multiple_sequence_alignment = Trigger(
     swf=generate_multiple_sequence_alignment_swf,
-    files=expand("data/{dataset}/seqs_msa.fasta", dataset="neuropeptides_ds3"))
+    files=expand("data/{dataset}/seqs_msa.fasta", dataset=DATASET))
 
 secondary_structure_profile = Trigger(
     swf=secondary_structure_profile_swf,
-    files=expand("data/{dataset}/annotated_seqs.fasta", dataset="neuropeptides_ds3") + \
-          expand("data/{dataset}/annotated_seqs_msa.fasta", dataset="neuropeptides_ds3") + \
-          expand("data/{dataset}/annotated_classes.txt", dataset="neuropeptides_ds3")
+    files=expand("data/{dataset}/annotated_seqs.fasta", dataset=DATASET) + \
+          expand("data/{dataset}/annotated_seqs_msa.fasta", dataset=DATASET) + \
+          expand("data/{dataset}/annotated_classes.txt", dataset=DATASET)
+)
+
+disorder = Trigger(
+    swf=disorder_swf,
+    files=expand("data/{dataset}/csv/disorder.csv", dataset=DATASET)
 )
 
 rule all:
@@ -29,7 +36,8 @@ rule all:
          split_normalize.trigger,
          sequence_length_distribution.trigger,
          multiple_sequence_alignment.trigger,
-         secondary_structure_profile.trigger
+         secondary_structure_profile.trigger,
+         disorder.trigger
 
 rule utils_split_normalize:
     input:
@@ -58,10 +66,18 @@ rule utils_secondary_structure_profile:
     output:
         secondary_structure_profile.files
 
+rule encodings_disorder:
+    input:
+        disorder.trigger,
+        rules.utils_secondary_structure_profile.output
+    output:
+        disorder.files
+
+
 rule generate_dag:
     input:
          rules.plots_sequence_length_distribution.output,
-         rules.utils_secondary_structure_profile.output
+         rules.encodings_disorder.output
 
 
 
