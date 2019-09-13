@@ -1,31 +1,11 @@
 from modlamp.core import read_fasta, save_fasta
 
-
-rule all:
-    input:
-        config["fasta_msa"]
-
-
-rule init:
-    input:
-        config["fasta"],
-        config["classes"]
-    output:
-        temp("data/interim.fasta"),
-        temp("data/interim_classes.fasta")
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        cp {input[1]} {output[1]}
-        """
-
-
 rule generate_multiple_sequence_alignment:
     input:
-        "data/interim.fasta",
-        "data/interim_classes.fasta"
+        "data/{dataset}/seqs.fasta",
+        "data/{dataset}/classes.txt"
     output:
-        "data/interim_msa.fasta"
+        "data/{dataset}/seqs_msa.fasta"
     run:
         from encoder.encoder import BaseEncoder as base_encoder
 
@@ -34,7 +14,6 @@ rule generate_multiple_sequence_alignment:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
         input_data = [[[n, s] for n, s in zip(names, seqs)], classes]
-        # d_old = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
 
         _, fastas_aligned = base_encoder.run_muscle(input_data)
         d_new = dict((name, tup) for name, tup in fastas_aligned)
@@ -43,12 +22,3 @@ rule generate_multiple_sequence_alignment:
         seqs_sorted = [d_new[n] for n in names]
 
         save_fasta(str(output[0]), seqs_sorted, names)
-
-
-rule exit:
-    input:
-        "data/interim_msa.fasta"
-    output:
-        config["fasta_msa"]
-    shell:
-         "cp {input[0]} {output[0]}"
