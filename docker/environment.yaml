@@ -1,4 +1,4 @@
-name: utils_secondary_structure_profile
+name: encoding_benchmark
 channels:
   - bioconda
   - anaconda
