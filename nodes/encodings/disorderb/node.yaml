@@ -1,8 +1,0 @@
-node_group: "encodings"
-node_name: "disorderb"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-  profile: "<datatset>/profile"
-output:
-  csv_out: "csv/disorderb/<dataset>_disorderb.csv"
