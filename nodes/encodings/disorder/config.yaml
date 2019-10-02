@@ -1,0 +1,3 @@
+fasta_in: "data/neuropeptides_ds3/annotated_seqs.fasta"
+classes_in: "data/neuropeptides_ds3/annotated_classes.txt"
+fasta_out: "data/neuropeptides_ds3/csv/disorder.csv"

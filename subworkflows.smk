@@ -27,3 +27,26 @@ subworkflow disorder_swf:
            "."
     snakefile:
            "nodes/encodings/disorder/Snakefile"
+
+subworkflow disorderb_swf:
+    workdir:
+           "."
+    snakefile:
+           "nodes/encodings/disorderb/Snakefile"
+
+subworkflow disorderc_swf:
+    workdir:
+           "."
+    snakefile:
+           "nodes/encodings/disorderc/Snakefile"
+    configfile:
+           "nodes/encodings/aac/config.yaml"
+
+subworkflow aac_swf:
+    workdir:
+           "."
+    snakefile:
+           "nodes/encodings/aac/Snakefile"
+    configfile:
+           "nodes/encodings/aac/config.yaml"
+

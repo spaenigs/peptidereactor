@@ -3,12 +3,18 @@ from modlamp.core import read_fasta
 import os
 os.environ["R_LIBS_USER"] = "."
 
+import os
+print(os.getcwd())
+
 rule generate_disorder_encoding:
     input:
-         "data/{dataset}/annotated_seqs.fasta",
-         "data/{dataset}/annotated_classes.txt"
+         # "data/{dataset}/annotated_seqs.fasta",
+         # "data/{dataset}/annotated_classes.txt"
+         config["fasta_in"],
+         config["classes_in"]
     output:
-          "data/{dataset}/csv/disorder.csv"
+          # "data/{dataset}/csv/disorder.csv"
+          config["fasta_out"]
     run:
         import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
         seqs, names = read_fasta(str(input[0]))
