@@ -3,8 +3,11 @@ from modlamp.core import read_fasta
 import os
 os.environ["R_LIBS_USER"] = "."
 
-import os
-print(os.getcwd())
+# import os
+# print(os.getcwd())
+
+import sys, os
+sys.path.append(os.getcwd() + "/apps")
 
 rule generate_disorder_encoding:
     input:
@@ -14,15 +17,16 @@ rule generate_disorder_encoding:
          config["classes_in"]
     output:
           # "data/{dataset}/csv/disorder.csv"
-          config["fasta_out"]
+          config["csv_out"]
     run:
-        import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
-        seqs, names = read_fasta(str(input[0]))
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        df = disprot_encoder.DisorderEncoder(in_data=in_da,
-                                             profile_dir=f"data/{wildcards.dataset}/profile",
-                                             cores=4).encode()
-        df.to_csv(str(output))
+        # import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
+        # seqs, names = read_fasta(str(input[0]))
+        # with open(str(input[1])) as f:
+        #     classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        # in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
+        # df = disprot_encoder.DisorderEncoder(in_data=in_da,
+        #                                      profile_dir=f"data/{config['dataset']}/profile",
+        #                                      cores=4).encode()
+        # df.to_csv(str(output))
+        shell("cp {input[0]} {output}")
 

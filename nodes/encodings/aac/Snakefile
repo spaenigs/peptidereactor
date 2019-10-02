@@ -11,15 +11,16 @@ rule generate_aac_encoding:
          config["classes_in"]
 
     output:
-          config["fasta_out"]
+          config["csv_out"]
           # "data/{dataset}/csv/aac.csv"
     run:
-        import encoder.ifeature.param_free.encoder as param_free_encoder
-        seqs, names = read_fasta(str(input[0]))
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        for df in param_free_encoder.AACEncoder(
-            in_data=in_da, cores=4).encode():
-            df.to_csv(str(output))
+        # import encoder.ifeature.param_free.encoder as param_free_encoder
+        # seqs, names = read_fasta(str(input[0]))
+        # with open(str(input[1])) as f:
+        #     classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        # in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
+        # for df in param_free_encoder.AACEncoder(
+        #     in_data=in_da, cores=4).encode():
+        #     df.to_csv(str(output))
+        shell("cp {input[0]} {output}")
 
