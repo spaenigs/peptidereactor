@@ -1,6 +1,6 @@
 # include: "subworkflows.smk"
 
-from scripts.utils import Trigger
+from utils.utils import Trigger
 
 DATASET = "neuropeptides"
 

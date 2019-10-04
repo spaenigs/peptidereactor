@@ -41,3 +41,6 @@ def __rule_all(input, output, params, wildcards, threads, resources, log, versio
 workflow.check()
 workflow.execute(dryrun=False, updated_files=[], quiet=True, resources=dict(),
                  subsnakemake=partial(snakemake.snakemake))
+
+# TODO replace encoder with scripts
+# TODO check dag for subworkflows
