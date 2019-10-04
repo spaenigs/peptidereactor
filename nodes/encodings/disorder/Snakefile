@@ -1,32 +1,54 @@
 from modlamp.core import read_fasta
+import secrets
+import joblib
+import numpy as np
+import pandas as pd
+import yaml
 
-import os
-os.environ["R_LIBS_USER"] = "."
+from iFeature import Disorder
 
-# import os
-# print(os.getcwd())
+TOKEN = "asd"  # secrets.token_hex(4)
 
-import sys, os
-sys.path.append(os.getcwd() + "/apps")
-
-rule generate_disorder_encoding:
+rule encode:
     input:
-         # "data/{dataset}/annotated_seqs.fasta",
-         # "data/{dataset}/annotated_classes.txt"
-         config["fasta_in"],
-         config["classes_in"]
+        config["fasta_in"],
+        config["classes_in"],
+        config["profile"]
     output:
-          # "data/{dataset}/csv/disorder.csv"
-          config["csv_out"]
+        f"data/temp/{TOKEN}/orig_seqs.yaml",
+        f"data/temp/{TOKEN}/enco_seqs.yaml"
     run:
         # import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
-        # seqs, names = read_fasta(str(input[0]))
-        # with open(str(input[1])) as f:
-        #     classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        # in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        # df = disprot_encoder.DisorderEncoder(in_data=in_da,
-        #                                      profile_dir=f"data/{config['dataset']}/profile",
-        #                                      cores=4).encode()
-        # df.to_csv(str(output))
-        shell("cp {input[0]} {output}")
+        seqs, names = read_fasta(str(input[0]))
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+        in_da = (fastas, classes)
+
+        orig, enco = {}, {}
+        for tup in fastas:
+            _, encoded_seq = Disorder.Disorder([tup], path=str(input[2]))
+            orig[tup[0]] = tup[1]
+            enco[tup[0]] = encoded_seq[1:]
+
+        with open(str(output[0]), mode="w") as f1, open(str(output[1]), mode="w") as f2:
+            yaml.safe_dump(orig, f1)
+            yaml.safe_dump(enco, f2)
+
+rule interpolate:
+    input:
+        orig=f"data/temp/{TOKEN}/orig_seqs.yaml",
+        enco=f"data/temp/{TOKEN}/enco_seqs.yaml"
+    output:
+        "data/temp/{TOKEN}/out.csv"
+    script:
+        "scripts/interpolate.R"
+
+rule dump:
+    input:
+         "data/temp/{TOKEN}/out.csv"
+    output:
+         config["csv_out"]
+
+
 
