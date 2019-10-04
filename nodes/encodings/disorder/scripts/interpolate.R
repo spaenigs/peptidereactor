@@ -3,12 +3,13 @@
 library(yaml)
 library(Interpol)
 
-orig_list <- yaml.load_file(snakemake@input[["orig"]], as.named.list = FALSE)
-enco_list <- yaml.load_file(snakemake@input[["enco"]], as.named.list = FALSE)
+enco_list <- yaml.load_file(snakemake@input[["enco"]])
 
-res <- Interpol(enco_list,
-                dim = median(unlist(Map(nchar, orig_list))),
+res <- Interpol(enco_list[["enco_seqs"]],
+                dim = enco_list[["interpolate_to"]],
                 method="spline")
-df <- data.frame(res, row.names = attr(enco_list, "keys"))
+cat(dim(res), "\n")
+df <- data.frame(res, row.names = names(enco_list$enco_seqs))  # attr(enco_list, "keys"))
 
-write.csv(df, file = snakemake@output[[0]])
+
+write.csv(df, file = snakemake@output[[1]])
