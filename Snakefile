@@ -1,5 +1,6 @@
 import os
 
+config["dataset"] = "neuropeptides_ds3"
 config["global_workdir"] = os.getcwd() + "/"
 
 rule all:
@@ -7,20 +8,23 @@ rule all:
         "data/neuropeptides_ds3/csv/disorder.csv",
         "data/neuropeptides_ds3/csv/aac.csv"
 
-rule a:
+
+
+rule encoding_disorder:
     input:
          fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
+         profile=f"data/{config['dataset']}/profile"
     output:
          csv_out="data/neuropeptides_ds3/csv/disorder.csv"
     params:
          subworkflow="disorder",
          snakefile="nodes/encodings/disorder/Snakefile",
-         configfile="nodes/encodings/disorder/config.yaml"
+         configfile="nodes/encodings/disorder/config.yaml",
     script:
-          "utils/subworkflow.py"
+         "utils/subworkflow.py"
 
-rule b:
+rule encoding_aac:
     input:
          fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
          classes_in="data/neuropeptides_ds3/annotated_classes.txt"
@@ -31,4 +35,4 @@ rule b:
          snakefile="nodes/encodings/aac/Snakefile",
          configfile="nodes/encodings/aac/config.yaml"
     script:
-        "utils/subworkflow.py"
+         "utils/subworkflow.py"
