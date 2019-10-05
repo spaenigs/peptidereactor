@@ -1,26 +1,35 @@
 from modlamp.core import read_fasta
+from iFeature import AAC
+import numpy as np
+import pandas as pd
 
-import os
-os.environ["R_LIBS_USER"] = "."
+TOKEN = config["token"]
 
-rule generate_aac_encoding:
+rule encode:
     input:
-         # "data/{dataset}/annotated_seqs.fasta",
-         # "data/{dataset}/annotated_classes.txt"
-         config["fasta_in"],
-         config["classes_in"]
-
+        config["fasta_in"]
     output:
-          config["csv_out"]
-          # "data/{dataset}/csv/aac.csv"
+        temp(f"data/temp/{TOKEN}/out.csv")
     run:
-        # import encoder.ifeature.param_free.encoder as param_free_encoder
-        # seqs, names = read_fasta(str(input[0]))
-        # with open(str(input[1])) as f:
-        #     classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        # in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        # for df in param_free_encoder.AACEncoder(
-        #     in_data=in_da, cores=4).encode():
-        #     df.to_csv(str(output))
-        shell("cp {input[0]} {output}")
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
 
+        res = np.array(AAC.AAC(fastas, **{"order": None}))
+
+        df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+        df.index = np.array(res)[1:, 0]
+        df.to_csv(str(output))
+
+rule dump:
+    input:
+         f"data/temp/{TOKEN}/out.csv",
+         config["classes_in"]
+    output:
+        config["csv_out"]
+    run:
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+        df = pd.read_csv(str(input[0]), index_col=0)
+        df["y"] = classes
+        df.to_csv(str(output))
