@@ -9,9 +9,9 @@ from snakemake.workflow import Subworkflow
 from snakemake import snakemake as smk_func
 
 
-def set_input_output(_configfile, _input, _output):
+def set_input_output(_configfile, _input, _output, token):
     with open(_configfile, mode="a") as stream:
-        yaml.safe_dump({**_input, **_output, **{"token": secrets.token_hex(4)}}, stream)
+        yaml.safe_dump({**_input, **_output, **{"token": token}}, stream)
 
 
 GLOBAL_WORKDIR = snakemake.config["global_workdir"]
@@ -19,8 +19,9 @@ NAME = snakemake.params.subworkflow
 SNAKEFILE = snakemake.params.snakefile
 CONFIGFILE = snakemake.params.configfile
 INPUT, OUTPUT = dict(snakemake.input), dict(snakemake.output)
+TOKEN = secrets.token_hex(4)
 
-set_input_output(CONFIGFILE, INPUT, OUTPUT)
+set_input_output(CONFIGFILE, INPUT, OUTPUT, TOKEN)
 
 workflow = Workflow(GLOBAL_WORKDIR)
 sw = Subworkflow(workflow, name=NAME, snakefile=SNAKEFILE, workdir=GLOBAL_WORKDIR, configfile=CONFIGFILE)
@@ -42,4 +43,5 @@ success = workflow.execute(dryrun=False, updated_files=[], quiet=True, resources
                            subsnakemake=partial(smk_func))
 
 os.remove(CONFIGFILE)
+os.removedirs(f"data/temp/{TOKEN}")
 
