@@ -20,7 +20,6 @@ rule encode:
         enco = {"enco_seqs": {}}
         for tup in fastas:
             _, encoded_seq = Disorder.Disorder([tup], path=str(input[1]))
-            print(f"{tup[0]} -> {encoded_seq[1:]}")
             enco["enco_seqs"][tup[0]] = encoded_seq[1:]
 
         with open(str(output), mode="w") as f:
