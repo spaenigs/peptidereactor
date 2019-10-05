@@ -8,8 +8,6 @@ rule all:
         "data/neuropeptides_ds3/csv/disorder.csv",
         "data/neuropeptides_ds3/csv/aac.csv"
 
-
-
 rule encoding_disorder:
     input:
          fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",

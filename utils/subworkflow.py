@@ -2,6 +2,7 @@ from functools import partial
 
 import yaml
 import os
+import secrets
 from snakemake import Workflow
 from snakemake.workflow import Subworkflow
 
@@ -10,7 +11,7 @@ from snakemake import snakemake as smk_func
 
 def set_input_output(_configfile, _input, _output):
     with open(_configfile, mode="a") as stream:
-        yaml.safe_dump({**_input, **_output}, stream)
+        yaml.safe_dump({**_input, **_output, **{"token": secrets.token_hex(4)}}, stream)
 
 
 GLOBAL_WORKDIR = snakemake.config["global_workdir"]

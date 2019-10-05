@@ -1,12 +1,11 @@
 from modlamp.core import read_fasta
-import secrets
 import numpy as np
 import pandas as pd
 import yaml
 
 from iFeature import Disorder
 
-TOKEN = "asd"  # secrets.token_hex(4)
+TOKEN = config["token"]
 
 rule encode:
     input:
@@ -21,6 +20,7 @@ rule encode:
         enco = {"enco_seqs": {}}
         for tup in fastas:
             _, encoded_seq = Disorder.Disorder([tup], path=str(input[1]))
+            print(f"{tup[0]} -> {encoded_seq[1:]}")
             enco["enco_seqs"][tup[0]] = encoded_seq[1:]
 
         with open(str(output), mode="w") as f:
@@ -47,7 +47,6 @@ rule dump:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
         df["y"] = classes
-
         df.to_csv(str(output))
 
 
