@@ -1,22 +1,48 @@
 from modlamp.core import read_fasta
+from iFeature import DisorderC
+import numpy as np
+import pandas as pd
+import yaml
 
-import os
-os.environ["R_LIBS_USER"] = "."
+TOKEN = config["token"]
 
-rule generate_disorderc_encoding:
+rule encode:
     input:
-         "data/{dataset}/annotated_seqs.fasta",
-         "data/{dataset}/annotated_classes.txt"
+        config["fasta_in"],
+        config["profile"]
     output:
-          "data/{dataset}/csv/disorderc.csv"
+        temp(f"data/temp/{TOKEN}/enco_seqs.yaml")
     run:
-        import encoder.ifeature.pssm.disprot_encoding.encoder as disprot_encoder
         seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+
+        enco = {"enco_seqs": {}}
+        for tup in fastas:
+            _, encoded_seq = DisorderC.DisorderC([tup], path=str(input[1]))
+            enco["enco_seqs"][tup[0]] = encoded_seq[1:]
+
+        with open(str(output), mode="w") as f:
+            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+            yaml.safe_dump(enco, f)
+
+rule interpolate:
+    input:
+        enco=f"data/temp/{TOKEN}/enco_seqs.yaml"
+    output:
+        temp(f"data/temp/{TOKEN}/out.csv")
+    script:
+        "scripts/interpolate.R"
+
+rule dump:
+    input:
+        f"data/temp/{TOKEN}/out.csv",
+        config["classes_in"]
+    output:
+        config["csv_out"]
+    run:
+        df = pd.read_csv(str(input[0]), index_col=0)
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        in_da = ([[n, s] for s, n in zip(seqs, names)], classes)
-        df = disprot_encoder.DisorderCEncoder(in_data=in_da,
-                                              profile_dir=f"data/{wildcards.dataset}/profile",
-                                              cores=4).encode()
-        df.to_csv(str(output))
 
+        df["y"] = classes
+        df.to_csv(str(output))
