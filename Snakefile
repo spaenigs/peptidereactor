@@ -37,7 +37,24 @@ rule all:
         expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
         "data/neuropeptides_ds3/csv/gtpc.csv",
         expand("data/neuropeptides_ds3/csv/ksctriad/ksctriad_gap_{gap_val}.csv", gap_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/moran/moran_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4)))
+        expand("data/neuropeptides_ds3/csv/moran/moran_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
+        expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4)))
+
+rule encoding_nmbroto:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
+                        nlag_val=list(range(1, 4)))
+    params:
+         subworkflow="moran",
+         snakefile="nodes/encodings/nmbroto/Snakefile",
+         configfile="nodes/encodings/nmbroto/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_moran:
     input:
