@@ -68,7 +68,7 @@ rule encoding_ssec:
 
 rule encoding_sseb:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         fasta_in="data/neuropeptides_ds3/annotated_seqs_msa.fasta",
          classes_in="data/neuropeptides_ds3/annotated_classes.txt",
          profile=f"data/{config['dataset']}/profile"
     output:
