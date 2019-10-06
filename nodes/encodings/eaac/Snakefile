@@ -1,0 +1,85 @@
+from modlamp.core import read_fasta
+from iFeature import EAAC
+
+import pandas as pd
+import numpy as np
+import os
+import yaml
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+# rule encode:
+#     input:
+#         config["fasta_in"]
+#     output:
+#         temp(f"data/temp/{TOKEN}/eaac_window_{{window_val}}.csv")
+#     run:
+#         seqs, names = read_fasta(str(input[0]))
+#         fastas = [[n, s] for s, n in zip(seqs, names)]
+#         res = np.array(EAAC.EAAC(fastas, window=int(wildcards.window_val)))
+#         df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+#         df.index = np.array(res)[1:, 0]
+#         df.to_csv(str(output))
+#
+# rule dump:
+#     input:
+#         f"data/temp/{TOKEN}/eaac_window_{{window_val}}.csv",
+#         config["classes_in"]
+#     output:
+#         f"{TARGET_DIR}/eaac_window_{{window_val}}.csv"
+#     run:
+#         with open(str(input[1])) as f:
+#             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+#         df = pd.read_csv(str(input[0]), index_col=0)
+#         df["y"] = classes
+#         df.to_csv(str(output))
+#
+rule encode:
+    input:
+        config["fasta_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/eaac_window_{{window_val}}.yaml")
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+
+        enco = {"enco_seqs": {}}
+        for tup in fastas:
+            _, encoded_seq = EAAC.EAAC([tup], window=int(wildcards.window_val), **{"order": None})
+            enco["enco_seqs"][tup[0]] = encoded_seq[1:]
+
+        with open(str(output), mode="w") as f:
+            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+            yaml.safe_dump(enco, f)
+
+rule interpolate:
+    input:
+        enco=f"data/temp/{TOKEN}/eaac_window_{{window_val}}.yaml"
+    output:
+        temp(f"data/temp/{TOKEN}/eaac_window_{{window_val}}.csv")
+    script:
+        "scripts/interpolate.R"
+
+rule dump:
+    input:
+        f"data/temp/{TOKEN}/eaac_window_{{window_val}}.csv",
+        config["classes_in"]
+    output:
+        f"{TARGET_DIR}/eaac_window_{{window_val}}.csv"
+    run:
+        df = pd.read_csv(str(input[0]), index_col=0)
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        df["y"] = classes
+        df.to_csv(str(output))
+
+
+
+
+
