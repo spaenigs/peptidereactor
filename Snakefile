@@ -42,7 +42,25 @@ rule all:
         "data/neuropeptides_ds3/csv/gdpc.csv",
         expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv",
                nlag_val=list(range(1, 4))),
-        "data/neuropeptides_ds3/csv/gtpc.csv"
+        "data/neuropeptides_ds3/csv/gtpc.csv",
+        expand("data/neuropeptides_ds3/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
+               gap_val=list(range(1, 4)))
+
+rule encoding_ksctriad:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
+                        gap_val=list(range(1, 4)))
+    params:
+         subworkflow="ksctriad",
+         snakefile="nodes/encodings/ksctriad/Snakefile",
+         configfile="nodes/encodings/ksctriad/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_gtpc:
     input:
