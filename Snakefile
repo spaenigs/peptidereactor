@@ -17,15 +17,33 @@ rule all:
         "data/neuropeptides_ds3/csv/disorderc.csv",
         "data/neuropeptides_ds3/csv/aac.csv",
         expand("data/neuropeptides_ds3/csv/aaindex/{aaindex}.csv",
-               aaindex=get_aaindex())
+               aaindex=get_aaindex()),
+        expand("data/neuropeptides_ds3/csv/apaac/apaac_lambda_{lambda_val}.csv",
+                        lambda_val=list(range(1, 4)))
+
+rule encoding_apaac:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/apaac/apaac_lambda_{lambda_val}.csv",
+                        lambda_val=list(range(1, 4)))
+    params:
+         subworkflow="apaac",
+         snakefile="nodes/encodings/apaac/Snakefile",
+         configfile="nodes/encodings/apaac/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_aaindex:
     input:
-        fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-        classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
     output:
-        csv_out=expand("data/neuropeptides_ds3/csv/aaindex/{aaindex}.csv",
-                        aaindex=get_aaindex())
+         csv_out=expand("data/neuropeptides_ds3/csv/aaindex/{aaindex}.csv",
+                         aaindex=get_aaindex())
     params:
          subworkflow="aaindex",
          snakefile="nodes/encodings/aaindex/Snakefile",
