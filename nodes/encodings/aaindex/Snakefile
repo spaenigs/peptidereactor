@@ -48,7 +48,7 @@ rule dump:
         f"data/temp/{TOKEN}/{{aaindex}}.csv",
         config["classes_in"]
     output:
-        f"{TARGET_DIR}/{{aaindex}}.csv"
+        f"{TARGET_DIR}/aaindex_{{aaindex}}.csv"
     run:
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
