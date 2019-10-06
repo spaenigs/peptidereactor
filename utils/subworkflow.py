@@ -5,11 +5,15 @@ import os
 import secrets
 from snakemake import Workflow
 from snakemake.workflow import Subworkflow
+from snakemake.io import Namedlist
 
 from snakemake import snakemake as smk_func
 
 
 def set_input_output(_configfile, _input, _output, token):
+    for k, v in _output.items():
+        if type(v) == Namedlist:
+            _output[k] = list(v)
     with open(_configfile, mode="a") as stream:
         yaml.safe_dump({**_input, **_output, **{"token": token}}, stream)
 
