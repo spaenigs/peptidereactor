@@ -10,6 +10,8 @@ def get_aaindex():
     df = df.iloc[:, :-1]
     return df.index.to_list()[:5]
 
+# TODO: CTD
+
 rule all:
     input:
         "data/neuropeptides_ds3/csv/disorder.csv",
@@ -25,10 +27,26 @@ rule all:
         expand("data/neuropeptides_ds3/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
                gap_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/cksaap/cksaap_gap_{gap_val}.csv",
-                        gap_val=list(range(1, 4))),
+               gap_val=list(range(1, 4))),
         "data/neuropeptides_ds3/csv/ctdc.csv",
         "data/neuropeptides_ds3/csv/ctdd.csv",
-        "data/neuropeptides_ds3/csv/ctdt.csv"
+        "data/neuropeptides_ds3/csv/ctdt.csv",
+        "data/neuropeptides_ds3/csv/ctriad.csv"
+
+rule encoding_ctriad:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/ctriad.csv"
+    params:
+         subworkflow="ctriad",
+         snakefile="nodes/encodings/ctriad/Snakefile",
+         configfile="nodes/encodings/ctriad/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_ctdt:
     input:
@@ -68,7 +86,6 @@ rule encoding_ctdc:
          configfile="nodes/encodings/ctdc/config.yaml"
     script:
          "utils/subworkflow.py"
-
 
 rule encoding_cksaap:
     input:

@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "ctriad"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/ctriad/<dataset>_ctriad_gap-#1.csv"
