@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "ctdt"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/ctdt/<dataset>_ctdt.csv"

@@ -1,0 +1,32 @@
+from modlamp.core import read_fasta
+from iFeature import CTDT
+import numpy as np
+import pandas as pd
+
+TOKEN = config["token"]
+
+rule encode:
+    input:
+        config["fasta_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/out.csv")
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+        res = np.array(CTDT.CTDT(fastas))
+        df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+        df.index = np.array(res)[1:, 0]
+        df.to_csv(str(output))
+
+rule dump:
+    input:
+         f"data/temp/{TOKEN}/out.csv",
+         config["classes_in"]
+    output:
+        config["csv_out"]
+    run:
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        df = pd.read_csv(str(input[0]), index_col=0)
+        df["y"] = classes
+        df.to_csv(str(output))

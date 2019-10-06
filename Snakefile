@@ -27,7 +27,21 @@ rule all:
         expand("data/neuropeptides_ds3/csv/cksaap/cksaap_gap_{gap_val}.csv",
                         gap_val=list(range(1, 4))),
         "data/neuropeptides_ds3/csv/ctdc.csv",
-        "data/neuropeptides_ds3/csv/ctdd.csv"
+        "data/neuropeptides_ds3/csv/ctdd.csv",
+        "data/neuropeptides_ds3/csv/ctdt.csv"
+
+rule encoding_ctdt:
+    input:
+         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/ctdt.csv"
+    params:
+         subworkflow="ctdt",
+         snakefile="nodes/encodings/ctdt/Snakefile",
+         configfile="nodes/encodings/ctdt/config.yaml"
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_ctdd:
     input:
