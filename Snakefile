@@ -20,7 +20,21 @@ rule all:
                aaindex=get_aaindex()),
         expand("data/neuropeptides_ds3/csv/apaac/apaac_lambda_{lambda_val}.csv",
                         lambda_val=list(range(1, 4))),
-        "data/neuropeptides_ds3/csv/binary.csv"
+        "data/neuropeptides_ds3/csv/binary.csv",
+        "data/neuropeptides_ds3/csv/blosum62.csv"
+
+rule encoding_blosum62:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/blosum62.csv"
+    params:
+         subworkflow="blosum62",
+         snakefile="nodes/encodings/blosum62/Snakefile",
+         configfile="nodes/encodings/blosum62/config.yaml"
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_binary:
     input:
@@ -32,8 +46,6 @@ rule encoding_binary:
          subworkflow="binary",
          snakefile="nodes/encodings/binary/Snakefile",
          configfile="nodes/encodings/binary/config.yaml"
-    resources:
-         cores=4
     script:
          "utils/subworkflow.py"
 
