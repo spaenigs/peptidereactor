@@ -37,7 +37,21 @@ rule all:
         expand("data/neuropeptides_ds3/csv/eaac/eaac_window_{window_val}.csv",
                         window_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/egaac/egaac_window_{window_val}.csv",
-                        window_val=list(range(1, 4)))
+                        window_val=list(range(1, 4))),
+        "data/neuropeptides_ds3/csv/gaac.csv"
+
+rule encoding_gaac:
+    input:
+         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/gaac.csv"
+    params:
+         subworkflow="gaac",
+         snakefile="nodes/encodings/gaac/Snakefile",
+         configfile="nodes/encodings/gaac/config.yaml"
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_egaac:
     input:
