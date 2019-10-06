@@ -1,0 +1,40 @@
+from modlamp.core import read_fasta
+from iFeature import Geary
+
+import pandas as pd
+import numpy as np
+import os
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule encode:
+    input:
+        config["fasta_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/geary_nlag_{{nlag_val}}.csv")
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+        res = np.array(Geary.Geary(fastas, nlag=int(wildcards.nlag_val)))
+        df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+        df.index = np.array(res)[1:, 0]
+        df.to_csv(str(output))
+
+rule dump:
+    input:
+        f"data/temp/{TOKEN}/geary_nlag_{{nlag_val}}.csv",
+        config["classes_in"]
+    output:
+        f"{TARGET_DIR}/geary_nlag_{{nlag_val}}.csv"
+    run:
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        df = pd.read_csv(str(input[0]), index_col=0)
+        df["y"] = classes
+        df.to_csv(str(output))

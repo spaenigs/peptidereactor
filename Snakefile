@@ -39,7 +39,25 @@ rule all:
         expand("data/neuropeptides_ds3/csv/egaac/egaac_window_{window_val}.csv",
                         window_val=list(range(1, 4))),
         "data/neuropeptides_ds3/csv/gaac.csv",
-        "data/neuropeptides_ds3/csv/gdpc.csv"
+        "data/neuropeptides_ds3/csv/gdpc.csv",
+        expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv",
+               nlag_val=list(range(1, 4)))
+
+rule encoding_geary:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv",
+                        nlag_val=list(range(1, 4)))
+    params:
+         subworkflow="geary",
+         snakefile="nodes/encodings/geary/Snakefile",
+         configfile="nodes/encodings/geary/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_gdpc:
     input:
