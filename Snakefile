@@ -47,7 +47,24 @@ rule all:
                ktuple_val=[2], lambda_val=[2]),
                # sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                # ktuple_val=list(range(1,4)), lambda_val=list(range(1,7)))
-        "data/neuropeptides_ds3/csv/pssm.csv"
+        "data/neuropeptides_ds3/csv/pssm.csv",
+        expand("data/neuropeptides_ds3/csv/socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4)))
+
+rule encoding_socnumber:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
+                        nlag_val=list(range(1, 4)))
+    params:
+         subworkflow="socnumber",
+         snakefile="nodes/encodings/socnumber/Snakefile",
+         configfile="nodes/encodings/socnumber/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_pssm:
     input:
