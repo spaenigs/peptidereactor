@@ -21,7 +21,6 @@ rule encode:
     run:
         seqs, names = read_fasta(str(input[0]))
         fastas = [[n, s] for s, n in zip(seqs, names)]
-        print(wildcards.gap_val)
         res = np.array(CKSAAGP.CKSAAGP(fastas, gap=int(wildcards.gap_val)))
         df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
         df.index = np.array(res)[1:, 0]
