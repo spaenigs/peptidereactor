@@ -10,8 +10,6 @@ def get_aaindex():
     df = df.iloc[:, :-1]
     return df.index.to_list()[:5]
 
-# TODO: CTD
-
 rule all:
     input:
         "data/neuropeptides_ds3/csv/disorder.csv",
@@ -46,9 +44,24 @@ rule all:
         expand("data/neuropeptides_ds3/csv/psekraac/type1/psekraac_type1_"
                "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                sub_val=["lambda-correlation"], raac_val=[2],
-               ktuple_val=[2], lambda_val=[2])
+               ktuple_val=[2], lambda_val=[2]),
                # sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                # ktuple_val=list(range(1,4)), lambda_val=list(range(1,7)))
+        "data/neuropeptides_ds3/csv/pssm.csv"
+
+rule encoding_pssm:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
+         profile=f"data/{config['dataset']}/profile"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/pssm.csv"
+    params:
+         subworkflow="pssm",
+         snakefile="nodes/encodings/pssm/Snakefile",
+         configfile="nodes/encodings/pssm/config.yaml",
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_psekraac_type_1:
     input:
