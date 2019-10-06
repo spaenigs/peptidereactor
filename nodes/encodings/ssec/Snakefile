@@ -1,0 +1,47 @@
+from modlamp.core import read_fasta
+from iFeature import SSEC
+import numpy as np
+import pandas as pd
+import yaml
+
+TOKEN = config["token"]
+
+rule encode:
+    input:
+        config["fasta_in"],
+        config["profile"]
+    output:
+        temp(f"data/temp/{TOKEN}/enco_seqs.yaml")
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+
+        enco = {"enco_seqs": {}}
+        for tup in fastas:
+            _, encoded_seq = SSEC.SSEC([tup], path=str(input[1]))
+            enco["enco_seqs"][tup[0]] = encoded_seq[1:]
+
+        with open(str(output), mode="w") as f:
+            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+            yaml.safe_dump(enco, f)
+
+rule interpolate:
+    input:
+        enco=f"data/temp/{TOKEN}/enco_seqs.yaml"
+    output:
+        temp(f"data/temp/{TOKEN}/out.csv")
+    script:
+        "scripts/interpolate.R"
+
+rule dump:
+    input:
+        f"data/temp/{TOKEN}/out.csv",
+        config["classes_in"]
+    output:
+        config["csv_out"]
+    run:
+        df = pd.read_csv(str(input[0]), index_col=0)
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        df["y"] = classes
+        df.to_csv(str(output))

@@ -49,7 +49,22 @@ rule all:
                # ktuple_val=list(range(1,4)), lambda_val=list(range(1,7)))
         "data/neuropeptides_ds3/csv/pssm.csv",
         expand("data/neuropeptides_ds3/csv/socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        "data/neuropeptides_ds3/csv/sseb.csv"
+        "data/neuropeptides_ds3/csv/sseb.csv",
+        "data/neuropeptides_ds3/csv/ssec.csv"
+
+rule encoding_ssec:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
+         profile=f"data/{config['dataset']}/profile"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/ssec.csv"
+    params:
+         subworkflow="ssec",
+         snakefile="nodes/encodings/ssec/Snakefile",
+         configfile="nodes/encodings/ssec/config.yaml",
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_sseb:
     input:
