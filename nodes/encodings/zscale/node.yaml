@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "zscale"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/zscale/<dataset>_zscale.csv"
