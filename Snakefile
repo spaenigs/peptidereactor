@@ -42,7 +42,34 @@ rule all:
         expand("data/neuropeptides_ds3/csv/paac/paac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
         "data/neuropeptides_ds3/csv/tpc.csv",
-        "data/neuropeptides_ds3/csv/zscale.csv"
+        "data/neuropeptides_ds3/csv/zscale.csv",
+        expand("data/neuropeptides_ds3/csv/psekraac/type1/psekraac_type1_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["lambda-correlation"], raac_val=[2],
+               ktuple_val=[2], lambda_val=[2])
+               # sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               # ktuple_val=list(range(1,4)), lambda_val=list(range(1,7)))
+
+rule encoding_psekraac_type_1:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/psekraac/type1/psekraac_type1_"
+                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+                        sub_val=["lambda-correlation"], raac_val=[2],
+                        ktuple_val=[2], lambda_val=[2])
+                        # sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+                        # ktuple_val=list(range(1,4)), lambda_val=list(range(1,7)))
+    params:
+         subworkflow="psekraac_type1",
+         snakefile="nodes/encodings/psekraac_type1/Snakefile",
+         configfile="nodes/encodings/psekraac_type1/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
+
 
 rule encoding_zscale:
     input:
