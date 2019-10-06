@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "egaac"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/egaac/<dataset>_egaac_window-#1.csv"
