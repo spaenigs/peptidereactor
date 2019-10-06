@@ -23,12 +23,17 @@ NAME = snakemake.params.subworkflow
 SNAKEFILE = snakemake.params.snakefile
 CONFIGFILE = snakemake.params.configfile
 INPUT, OUTPUT = dict(snakemake.input), dict(snakemake.output)
+RESOURCES = dict(snakemake.resources)
 TOKEN = secrets.token_hex(4)
 
 set_input_output(CONFIGFILE, INPUT, OUTPUT, TOKEN)
 
 workflow = Workflow(GLOBAL_WORKDIR)
-sw = Subworkflow(workflow, name=NAME, snakefile=SNAKEFILE, workdir=GLOBAL_WORKDIR, configfile=CONFIGFILE)
+sw = Subworkflow(workflow,
+                 name=NAME,
+                 snakefile=SNAKEFILE,
+                 workdir=GLOBAL_WORKDIR,
+                 configfile=CONFIGFILE)
 workflow._subworkflows[sw.name] = sw
 workflow.globals[sw.name] = sw.target
 
@@ -44,7 +49,7 @@ def __rule_all(input, output, params, wildcards, threads, resources, log, versio
 
 workflow.check()
 success = workflow.execute(dryrun=False, updated_files=[], quiet=True, resources=dict(),
-                           subsnakemake=partial(smk_func))
+                           subsnakemake=partial(smk_func, cores=RESOURCES["cores"]))
 
 os.remove(CONFIGFILE)
 os.removedirs(f"data/temp/{TOKEN}")

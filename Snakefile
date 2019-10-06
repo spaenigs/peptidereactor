@@ -1,14 +1,39 @@
 import os
+import pandas as pd
 
 config["dataset"] = "neuropeptides_ds3"
 config["global_workdir"] = os.getcwd() + "/"
+
+def get_aaindex():
+    df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
+    df.columns = df.columns[1:].tolist() + ["NaN"]
+    df = df.iloc[:, :-1]
+    return df.index.to_list()[:5]
 
 rule all:
     input:
         "data/neuropeptides_ds3/csv/disorder.csv",
         "data/neuropeptides_ds3/csv/disorderb.csv",
         "data/neuropeptides_ds3/csv/disorderc.csv",
-        # "data/neuropeptides_ds3/csv/aac.csv"
+        "data/neuropeptides_ds3/csv/aac.csv",
+        expand("data/neuropeptides_ds3/csv/aaindex/{aaindex}.csv",
+               aaindex=get_aaindex())
+
+rule encoding_aaindex:
+    input:
+        fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+        classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+        csv_out=expand("data/neuropeptides_ds3/csv/aaindex/{aaindex}.csv",
+                        aaindex=get_aaindex())
+    params:
+         subworkflow="aaindex",
+         snakefile="nodes/encodings/aaindex/Snakefile",
+         configfile="nodes/encodings/aaindex/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_disorder:
     input:
