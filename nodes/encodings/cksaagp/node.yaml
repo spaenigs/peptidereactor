@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "cksaagp"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/cksaagp/<dataset>_cksaagp_gap-#1.csv"
