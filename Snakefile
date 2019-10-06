@@ -41,6 +41,20 @@ rule all:
         expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/paac/paac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
+        "data/neuropeptides_ds3/csv/tpc.csv"
+
+rule encoding_tpc:
+    input:
+         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/tpc.csv"
+    params:
+         subworkflow="tpc",
+         snakefile="nodes/encodings/tpc/Snakefile",
+         configfile="nodes/encodings/tpc/config.yaml"
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_qsorder:
     input:
