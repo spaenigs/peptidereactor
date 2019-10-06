@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "paac"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/paac/<dataset>_paac_lambda-#1.csv"
