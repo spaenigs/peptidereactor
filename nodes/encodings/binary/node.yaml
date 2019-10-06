@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "binary"
-input:
-  fasta_msa: "<dataset>_msa.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "binary/<dataset>_binary.fasta"
