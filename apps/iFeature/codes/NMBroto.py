@@ -18,8 +18,7 @@ def NMBroto(fastas, props=['CIDH920105', 'BHAR880101', 'CHAM820101', 'CHAM820102
 		return 0
 
 	AA = 'ARNDCQEGHILKMFPSTWYV'
-	fileAAidx = re.sub('codes$', '', os.path.split(os.path.realpath(__file__))[0]) + r'\data\AAidx.txt' if platform.system() == 'Windows' else sys.path[0] + '/../apps/iFeature/data/AAidx.txt'
-	print(fileAAidx)
+	fileAAidx = re.sub('codes$', '', os.path.split(os.path.realpath(__file__))[0]) + r'\data\AAidx.txt' if platform.system() == 'Windows' else 'apps/iFeature/data/AAidx.txt'
 	with open(fileAAidx) as f:
 		records = f.readlines()[1:]
 	myDict = {}
