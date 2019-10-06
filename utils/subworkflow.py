@@ -49,7 +49,7 @@ def __rule_all(input, output, params, wildcards, threads, resources, log, versio
 
 workflow.check()
 success = workflow.execute(dryrun=False, updated_files=[], quiet=True, resources=dict(),
-                           subsnakemake=partial(smk_func, cores=RESOURCES["cores"]))
+                           subsnakemake=partial(smk_func, cores=RESOURCES.get("cores", 1)))
 
 os.remove(CONFIGFILE)
 os.removedirs(f"data/temp/{TOKEN}")
