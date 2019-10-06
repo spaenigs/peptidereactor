@@ -1,0 +1,57 @@
+from modlamp.core import read_fasta
+from iFeature import AAINDEX
+
+import pandas as pd
+import numpy as np
+import os
+import yaml
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule encode:
+    input:
+        config["fasta_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/{{aaindex}}.yaml")
+    run:
+        seqs, names = read_fasta(str(input[0]))
+        fastas = [[n, s] for s, n in zip(seqs, names)]
+
+        enco = {"enco_seqs": {}}
+        for tup in fastas:
+            res = np.array(AAINDEX.AAINDEX([tup]))
+            df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+            df.index = np.array(res)[1:, 0]
+            df = df.filter(like=wildcards.aaindex, axis=1)
+            enco["enco_seqs"][tup[0]] = df.iloc[0, :].to_list()
+
+        with open(str(output), mode="w") as f:
+            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+            yaml.safe_dump(enco, f)
+
+rule interpolate:
+    input:
+        enco=f"data/temp/{TOKEN}/{{aaindex}}.yaml"
+    output:
+        temp(f"data/temp/{TOKEN}/{{aaindex}}.csv")
+    script:
+        "scripts/interpolate.R"
+
+rule dump:
+    input:
+        f"data/temp/{TOKEN}/{{aaindex}}.csv",
+        config["classes_in"]
+    output:
+        f"{TARGET_DIR}/{{aaindex}}.csv"
+    run:
+        with open(str(input[1])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+        df = pd.read_csv(str(input[0]), index_col=0)
+        df["y"] = classes
+        df.to_csv(str(output))
