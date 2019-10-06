@@ -32,7 +32,21 @@ rule all:
         "data/neuropeptides_ds3/csv/ctdd.csv",
         "data/neuropeptides_ds3/csv/ctdt.csv",
         "data/neuropeptides_ds3/csv/ctriad.csv",
-        "data/neuropeptides_ds3/csv/dde.csv"
+        "data/neuropeptides_ds3/csv/dde.csv",
+        "data/neuropeptides_ds3/csv/dpc.csv"
+
+rule encoding_dpc:
+    input:
+         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out="data/neuropeptides_ds3/csv/dpc.csv"
+    params:
+         subworkflow="dpc",
+         snakefile="nodes/encodings/dpc/Snakefile",
+         configfile="nodes/encodings/dpc/config.yaml"
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_dde:
     input:
