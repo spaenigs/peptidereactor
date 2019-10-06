@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "qsorder"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/qsorder/<dataset>_qsorder_nlag-#1.csv"

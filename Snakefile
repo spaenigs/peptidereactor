@@ -40,6 +40,23 @@ rule all:
         expand("data/neuropeptides_ds3/csv/moran/moran_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
         expand("data/neuropeptides_ds3/csv/paac/paac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 4))),
+        expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
+
+rule encoding_qsorder:
+    input:
+         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
+         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+    output:
+         csv_out=expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
+                        nlag_val=list(range(1, 4)))
+    params:
+         subworkflow="qsorder",
+         snakefile="nodes/encodings/qsorder/Snakefile",
+         configfile="nodes/encodings/qsorder/config.yaml"
+    resources:
+         cores=4
+    script:
+         "utils/subworkflow.py"
 
 rule encoding_paac:
     input:
