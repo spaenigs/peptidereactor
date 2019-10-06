@@ -1,7 +1,0 @@
-node_group: "encodings"
-node_name: "dde"
-input:
-  fasta: "<dataset>.fasta"
-  classes: "<dataset>_classes.txt"
-output:
-  csv_out: "csv/dde/<dataset>_dde.csv"
