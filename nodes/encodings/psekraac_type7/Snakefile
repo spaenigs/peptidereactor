@@ -1,5 +1,5 @@
 from modlamp.core import read_fasta
-from PseKRAAC.type1 import type1
+from PseKRAAC.type7 import type1 as type7
 
 import pandas as pd
 import numpy as np
@@ -17,12 +17,12 @@ rule encode:
     input:
         config["fasta_in"]
     output:
-        temp(f"data/temp/{TOKEN}/psekraac_type1_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
+        temp(f"data/temp/{TOKEN}/psekraac_type7_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
              f"ktuple-{{ktuple_val}}_lambda-{{lambda_val}}.csv")
     run:
         seqs, names = read_fasta(str(input[0]))
         fastas = [[n, s] for s, n in zip(seqs, names)]
-        res = np.array(type1(fastas,
+        res = np.array(type7(fastas,
                              subtype=wildcards.sub_val,
                              raactype=int(wildcards.raac_val),
                              ktuple=int(wildcards.ktuple_val),
@@ -34,11 +34,11 @@ rule encode:
 
 rule dump:
     input:
-        f"data/temp/{TOKEN}/psekraac_type1_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
+        f"data/temp/{TOKEN}/psekraac_type7_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
         f"ktuple-{{ktuple_val}}_lambda-{{lambda_val}}.csv",
         config["classes_in"]
     output:
-        f"{TARGET_DIR}/psekraac_type1_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
+        f"{TARGET_DIR}/psekraac_type7_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
         f"ktuple-{{ktuple_val}}_lambda-{{lambda_val}}.csv"
     run:
         with open(str(input[1])) as f:
