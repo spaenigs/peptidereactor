@@ -1,36 +1,38 @@
 import joblib as jl
 from Bio import SeqIO
 
+TOKEN = config["token"]
+
 rule read_fasta:
     input:
-        "data/{dataset}/seqs.fasta"
+         config["fasta_in"]
     output:
-        temp("data/tmp/{dataset}_from_fasta.joblib")
+         temp(f"data/temp/{TOKEN}/from_fasta.joblib")
     run:
-        raw_data, seq_names = [], []
-        for record in SeqIO.parse(str(input), "fasta"):
-            seq_names.append(record.name)
-            raw_data.append([record.name, str(record.seq)])
-        if len(set(seq_names)) != len(raw_data):
-            raise Exception("Seqence names should be unique!")
-        jl.dump(value=raw_data, filename=str(output))
+         raw_data, seq_names = [], []
+         for record in SeqIO.parse(str(input), "fasta"):
+             seq_names.append(record.name)
+             raw_data.append([record.name, str(record.seq)])
+         if len(set(seq_names)) != len(raw_data):
+             raise Exception("Seqence names should be unique!")
+         jl.dump(value=raw_data, filename=str(output))
 
 rule read_classes:
     input:
-         "data/{dataset}/classes.txt"
+         config["classes_in"]
     output:
-        temp("data/tmp/{dataset}_from_classes.joblib")
+         temp(f"data/temp/{TOKEN}/from_classes.joblib")
     run:
-        f = open(str(input), mode="r")
-        target = [int(line.rstrip()) for line in f.readlines()]
-        jl.dump(value=target, filename=str(output))
+         f = open(str(input), mode="r")
+         target = [int(line.rstrip()) for line in f.readlines()]
+         jl.dump(value=target, filename=str(output))
 
 rule create_input_data:
     input:
-        "data/tmp/{dataset}_from_fasta.joblib",
-        "data/tmp/{dataset}_from_classes.joblib"
+        f"data/temp/{TOKEN}/from_fasta.joblib",
+        f"data/temp/{TOKEN}/from_classes.joblib"
     output:
-        temp("data/tmp/{dataset,[A-Za-z0-9]*}.joblib")
+        temp(f"data/temp/{TOKEN}/dataset.joblib")
     run:
         from_fasta = jl.load(filename=str(input[0]))
         from_classes = jl.load(filename=str(input[1]))
@@ -42,32 +44,50 @@ rule create_input_data:
 
 rule create_normal_distributed_input_data:
     input:
-        "data/tmp/{dataset}.joblib"
+        f"data/temp/{TOKEN}/dataset.joblib"
     output:
-        temp("data/tmp/{dataset}_normal_distributed.joblib"),
-        temp("data/tmp/{dataset}_ds1_normal_distributed.joblib"),
-        temp("data/tmp/{dataset}_ds2_normal_distributed.joblib")
+        temp(f"data/temp/{TOKEN}/normal_distributed.joblib"),
+        temp(f"data/temp/{TOKEN}/ds1_normal_distributed.joblib"),
+        temp(f"data/temp/{TOKEN}/ds2_normal_distributed.joblib")
     script:
         "scripts/create_normal_distributed_input_data.py"
 
 rule save_as_fasta:
     input:
-         "data/tmp/{dataset}_{part}_normal_distributed.joblib"
+         f"data/temp/{TOKEN}/{{part}}_normal_distributed.joblib"
     output:
-        "data/{dataset}_{part}/seqs.fasta",
-        "data/{dataset}_{part}/classes.txt"
+         temp(f"data/temp/{TOKEN}/{{part}}_seqs.fasta"),
+         temp(f"data/temp/{TOKEN}/{{part}}_classes.txt")
     run:
-        from modlamp.core import save_fasta
-        def create_fasta(input_data_):
-            seq_tups = input_data_[0]
-            classes = input_data_[1]
-            seq_names = list(map(lambda tup: tup[0], seq_tups))
-            seqs = list(map(lambda tup: tup[1], seq_tups))
-            return seq_names, seqs, classes
-        input_data = jl.load(str(input))
-        n, s, c = create_fasta(input_data)
-        save_fasta(str(output[0]), sequences=s, names=n)
-        with open(str(output[1]), mode="w") as f:
-            for c_ in c:
-                f.write(str(c_) + "\n")
-                f.flush()
+         from modlamp.core import save_fasta
+         def create_fasta(input_data_):
+             seq_tups = input_data_[0]
+             classes = input_data_[1]
+             seq_names = list(map(lambda tup: tup[0], seq_tups))
+             seqs = list(map(lambda tup: tup[1], seq_tups))
+             return seq_names, seqs, classes
+         input_data = jl.load(str(input))
+         n, s, c = create_fasta(input_data)
+         save_fasta(str(output[0]), sequences=s, names=n)
+         with open(str(output[1]), mode="w") as f:
+             for c_ in c:
+                 f.write(str(c_) + "\n")
+                 f.flush()
+
+rule collect:
+    input:
+         expand(f"data/temp/{TOKEN}/{{part}}_seqs.fasta", part=["ds1", "ds2"]),
+         expand(f"data/temp/{TOKEN}/{{part}}_classes.txt", part=["ds1", "ds2"])
+    output:
+         config["fasta_out_1"],
+         config["fasta_out_2"],
+         config["classes_out_1"],
+         config["classes_out_2"]
+    shell:
+         """
+         cp {input[0]} {output[0]}
+         cp {input[1]} {output[1]}
+         cp {input[2]} {output[2]}
+         cp {input[3]} {output[3]}
+         """
+
