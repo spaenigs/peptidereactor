@@ -2,119 +2,125 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-
 from modlamp.core import read_fasta
+
+TOKEN = config["token"]
 
 rule plot_sequence_length_distribution:
     input:
-       "data/{dataset}/seqs.fasta",
-       "data/{dataset}/classes.txt",
-       "data/{dataset}_ds1/seqs.fasta",
-       "data/{dataset}_ds1/classes.txt",
-       "data/{dataset}_ds2/seqs.fasta",
-       "data/{dataset}_ds2/classes.txt",
+         config["fasta_in"],
+         config["classes_in"],
+         config["fasta_out_1"],
+         config["classes_out_1"],
+         config["fasta_out_2"],
+         config["classes_out_2"]
     output:
-        "data/{dataset}/sequence_length_distribution.svg"
+         temp(f"data/temp/{TOKEN}/plot.svg")
     run:
-        def filter_by_classes(name, fasta_seqs, classes):
-            neg_classes, pos_classes = [], []
-            for tup in zip(fasta_seqs, classes):
-                if tup[1] == 0:
-                    neg_classes += [len(tup[0])]
-                else:
-                    pos_classes += [len(tup[0])]
-            print(f"For {name}, there are {str(len(neg_classes))} negative classes " + \
-                  f"and {str(len(pos_classes))} positive classes. Total dataset size: " + \
-                  f"{str(len(neg_classes) + len(pos_classes))}")
-            return [neg_classes, pos_classes]
+         def filter_by_classes(name, fasta_seqs, classes):
+             neg_classes, pos_classes = [], []
+             for tup in zip(fasta_seqs, classes):
+                 if tup[1] == 0:
+                     neg_classes += [len(tup[0])]
+                 else:
+                     pos_classes += [len(tup[0])]
+             print(f"For {name}, there are {str(len(neg_classes))} negative classes " + \
+                   f"and {str(len(pos_classes))} positive classes. Total dataset size: " + \
+                   f"{str(len(neg_classes) + len(pos_classes))}")
+             return [neg_classes, pos_classes]
 
-        # read data to lists
-        seqs, _ = read_fasta(str(input[0]))
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        raw = filter_by_classes("RAW", seqs, classes)
+         # read data to lists
+         seqs, _ = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         raw = filter_by_classes("RAW", seqs, classes)
 
-        seqs1, _ = read_fasta(str(input[2]))
-        seqs2, _ = read_fasta(str(input[4]))
-        with open(str(input[3])) as f1, open(str(input[5])) as f2:
-            classes1 = list(map(lambda l: int(l.rstrip()), f1.readlines()))
-            classes2 = list(map(lambda l: int(l.rstrip()), f1.readlines()))
-        wo_outliers = filter_by_classes("WO-OUTLIERS", seqs1 + seqs2, classes1 + classes2)
+         seqs1, _ = read_fasta(str(input[2]))
+         seqs2, _ = read_fasta(str(input[4]))
+         with open(str(input[3])) as f1, open(str(input[5])) as f2:
+             classes1 = list(map(lambda l: int(l.rstrip()), f1.readlines()))
+             classes2 = list(map(lambda l: int(l.rstrip()), f1.readlines()))
+         wo_outliers = filter_by_classes("WO-OUTLIERS", seqs1 + seqs2, classes1 + classes2)
 
-        seqs, _ = read_fasta(str(input[2]))
-        with open(str(input[3])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        ds1 = filter_by_classes("DS1", seqs, classes)
+         seqs, _ = read_fasta(str(input[2]))
+         with open(str(input[3])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         ds1 = filter_by_classes("DS1", seqs, classes)
 
-        seqs, _ = read_fasta(str(input[4]))
-        with open(str(input[5])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        ds2 = filter_by_classes("DS2", seqs, classes)
+         seqs, _ = read_fasta(str(input[4]))
+         with open(str(input[5])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         ds2 = filter_by_classes("DS2", seqs, classes)
 
-        # create grid plot
-        fig = plt.figure(1)
-        gridspec.GridSpec(3, 4)
+         # create grid plot
+         fig = plt.figure(1)
+         gridspec.GridSpec(3, 4)
 
-        totalClasses = ["0 (negative)", "1 (positive)"]
+         totalClasses = ["0 (negative)", "1 (positive)"]
 
-        # adapted from https://scientificallysound.org/2016/06/09/matplotlib-how-to-plot-subplots-of-unequal-sizes/
-        plt.subplot2grid((3, 4), (0, 0), colspan=2, rowspan=1)
-        plt.hist(raw, align="left", label=totalClasses, bins=100)
-        plt.xlabel("Sequence length")
-        plt.ylabel("Count")
-        plt.title("No preprocessing")
+         # adapted from https://scientificallysound.org/2016/06/09/matplotlib-how-to-plot-subplots-of-unequal-sizes/
+         plt.subplot2grid((3, 4), (0, 0), colspan=2, rowspan=1)
+         plt.hist(raw, align="left", label=totalClasses, bins=100)
+         plt.xlabel("Sequence length")
+         plt.ylabel("Count")
+         plt.title("No preprocessing")
 
-        plt.subplot2grid((3, 4), (0, 2), colspan=2, rowspan=1)
-        plt.boxplot(raw, labels=totalClasses, flierprops={"marker": ".", "markersize": 0.5})
-        plt.xlabel("Class")
-        plt.ylabel("Sequence length")
+         plt.subplot2grid((3, 4), (0, 2), colspan=2, rowspan=1)
+         plt.boxplot(raw, labels=totalClasses, flierprops={"marker": ".", "markersize": 0.5})
+         plt.xlabel("Class")
+         plt.ylabel("Sequence length")
 
-        plt.subplot2grid((3, 4), (1, 0), colspan=2, rowspan=1)
-        plt.hist(wo_outliers, align="left", label=totalClasses, bins=100)
-        plt.xlabel("Sequence length")
-        plt.ylabel("Count")
-        plt.title("Median absolute deviation")
+         plt.subplot2grid((3, 4), (1, 0), colspan=2, rowspan=1)
+         plt.hist(wo_outliers, align="left", label=totalClasses, bins=100)
+         plt.xlabel("Sequence length")
+         plt.ylabel("Count")
+         plt.title("Median absolute deviation")
 
-        plt.subplot2grid((3, 4), (1, 2), colspan=2, rowspan=1)
-        plt.boxplot(wo_outliers, labels=totalClasses,
-                           flierprops={"marker": ".", "markersize": 0.5})
-        plt.xlabel("Class")
-        plt.ylabel("Sequence length")
-        plt.title("asd", color="white")
+         plt.subplot2grid((3, 4), (1, 2), colspan=2, rowspan=1)
+         plt.boxplot(wo_outliers, labels=totalClasses, flierprops={"marker": ".", "markersize": 0.5})
+         plt.xlabel("Class")
+         plt.ylabel("Sequence length")
+         plt.title("asd", color="white")
 
-        plt.subplot2grid((3, 4), (2, 0), colspan=1, rowspan=1)
-        plt.hist(ds1, align="left", label=totalClasses, bins=100)
-        plt.xlabel("Sequence length")
-        plt.ylabel("Count")
-        plt.title("Dataset 1")
+         plt.subplot2grid((3, 4), (2, 0), colspan=1, rowspan=1)
+         plt.hist(ds1, align="left", label=totalClasses, bins=100)
+         plt.xlabel("Sequence length")
+         plt.ylabel("Count")
+         plt.title("Dataset 1")
 
-        plt.subplot2grid((3, 4), (2, 1), colspan=1, rowspan=1)
-        bp = plt.boxplot(ds1, labels=totalClasses,
-                           flierprops={"marker": ".", "markersize": 0.5})
-        plt.xlabel("Class")
-        plt.xticks(rotation=30)
-        plt.ylabel("Sequence length")
+         plt.subplot2grid((3, 4), (2, 1), colspan=1, rowspan=1)
+         bp = plt.boxplot(ds1, labels=totalClasses, flierprops={"marker": ".", "markersize": 0.5})
+         plt.xlabel("Class")
+         plt.xticks(rotation=30)
+         plt.ylabel("Sequence length")
 
-        plt.subplot2grid((3, 4), (2, 2), colspan=1, rowspan=1)
-        plt.hist(ds2, align="left", label=totalClasses, bins=100)
-        plt.xlabel("Sequence length")
-        plt.ylabel("Count")
-        plt.title("Dataset 2")
+         plt.subplot2grid((3, 4), (2, 2), colspan=1, rowspan=1)
+         plt.hist(ds2, align="left", label=totalClasses, bins=100)
+         plt.xlabel("Sequence length")
+         plt.ylabel("Count")
+         plt.title("Dataset 2")
 
-        plt.subplot2grid((3, 4), (2, 3), colspan=1, rowspan=1)
-        plt.boxplot(ds2, labels=totalClasses,
-                           flierprops={"marker": ".", "markersize": 0.5})
-        plt.xlabel("Class")
-        plt.xticks(rotation=30)
-        plt.ylabel("Sequence length")
+         plt.subplot2grid((3, 4), (2, 3), colspan=1, rowspan=1)
+         plt.boxplot(ds2, labels=totalClasses, flierprops={"marker": ".", "markersize": 0.5})
+         plt.xlabel("Class")
+         plt.xticks(rotation=30)
+         plt.ylabel("Sequence length")
 
-        # set global plot attributes
-        # fig.suptitle(wildcards.dataset.upper())
-        fig.legend(labels=totalClasses, prop={'size': 10})
-        fig.tight_layout()
-        fig.set_size_inches(w=11,h=7)
+         # set global plot attributes
+         # fig.suptitle(wildcards.dataset.upper())
+         fig.legend(labels=totalClasses, prop={'size': 10})
+         fig.tight_layout()
+         fig.set_size_inches(w=11,h=7)
 
-        # save figure
-        plt.savefig(str(output[0]))
+         # save figure
+         plt.savefig(str(output[0]))
+
+rule dump:
+    input:
+         f"data/temp/{TOKEN}/plot.svg"
+    output:
+         config["svg_out"]
+    shell:
+         "cp {input[0]} {output[0]}"
 
 
