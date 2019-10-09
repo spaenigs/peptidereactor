@@ -1,24 +1,48 @@
+from Bio import SeqIO
+from Bio.Align.Applications import MuscleCommandline
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 from modlamp.core import read_fasta, save_fasta
 
-rule generate_multiple_sequence_alignment:
-    input:
-        "data/{dataset}/seqs.fasta",
-        "data/{dataset}/classes.txt"
-    output:
-        "data/{dataset}/seqs_msa.fasta"
-    run:
-        from encoder.encoder import BaseEncoder as base_encoder
+TOKEN = config["token"]
 
+rule temp_file:
+    input:
+         config["fasta_in"],
+         config["classes_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/seqs.fasta")
+    run:
         seqs, names = read_fasta(str(input[0]))
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-
         input_data = [[[n, s] for n, s in zip(names, seqs)], classes]
+        seq_records = list(map(lambda t: SeqRecord(Seq(t[1]), description=t[0], id=t[0]),
+                               input_data[0]))
+        SeqIO.write(seq_records, str(output), "fasta")
 
-        _, fastas_aligned = base_encoder.run_muscle(input_data)
-        d_new = dict((name, tup) for name, tup in fastas_aligned)
+rule multiple_sequence_alignment:
+    input:
+         f"data/temp/{TOKEN}/seqs.fasta"
+    output:
+         temp(f"data/temp/{TOKEN}/msa.fasta")
+    run:
+         cline = MuscleCommandline(input=str(input), out=str(output))
+         stdout, stderr = cline()
 
-        # undo internal sorting from muscle
-        seqs_sorted = [d_new[n] for n in names]
+rule dump:
+    input:
+         config["fasta_in"],
+         f"data/temp/{TOKEN}/msa.fasta"
+    output:
+         config["fasta_out"]
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         fastas_aligned = [[str(record.name), str(record.seq)]
+                           for record in sorted(SeqIO.parse(str(input[1]), "fasta"),
+                                                key=lambda record: record.name)]
+         d_new = dict((name, tup) for name, tup in fastas_aligned)
+         # undo internal sorting from muscle
+         seqs_sorted = [d_new[n] for n in names]
+         save_fasta(str(output), seqs_sorted, names)
 
-        save_fasta(str(output[0]), seqs_sorted, names)
