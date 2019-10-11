@@ -1,174 +1,203 @@
+from Bio.Blast.Applications import NcbipsiblastCommandline
+from modlamp.core import read_fasta, save_fasta
 import joblib as jl
 import os
-from modlamp.core import read_fasta, save_fasta
+
+TOKEN = config["token"]
+PROFILE_DIR = os.path.dirname(config["profile"]) + "/"
+REFSEQ_DB_DIR = config["refseq_db"]
 
 rule split_input_data:
     input:
-         "data/{dataset}/seqs.fasta",
-         "data/{dataset}/classes.txt"
+         config["fasta_in"],
+         config["classes_in"]
     output:
-         temp("data/{dataset}/profile/{seq_name}.joblib")
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.joblib")
     run:
-        seqs, names = read_fasta(str(input[0]))
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
-        seq_tuple = seq_tuples[wildcards.seq_name]
-        jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]), filename=str(output))
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         seq_tuple = seq_tuples[wildcards.seq_name]
+         jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]), filename=str(output))
 
 rule generate_pssm_profile:
     input:
-        "data/{dataset}/profile/{seq_name}.joblib"
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
-        "data/{dataset}/profile/{seq_name}.pssm",
-        "data/{dataset}/profile/{seq_name}.asn.pssm",
-        "data/{dataset}/profile/{seq_name}.mat"
+         PROFILE_DIR + "{seq_name}.pssm",
+         PROFILE_DIR + "{seq_name}.asn.pssm"
+    priority:
+         50
     run:
-        import encoder.ifeature.pssm.utils as pssm_utils
-        input_data = jl.load(str(input))
-        input_data[0][0][0] = f"{wildcards.seq_name}"
-        for o in output[:3]:
-            with open(str(o), mode="w") as f:
-                f.write("")
-        pssm_utils.PSSMUtils.generate_profile(
-            input_data, f"data/{wildcards.dataset}/profile", cores=1,
-            db="db/uniref90.db")
+         input_data = jl.load(str(input))
+         input_data[0][0][0] = f"{wildcards.seq_name}"
+
+         for o in list(output):
+             with open(str(o), mode="w") as f:
+                 f.write(""); f.flush()
+
+         record = input_data[0][0]
+         query_string = '>' + record[0] + '\n' + str(record[1])
+         matrix_file_name = f"{PROFILE_DIR}/{record[0]}.pssm"
+         cline = NcbipsiblastCommandline(cmd="psiblast", db=REFSEQ_DB_DIR, inclusion_ethresh=0.001,
+                                         num_iterations=3, num_threads=1,
+                                         out_pssm=f"{PROFILE_DIR}/{record[0]}.asn.pssm",
+                                         out_ascii_pssm=matrix_file_name)
+         stdout, stderr = cline(stdin=query_string)
+
+rule copy_pssm_file:
+    input:
+         PROFILE_DIR + "{seq_name}.pssm"
+    output:
+         PROFILE_DIR + "{seq_name}.mat"
+    priority:
+         40
+    shell:
+         "cp {input[0]} {output[0]}"
 
 rule generate_psipred_profile:
     input:
-        "data/{dataset}/profile/{seq_name}.joblib",
-        "data/{dataset}/profile/{seq_name}.asn.pssm"
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib",
+         PROFILE_DIR + "{seq_name}.asn.pssm"
     output:
-        "data/{dataset}/profile/{seq_name}.ss2",
-        "data/{dataset}/profile/{seq_name}.horiz",
-        temp("data/{dataset}/profile/{seq_name}.ss"),
-        temp("data/{dataset}/profile/{seq_name}.mtx")
+         PROFILE_DIR + "{seq_name}.ss2",
+         PROFILE_DIR + "{seq_name}.horiz",
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.ss"),
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.mtx")
     shell:
-        """
-        export datadir=/opt/conda/envs/encoding_benchmark/share/psipred_4.01/data;
-        if [ -s {input[1]} ]
-        then
-            chkparse '{input[1]}' > '{output[3]}';
-            psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
-                > '{output[2]}';    
-            psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
-                > '{output[1]}';
-        else
-            touch '{output[0]}'
-            touch '{output[1]}'
-            touch '{output[2]}'
-            touch '{output[3]}'
-        fi
-        """
+         """
+         export datadir=apps/psipred/data;
+         if [ -s {input[1]} ]
+         then
+             ./apps/psipred/bin/chkparse '{input[1]}' > '{output[3]}';
+             ./apps/psipred/bin/psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
+                 > '{output[2]}';    
+             ./apps/psipred/bin/psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
+                 > '{output[1]}';
+         else
+             touch '{output[0]}'
+             touch '{output[1]}'
+             touch '{output[2]}'
+             touch '{output[3]}'
+         fi
+         """
 
 rule generate_vsl2_profile:
     input:
-        "data/{dataset}/profile/{seq_name}.joblib",
-        "data/{dataset}/profile/{seq_name}.asn.pssm",
-        "data/{dataset}/profile/{seq_name}.ss2"
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib",
+         PROFILE_DIR + "{seq_name}.asn.pssm",
+         PROFILE_DIR + "{seq_name}.ss2"
     output:
-        "data/{dataset}/profile/{seq_name}.dis",
-        "data/{dataset}/profile/{seq_name}.flat"
+         PROFILE_DIR + "{seq_name}.dis",
+         PROFILE_DIR + "{seq_name}.flat"
     run:
-        input_data = jl.load(str(input[0]))
-        seq_tup, class_ = input_data[0][0], input_data[1]
-        fasta_name, fasta_seq = seq_tup[0], seq_tup[1]
-        shell(f"echo {fasta_seq} > '{str(output[1])}'")
-        shell("""
-            if [ -s {input[1]} ] 
-            then
-                java -Duser.country=US -Duser.language=en -jar apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
-                    > '{output[0]}'
-            else
-                touch '{output[0]}'
-                touch '{output[1]}'
-            fi
-        """)
+         input_data = jl.load(str(input[0]))
+         seq_tup, class_ = input_data[0][0], input_data[1]
+         fasta_name, fasta_seq = seq_tup[0], seq_tup[1]
+         shell(f"echo {fasta_seq} > '{str(output[1])}'")
+         shell("""
+             if [ -s {input[1]} ] 
+             then
+                 java -Duser.country=US -Duser.language=en -jar apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
+                     > '{output[0]}'
+             else
+                 touch '{output[0]}'
+                 touch '{output[1]}'
+             fi
+             """)
 
 rule generate_spx_profile:
     input:
-        "data/{dataset}/profile/{seq_name}.joblib",
-        "data/{dataset}/profile/{seq_name}.mat"
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib",
+         PROFILE_DIR + "{seq_name}.mat"
     output:
-        "data/{dataset}/profile/{seq_name}.spXout",
-        temp("data/{dataset}/profile/protein-list-file_{seq_name}.txt")
+         PROFILE_DIR + "{seq_name}.spXout",
+         temp(f"data/temp/{TOKEN}/protein-list-file_{{seq_name}}.txt")
     shell:
-        f"""
-        export spineXcodir=apps/spineXpublic;
-        echo '{{wildcards.seq_name}}' > '{{output[1]}}';
-        if [ -s {{input[1]}} ]
-        then
-            $spineXcodir/spX.pl '{{output[1]}}' data/{{wildcards.dataset}}/profile data/{{wildcards.dataset}}/profile
-        else 
-            touch '{{output[0]}}';
-            touch '{{output[1]}}';
-        fi
-        """
+         f"""
+         export spineXcodir=apps/spineXpublic;
+         echo '{{wildcards.seq_name}}' > '{{output[1]}}';
+         if [ -s {{input[1]}} ]
+         then
+             $spineXcodir/spX.pl '{{output[1]}}' {PROFILE_DIR} {PROFILE_DIR}
+         else 
+             touch '{{output[0]}}';
+             touch '{{output[1]}}';
+         fi
+         """
 
 rule remove_non_pssm_hits:
     input:
-         "data/{dataset}/seqs.fasta",
-         "data/{dataset}/seqs_msa.fasta",
-         "data/{dataset}/classes.txt",
+         config["fasta_in"],
+         config["fasta_msa_in"],
+         config["classes_in"],
          lambda wildcards: \
-            expand("data/{dataset}/profile/{seq_name}.{ftype}",
-                   dataset=wildcards.dataset,
+            expand(PROFILE_DIR + "{seq_name}.{ftype}",
                    ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"],
-                   seq_name=read_fasta(f"data/{wildcards.dataset}/seqs.fasta")[1])
+                   seq_name=read_fasta(config["fasta_in"])[1])
     output:
-        temp("data/tmp/{dataset}_filtered.joblib"),
-        temp("data/tmp/{dataset}_filtered_msa.joblib")
+         temp(f"data/temp/{TOKEN}/filtered.joblib"),
+         temp(f"data/temp/{TOKEN}/filtered_msa.joblib")
     run:
-        def _filter(input_data_):
-            filtered_seq_names = \
-                [fi.replace(f"data/{wildcards.dataset}/profile/", "").replace(".mat", "")
-                 for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[3:]))]
-            res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
-            return res_seqs, res_classes
+         def _filter(input_data_):
+             filtered_seq_names = \
+                 [fi.replace(PROFILE_DIR, "").replace(".mat", "")
+                  for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[3:]))]
+             res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
+             return res_seqs, res_classes
 
-        seqs, names = read_fasta(str(input[0]))
-        seqs_msa, names_msa = read_fasta(str(input[1]))
-        with open(str(input[2])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seqs, names = read_fasta(str(input[0]))
+         seqs_msa, names_msa = read_fasta(str(input[1]))
+         with open(str(input[2])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
-        in_da = [[[n, s] for n, s in zip(names, seqs)], classes]
-        in_da_msa = [[[n, s] for n, s in zip(names_msa, seqs_msa)], classes]
+         in_da = [[[n, s] for n, s in zip(names, seqs)], classes]
+         in_da_msa = [[[n, s] for n, s in zip(names_msa, seqs_msa)], classes]
 
-        jl.dump(value=_filter(in_da), filename=str(output[0]))
-        jl.dump(value=_filter(in_da_msa), filename=str(output[1]))
+         jl.dump(value=_filter(in_da), filename=str(output[0]))
+         jl.dump(value=_filter(in_da_msa), filename=str(output[1]))
 
 rule annotate_sequence_names:
     input:
-        "data/tmp/{dataset}_filtered.joblib",
-        "data/tmp/{dataset}_filtered_msa.joblib"
+         f"data/temp/{TOKEN}/filtered.joblib",
+         f"data/temp/{TOKEN}/filtered_msa.joblib"
     output:
-        "data/{dataset}/annotated_seqs.fasta",
-        "data/{dataset}/annotated_seqs_msa.fasta",
-        "data/{dataset}/annotated_classes.txt"
+         config["fasta_anno_out"],
+         config["fasta_anno_msa_out"],
+         config["classes_anno"]
     run:
-        def add_names(input_data_):
-            res_seqs, res_classes = [], []
-            for tup in zip(*input_data_):
-                seq_tup = tup[0]
-                print(f"original seq: {seq_tup[0]}")
-                print(f"with wildcards: {seq_tup[0]}")
-                seq_tup[0] = f"{seq_tup[0]}"
-                res_seqs.append(seq_tup)
-                res_classes.append(tup[1])
-            return res_seqs, res_classes
-        input_data, input_data_msa = jl.load(str(input[0])), jl.load(str(input[1]))
+         def add_names(input_data_):
+             res_seqs, res_classes = [], []
+             for tup in zip(*input_data_):
+                 seq_tup = tup[0]
+                 seq_tup[0] = f"{seq_tup[0]}"
+                 res_seqs.append(seq_tup)
+                 res_classes.append(tup[1])
+             return res_seqs, res_classes
+         input_data, input_data_msa = jl.load(str(input[0])), jl.load(str(input[1]))
 
-        out = add_names(input_data)
-        out_msa = add_names(input_data_msa)
+         out = add_names(input_data)
+         out_msa = add_names(input_data_msa)
 
-        names, seqs = zip(*out[0])
-        classes = out[1]
-        save_fasta(str(output[0]), seqs, names)
+         names, seqs = zip(*out[0])
+         classes = out[1]
+         save_fasta(str(output[0]), seqs, names)
 
-        names_msa, seqs_msa = zip(*out_msa[0])
-        save_fasta(str(output[1]), seqs_msa, names_msa)
+         names_msa, seqs_msa = zip(*out_msa[0])
+         save_fasta(str(output[1]), seqs_msa, names_msa)
 
-        with open(str(output[2]), mode="a") as f:
-            for c in out[1]:
-                f.write(f"{str(c)}\n")
-                f.flush()
+         with open(str(output[2]), mode="a") as f:
+             for c in out[1]:
+                 f.write(f"{str(c)}\n")
+                 f.flush()
+
+rule dump:
+    input:
+         config["fasta_anno_out"],
+         config["fasta_anno_msa_out"],
+         config["classes_anno"]
+    output:
+         temp(config["profile"])
+    shell:
+         "touch {output}"
