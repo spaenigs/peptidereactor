@@ -4,18 +4,18 @@ config["global_workdir"] = os.getcwd() + "/"
 
 rule all:
     input:
-         "data/neuropeptides/sequence_length_distribution.svg"
+         expand("data/{dataset}/sequence_length_distribution.svg", dataset=config["dataset"])
 
 rule plot_sequence_length_distribution:
         input:
-             fasta_in="data/neuropeptides/seqs.fasta",
-             classes_in="data/neuropeptides/classes.txt",
-             fasta_out_1="data/neuropeptides_ds1/seqs.fasta",
-             classes_out_1="data/neuropeptides_ds1/classes.txt",
-             fasta_out_2="data/neuropeptides_ds2/seqs.fasta",
-             classes_out_2="data/neuropeptides_ds2/classes.txt"
+             fasta_in="data/{dataset}/seqs.fasta",
+             classes_in="data/{dataset}/classes.txt",
+             fasta_out_1="data/{dataset}_ds1/seqs.fasta",
+             classes_out_1="data/{dataset}_ds1/classes.txt",
+             fasta_out_2="data/{dataset}_ds2/seqs.fasta",
+             classes_out_2="data/{dataset}_ds2/classes.txt"
         output:
-             svg_out="data/neuropeptides/sequence_length_distribution.svg"
+             svg_out="data/{dataset}/sequence_length_distribution.svg"
         params:
              subworkflow="sequence_length_distribution",
              snakefile="nodes/plots/sequence_length_distribution/Snakefile",
@@ -25,13 +25,13 @@ rule plot_sequence_length_distribution:
 
 rule util_split_normalize:
     input:
-         fasta_in="data/neuropeptides/seqs.fasta",
-         classes_in="data/neuropeptides/classes.txt"
+         fasta_in="data/{dataset}/seqs.fasta",
+         classes_in="data/{dataset}/classes.txt"
     output:
-         fasta_out_1="data/neuropeptides_ds1/seqs.fasta",
-         classes_out_1="data/neuropeptides_ds1/classes.txt",
-         fasta_out_2="data/neuropeptides_ds2/seqs.fasta",
-         classes_out_2="data/neuropeptides_ds2/classes.txt"
+         fasta_out_1="data/{dataset}_ds1/seqs.fasta",
+         classes_out_1="data/{dataset}_ds1/classes.txt",
+         fasta_out_2="data/{dataset}_ds2/seqs.fasta",
+         classes_out_2="data/{dataset}_ds2/classes.txt"
     params:
          subworkflow="split_normalize",
          snakefile="nodes/utils/split_normalize/Snakefile",
