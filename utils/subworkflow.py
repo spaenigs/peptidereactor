@@ -28,12 +28,15 @@ TOKEN = secrets.token_hex(4)
 
 set_input_output(CONFIGFILE, INPUT, OUTPUT, TOKEN)
 
-workflow = Workflow(GLOBAL_WORKDIR)
+workflow = Workflow(GLOBAL_WORKDIR, default_resources=None)
+workflow.included_stack.append("")
+
 sw = Subworkflow(workflow,
                  name=NAME,
                  snakefile=SNAKEFILE,
                  workdir=GLOBAL_WORKDIR,
                  configfile=CONFIGFILE)
+
 workflow._subworkflows[sw.name] = sw
 workflow.globals[sw.name] = sw.target
 
