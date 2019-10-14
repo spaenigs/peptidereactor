@@ -1,14 +1,19 @@
+import os
+
 TARGET_DIR = config["target_dir"]
+
+print(TARGET_DIR + "uniref90.fasta.gz")
 
 rule all:
     input:
         TARGET_DIR + "uniref90.fasta"
 
-rule download:
-    output:
-         TARGET_DIR + "uniref90.fasta.gz"
-    shell:
-         "wget ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz"
+if not os.exists(TARGET_DIR + "uniref90.fasta.gz"):
+    rule download: 
+        output:
+	    TARGET_DIR + "uniref90.fasta.gz"
+        shell:
+            f"wget ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz -P {TARGET_DIR}"
 
 rule unzip:
     input:
@@ -20,12 +25,12 @@ rule unzip:
          "gunzip -c {input} > {output}"
 
 
-rule make_db:
-    input:
-         TARGET_DIR + "uniref90.fasta"
-    output:
-         "",
-         ""
-    shell:
-         # https://www.exoscale.com/syslog/bioinformatics-managing-blast-data/
-         "makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids"
+#rule make_db:
+#    input:
+#         TARGET_DIR + "uniref90.fasta"
+#    output:
+#         "",
+#         ""
+#    shell:
+#         # https://www.exoscale.com/syslog/bioinformatics-managing-blast-data/
+#         "makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids"
