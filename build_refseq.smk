@@ -2,7 +2,7 @@ TARGET_DIR = config["target_dir"]
 
 rule all:
     input:
-        ""
+        TARGET_DIR + "uniref90.fasta"
 
 rule download:
     output:
@@ -12,7 +12,7 @@ rule download:
 
 rule unzip:
     input:
-         TARGET_DIR + "uniref90.fasta.gz"
+         ancient(TARGET_DIR + "uniref90.fasta.gz")
     output:
          TARGET_DIR + "uniref90.fasta"
     shell:
