@@ -4,7 +4,7 @@ import joblib as jl
 import os
 
 TOKEN = config["token"]
-PROFILE_DIR = os.path.dirname(config["profile"]) + "/"
+PROFILE_DIR = os.path.dirname(config["profiles_out"][0]) + "/"
 REFSEQ_DB_DIR = config["refseq_db"]
 
 rule split_input_data:
@@ -191,13 +191,3 @@ rule annotate_sequence_names:
              for c in out[1]:
                  f.write(f"{str(c)}\n")
                  f.flush()
-
-rule dump:
-    input:
-         config["fasta_anno_out"],
-         config["fasta_anno_msa_out"],
-         config["classes_anno"]
-    output:
-         temp(config["profile"])
-    shell:
-         "touch {output}"
