@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 
 docker build -t encoding_benchmark docker/ --force-rm=true
+
+if [ $? -eq 127 ]; then
+  echo "Please install docker first (requires sudo privileges): ./docker/install_docker"
+fi
