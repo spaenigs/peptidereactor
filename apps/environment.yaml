@@ -18,7 +18,9 @@ dependencies:
   - java-jdk
   - muscle=3.8.1551
   - r-base
+  - r-yaml
   - modeller
   - pip:
     - modlamp
     - joblib
+    - -e iFeature

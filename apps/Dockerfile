@@ -2,6 +2,7 @@ FROM continuumio/miniconda3
 RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y libgfortran3
+ADD iFeature/ iFeature/
 ADD environment.yaml environment.yaml
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
