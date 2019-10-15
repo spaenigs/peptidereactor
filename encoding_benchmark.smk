@@ -7,12 +7,7 @@ DATASET = config["dataset"]
 
 rule all:
     input:
-         f"data/{DATASET}/annotated_seqs.fasta",
-         f"data/{DATASET}/annotated_seqs_msa.fasta",
-         f"data/{DATASET}/annotated_classes.txt",
-         expand(f"data/{DATASET}/profile/{{seq_name}}.{{ftype}}",
-                seq_name=read_fasta(f"data/{config['dataset']}/seqs.fasta")[1],
-                ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"])
+         f"data/{DATASET}/csv/disorder.csv"
 
 rule util_multiple_sequence_alignment:
     input:
@@ -47,5 +42,19 @@ rule util_secondary_structure:
          configfile="nodes/utils/secondary_structure_profile/config.yaml"
     resources:
          cores=-1
+    script:
+         "utils/subworkflow.py"
+
+rule encoding_disorder:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
+    output:
+         csv_out=f"data/{DATASET}/csv/disorder.csv"
+    params:
+         subworkflow="disorder",
+         snakefile="nodes/encodings/disorder/Snakefile",
+         configfile="nodes/encodings/disorder/config.yaml",
     script:
          "utils/subworkflow.py"
