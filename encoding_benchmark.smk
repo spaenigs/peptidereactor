@@ -136,6 +136,8 @@ rule util_multiple_sequence_alignment:
          subworkflow="multiple_sequence_alignment",
          snakefile="nodes/utils/multiple_sequence_alignment/Snakefile",
          configfile="nodes/utils/multiple_sequence_alignment/config.yaml"
+    resources:
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -171,7 +173,7 @@ rule encoding_asa:
     params:
          subworkflow="asa",
          snakefile="nodes/encodings/asa/Snakefile",
-         configfile="nodes/encodings/asa/config.yaml",
+         configfile="nodes/encodings/asa/config.yaml"
     script:
          "utils/subworkflow.py"
 
@@ -185,7 +187,7 @@ rule encoding_ta:
     params:
          subworkflow="ta",
          snakefile="nodes/encodings/ta/Snakefile",
-         configfile="nodes/encodings/ta/config.yaml",
+         configfile="nodes/encodings/ta/config.yaml"
     script:
          "utils/subworkflow.py"
 
@@ -203,7 +205,7 @@ rule encoding_psekraac_type16:
          snakefile="nodes/encodings/psekraac_type16/Snakefile",
          configfile="nodes/encodings/psekraac_type16/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -239,7 +241,7 @@ rule encoding_psekraac_type14:
          snakefile="nodes/encodings/psekraac_type14/Snakefile",
          configfile="nodes/encodings/psekraac_type14/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -257,7 +259,7 @@ rule encoding_psekraac_type13:
          snakefile="nodes/encodings/psekraac_type13/Snakefile",
          configfile="nodes/encodings/psekraac_type13/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -275,7 +277,7 @@ rule encoding_psekraac_type12:
          snakefile="nodes/encodings/psekraac_type12/Snakefile",
          configfile="nodes/encodings/psekraac_type12/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -293,7 +295,7 @@ rule encoding_psekraac_type11:
          snakefile="nodes/encodings/psekraac_type11/Snakefile",
          configfile="nodes/encodings/psekraac_type11/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -311,7 +313,7 @@ rule encoding_psekraac_type10:
          snakefile="nodes/encodings/psekraac_type10/Snakefile",
          configfile="nodes/encodings/psekraac_type10/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -329,7 +331,7 @@ rule encoding_psekraac_type9:
          snakefile="nodes/encodings/psekraac_type9/Snakefile",
          configfile="nodes/encodings/psekraac_type9/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -347,7 +349,7 @@ rule encoding_psekraac_type8:
          snakefile="nodes/encodings/psekraac_type8/Snakefile",
          configfile="nodes/encodings/psekraac_type8/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -365,7 +367,7 @@ rule encoding_psekraac_type7:
          snakefile="nodes/encodings/psekraac_type7/Snakefile",
          configfile="nodes/encodings/psekraac_type7/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -383,7 +385,7 @@ rule encoding_psekraac_type6C:
          snakefile="nodes/encodings/psekraac_type6C/Snakefile",
          configfile="nodes/encodings/psekraac_type6C/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -401,7 +403,7 @@ rule encoding_psekraac_type6B:
          snakefile="nodes/encodings/psekraac_type6B/Snakefile",
          configfile="nodes/encodings/psekraac_type6B/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -419,7 +421,7 @@ rule encoding_psekraac_type6A:
          snakefile="nodes/encodings/psekraac_type6A/Snakefile",
          configfile="nodes/encodings/psekraac_type6A/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -437,7 +439,7 @@ rule encoding_psekraac_type5:
          snakefile="nodes/encodings/psekraac_type5/Snakefile",
          configfile="nodes/encodings/psekraac_type5/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -455,7 +457,7 @@ rule encoding_psekraac_type4:
          snakefile="nodes/encodings/psekraac_type4/Snakefile",
          configfile="nodes/encodings/psekraac_type4/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -473,7 +475,7 @@ rule encoding_psekraac_type3B:
          snakefile="nodes/encodings/psekraac_type3B/Snakefile",
          configfile="nodes/encodings/psekraac_type3B/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -491,7 +493,7 @@ rule encoding_psekraac_type3A:
          snakefile="nodes/encodings/psekraac_type3A/Snakefile",
          configfile="nodes/encodings/psekraac_type3A/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -509,7 +511,7 @@ rule encoding_psekraac_type2:
          snakefile="nodes/encodings/psekraac_type2/Snakefile",
          configfile="nodes/encodings/psekraac_type2/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -527,7 +529,7 @@ rule encoding_psekraac_type1:
          snakefile="nodes/encodings/psekraac_type1/Snakefile",
          configfile="nodes/encodings/psekraac_type1/config.yaml"
     resources:
-         cores=8
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -541,7 +543,7 @@ rule encoding_ssec:
     params:
          subworkflow="ssec",
          snakefile="nodes/encodings/ssec/Snakefile",
-         configfile="nodes/encodings/ssec/config.yaml",
+         configfile="nodes/encodings/ssec/config.yaml"
     script:
          "utils/subworkflow.py"
 
@@ -555,7 +557,7 @@ rule encoding_sseb:
     params:
          subworkflow="sseb",
          snakefile="nodes/encodings/sseb/Snakefile",
-         configfile="nodes/encodings/sseb/config.yaml",
+         configfile="nodes/encodings/sseb/config.yaml"
     script:
          "utils/subworkflow.py"
 
@@ -570,8 +572,6 @@ rule encoding_socnumber:
          subworkflow="socnumber",
          snakefile="nodes/encodings/socnumber/Snakefile",
          configfile="nodes/encodings/socnumber/config.yaml"
-    resources:
-         cores=4
     script:
          "utils/subworkflow.py"
 
@@ -627,7 +627,7 @@ rule encoding_qsorder:
          snakefile="nodes/encodings/qsorder/Snakefile",
          configfile="nodes/encodings/qsorder/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -643,7 +643,7 @@ rule encoding_paac:
          snakefile="nodes/encodings/paac/Snakefile",
          configfile="nodes/encodings/paac/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -659,7 +659,7 @@ rule encoding_nmbroto:
          snakefile="nodes/encodings/nmbroto/Snakefile",
          configfile="nodes/encodings/nmbroto/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -675,7 +675,7 @@ rule encoding_moran:
          snakefile="nodes/encodings/moran/Snakefile",
          configfile="nodes/encodings/moran/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -691,7 +691,7 @@ rule encoding_ksctriad:
          snakefile="nodes/encodings/ksctriad/Snakefile",
          configfile="nodes/encodings/ksctriad/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -720,7 +720,7 @@ rule encoding_geary:
          snakefile="nodes/encodings/geary/Snakefile",
          configfile="nodes/encodings/geary/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -762,7 +762,7 @@ rule encoding_egaac:
          snakefile="nodes/encodings/egaac/Snakefile",
          configfile="nodes/encodings/egaac/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -778,7 +778,7 @@ rule encoding_eaac:
          snakefile="nodes/encodings/eaac/Snakefile",
          configfile="nodes/encodings/eaac/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -818,8 +818,6 @@ rule encoding_ctriad:
          subworkflow="ctriad",
          snakefile="nodes/encodings/ctriad/Snakefile",
          configfile="nodes/encodings/ctriad/config.yaml"
-    resources:
-         cores=4
     script:
          "utils/subworkflow.py"
 
@@ -874,7 +872,7 @@ rule encoding_cksaap:
          snakefile="nodes/encodings/cksaap/Snakefile",
          configfile="nodes/encodings/cksaap/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -890,7 +888,7 @@ rule encoding_cksaagp:
          snakefile="nodes/encodings/cksaagp/Snakefile",
          configfile="nodes/encodings/cksaagp/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -932,7 +930,7 @@ rule encoding_apaac:
          snakefile="nodes/encodings/apaac/Snakefile",
          configfile="nodes/encodings/apaac/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
@@ -948,7 +946,7 @@ rule encoding_aaindex:
          snakefile="nodes/encodings/aaindex/Snakefile",
          configfile="nodes/encodings/aaindex/config.yaml"
     resources:
-         cores=4
+         cores=-1
     script:
          "utils/subworkflow.py"
 
