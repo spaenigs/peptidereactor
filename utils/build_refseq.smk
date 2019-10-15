@@ -4,7 +4,7 @@ TARGET_DIR = config["target_dir"]
 
 rule all:
     input:
-        TARGET_DIR + "uniref90.db"
+        TARGET_DIR + "uniref90.db.pal"
 
 if not os.path.exists(TARGET_DIR + "uniref90.fasta.gz"):
     rule download: 
@@ -26,7 +26,7 @@ rule make_db:
     input:
          ancient(TARGET_DIR + "uniref90.fasta")
     output:
-         TARGET_DIR + "uniref90.db"
+         TARGET_DIR + "uniref90.db.pal"
     shell:
          """
          makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids
