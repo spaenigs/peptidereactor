@@ -1,8 +1,9 @@
 import os
 import pandas as pd
 
-config["dataset"] = "neuropeptides_ds3"
 config["global_workdir"] = os.getcwd() + "/"
+
+DATASET = config["dataset"]
 
 def get_aaindex():
     df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
@@ -12,125 +13,125 @@ def get_aaindex():
 
 rule all:
     input:
-        expand("data/neuropeptides_ds3/csv/aaindex/aaindex_{aaindex}.csv", aaindex=get_aaindex()),
-        expand("data/neuropeptides_ds3/csv/apaac/apaac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/cksaap/cksaap_gap_{gap_val}.csv", gap_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/eaac/eaac_window_{window_val}.csv", window_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/egaac/egaac_window_{window_val}.csv", window_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/ksctriad/ksctriad_gap_{gap_val}.csv", gap_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/moran/moran_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/paac/paac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        expand("data/neuropeptides_ds3/csv/socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=list(range(1, 4))),
-        "data/neuropeptides_ds3/csv/disorder.csv",
-        "data/neuropeptides_ds3/csv/disorderb.csv",
-        "data/neuropeptides_ds3/csv/disorderc.csv",
-        "data/neuropeptides_ds3/csv/aac.csv",
-        "data/neuropeptides_ds3/csv/binary.csv",
-        "data/neuropeptides_ds3/csv/blosum62.csv",
-        "data/neuropeptides_ds3/csv/ctdc.csv",
-        "data/neuropeptides_ds3/csv/ctdd.csv",
-        "data/neuropeptides_ds3/csv/ctdt.csv",
-        "data/neuropeptides_ds3/csv/ctriad.csv",
-        "data/neuropeptides_ds3/csv/dde.csv",
-        "data/neuropeptides_ds3/csv/dpc.csv",
-        "data/neuropeptides_ds3/csv/gaac.csv",
-        "data/neuropeptides_ds3/csv/gdpc.csv",
-        "data/neuropeptides_ds3/csv/gtpc.csv",
-        "data/neuropeptides_ds3/csv/tpc.csv",
-        "data/neuropeptides_ds3/csv/zscale.csv",
-        "data/neuropeptides_ds3/csv/pssm.csv",
-        "data/neuropeptides_ds3/csv/sseb.csv",
-        "data/neuropeptides_ds3/csv/ssec.csv",
-        "data/neuropeptides_ds3/csv/ta.csv",
-        "data/neuropeptides_ds3/csv/asa.csv",
-        expand("data/neuropeptides_ds3/csv/psekraac_type1/psekraac_type1_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type2/psekraac_type2_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type3A/psekraac_type3A_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type3B/psekraac_type3B_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type4/psekraac_type4_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type5/psekraac_type5_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type6A/psekraac_type6A_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type6B/psekraac_type6B_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type6C/psekraac_type6C_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type7/psekraac_type7_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type8/psekraac_type8_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type9/psekraac_type9_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type10/psekraac_type10_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type11/psekraac_type11_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type12/psekraac_type12_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type13/psekraac_type13_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type14/psekraac_type14_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type15/psekraac_type15_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
-        expand("data/neuropeptides_ds3/csv/psekraac_type16/psekraac_type16_"
-                        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
+        expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv", aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/apaac/apaac_lambda_{{lambda_val}}.csv", lambda_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/cksaagp/cksaagp_gap_{{gap_val}}.csv", gap_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/cksaap/cksaap_gap_{{gap_val}}.csv", gap_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/eaac/eaac_window_{{window_val}}.csv", window_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/egaac/egaac_window_{{window_val}}.csv", window_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/geary/geary_nlag_{{nlag_val}}.csv", nlag_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/ksctriad/ksctriad_gap_{{gap_val}}.csv", gap_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/moran/moran_nlag_{{nlag_val}}.csv", nlag_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/nmbroto/nmbroto_nlag_{{nlag_val}}.csv", nlag_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/paac/paac_lambda_{{lambda_val}}.csv", lambda_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/qsorder/qsorder_nlag_{{nlag_val}}.csv", nlag_val=list(range(1, 31))),
+        expand(f"data/{DATASET}/csv/socnumber/socnumber_nlag_{{nlag_val}}.csv", nlag_val=list(range(1, 31))),
+        f"data/{DATASET}/csv/disorder.csv",
+        f"data/{DATASET}/csv/disorderb.csv",
+        f"data/{DATASET}/csv/disorderc.csv",
+        f"data/{DATASET}/csv/aac.csv",
+        f"data/{DATASET}/csv/binary.csv",
+        f"data/{DATASET}/csv/blosum62.csv",
+        f"data/{DATASET}/csv/ctdc.csv",
+        f"data/{DATASET}/csv/ctdd.csv",
+        f"data/{DATASET}/csv/ctdt.csv",
+        f"data/{DATASET}/csv/ctriad.csv",
+        f"data/{DATASET}/csv/dde.csv",
+        f"data/{DATASET}/csv/dpc.csv",
+        f"data/{DATASET}/csv/gaac.csv",
+        f"data/{DATASET}/csv/gdpc.csv",
+        f"data/{DATASET}/csv/gtpc.csv",
+        f"data/{DATASET}/csv/tpc.csv",
+        f"data/{DATASET}/csv/zscale.csv",
+        f"data/{DATASET}/csv/pssm.csv",
+        f"data/{DATASET}/csv/sseb.csv",
+        f"data/{DATASET}/csv/ssec.csv",
+        f"data/{DATASET}/csv/ta.csv",
+        f"data/{DATASET}/csv/asa.csv",
+        expand(f"data/{DATASET}/csv/psekraac_type1/psekraac_type1_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type2/psekraac_type2_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type3A/psekraac_type3A_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type3B/psekraac_type3B_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type4/psekraac_type4_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type5/psekraac_type5_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type6A/psekraac_type6A_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type6B/psekraac_type6B_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type6C/psekraac_type6C_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type7/psekraac_type7_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type8/psekraac_type8_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type9/psekraac_type9_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type10/psekraac_type10_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type11/psekraac_type11_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type12/psekraac_type12_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type13/psekraac_type13_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type14/psekraac_type14_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type15/psekraac_type15_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))),
+        expand(f"data/{DATASET}/csv/psekraac_type16/psekraac_type16_"
+               "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+               sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+               ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
 
 rule encoding_asa:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/asa.csv"
+         csv_out=f"data/{DATASET}/csv/asa.csv"
     params:
          subworkflow="asa",
          snakefile="nodes/encodings/asa/Snakefile",
@@ -140,11 +141,11 @@ rule encoding_asa:
 
 rule encoding_ta:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ta.csv"
+         csv_out=f"data/{DATASET}/csv/ta.csv"
     params:
          subworkflow="ta",
          snakefile="nodes/encodings/ta/Snakefile",
@@ -154,10 +155,10 @@ rule encoding_ta:
 
 rule encoding_psekraac_type16:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type16/psekraac_type16_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type16/psekraac_type16_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -172,10 +173,10 @@ rule encoding_psekraac_type16:
 
 rule encoding_psekraac_type15:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type15/psekraac_type15_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type15/psekraac_type15_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -190,10 +191,10 @@ rule encoding_psekraac_type15:
 
 rule encoding_psekraac_type14:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type14/psekraac_type14_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type14/psekraac_type14_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -208,10 +209,10 @@ rule encoding_psekraac_type14:
 
 rule encoding_psekraac_type13:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type13/psekraac_type13_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type13/psekraac_type13_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -226,10 +227,10 @@ rule encoding_psekraac_type13:
 
 rule encoding_psekraac_type12:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type12/psekraac_type12_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type12/psekraac_type12_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -244,10 +245,10 @@ rule encoding_psekraac_type12:
 
 rule encoding_psekraac_type11:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type11/psekraac_type11_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type11/psekraac_type11_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -262,10 +263,10 @@ rule encoding_psekraac_type11:
 
 rule encoding_psekraac_type10:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type10/psekraac_type10_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type10/psekraac_type10_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -280,10 +281,10 @@ rule encoding_psekraac_type10:
 
 rule encoding_psekraac_type9:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type9/psekraac_type9_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type9/psekraac_type9_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -298,10 +299,10 @@ rule encoding_psekraac_type9:
 
 rule encoding_psekraac_type8:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type8/psekraac_type8_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type8/psekraac_type8_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -316,10 +317,10 @@ rule encoding_psekraac_type8:
 
 rule encoding_psekraac_type7:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type7/psekraac_type7_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type7/psekraac_type7_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -334,10 +335,10 @@ rule encoding_psekraac_type7:
 
 rule encoding_psekraac_type6C:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type6C/psekraac_type6C_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type6C/psekraac_type6C_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -352,10 +353,10 @@ rule encoding_psekraac_type6C:
 
 rule encoding_psekraac_type6B:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type6B/psekraac_type6B_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type6B/psekraac_type6B_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -370,10 +371,10 @@ rule encoding_psekraac_type6B:
 
 rule encoding_psekraac_type6A:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type6A/psekraac_type6A_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type6A/psekraac_type6A_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -388,10 +389,10 @@ rule encoding_psekraac_type6A:
 
 rule encoding_psekraac_type5:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type5/psekraac_type5_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type5/psekraac_type5_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -406,10 +407,10 @@ rule encoding_psekraac_type5:
 
 rule encoding_psekraac_type4:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type4/psekraac_type4_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type4/psekraac_type4_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -424,10 +425,10 @@ rule encoding_psekraac_type4:
 
 rule encoding_psekraac_type3B:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type3B/psekraac_type3B_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type3B/psekraac_type3B_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -442,10 +443,10 @@ rule encoding_psekraac_type3B:
 
 rule encoding_psekraac_type3A:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type3A/psekraac_type3A_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type3A/psekraac_type3A_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -460,10 +461,10 @@ rule encoding_psekraac_type3A:
 
 rule encoding_psekraac_type2:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type2/psekraac_type2_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type2/psekraac_type2_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -478,10 +479,10 @@ rule encoding_psekraac_type2:
 
 rule encoding_psekraac_type1:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/psekraac_type1/psekraac_type1_"
+         csv_out=expand(f"data/{DATASET}/csv/psekraac_type1/psekraac_type1_"
                         "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
                         sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
                         ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))
@@ -496,11 +497,11 @@ rule encoding_psekraac_type1:
 
 rule encoding_ssec:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ssec.csv"
+         csv_out=f"data/{DATASET}/csv/ssec.csv"
     params:
          subworkflow="ssec",
          snakefile="nodes/encodings/ssec/Snakefile",
@@ -510,11 +511,11 @@ rule encoding_ssec:
 
 rule encoding_sseb:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs_msa.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs_msa.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/sseb.csv"
+         csv_out=f"data/{DATASET}/csv/sseb.csv"
     params:
          subworkflow="sseb",
          snakefile="nodes/encodings/sseb/Snakefile",
@@ -524,11 +525,11 @@ rule encoding_sseb:
 
 rule encoding_socnumber:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
-                        nlag_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/socnumber/socnumber_nlag_{{nlag_val}}.csv",
+                        nlag_val=list(range(1, 31)))
     params:
          subworkflow="socnumber",
          snakefile="nodes/encodings/socnumber/Snakefile",
@@ -540,11 +541,11 @@ rule encoding_socnumber:
 
 rule encoding_pssm:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/pssm.csv"
+         csv_out=f"data/{DATASET}/csv/pssm.csv"
     params:
          subworkflow="pssm",
          snakefile="nodes/encodings/pssm/Snakefile",
@@ -554,10 +555,10 @@ rule encoding_pssm:
 
 rule encoding_zscale:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/zscale.csv"
+         csv_out=f"data/{DATASET}/csv/zscale.csv"
     params:
          subworkflow="zscale",
          snakefile="nodes/encodings/zscale/Snakefile",
@@ -567,10 +568,10 @@ rule encoding_zscale:
 
 rule encoding_tpc:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/tpc.csv"
+         csv_out=f"data/{DATASET}/csv/tpc.csv"
     params:
          subworkflow="tpc",
          snakefile="nodes/encodings/tpc/Snakefile",
@@ -580,11 +581,11 @@ rule encoding_tpc:
 
 rule encoding_qsorder:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
-                        nlag_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/qsorder/qsorder_nlag_{{nlag_val}}.csv",
+                        nlag_val=list(range(1, 31)))
     params:
          subworkflow="qsorder",
          snakefile="nodes/encodings/qsorder/Snakefile",
@@ -596,11 +597,11 @@ rule encoding_qsorder:
 
 rule encoding_paac:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/paac/paac_lambda_{lambda_val}.csv",
-                        lambda_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/paac/paac_lambda_{{lambda_val}}.csv",
+                        lambda_val=list(range(1, 31)))
     params:
          subworkflow="paac",
          snakefile="nodes/encodings/paac/Snakefile",
@@ -612,11 +613,11 @@ rule encoding_paac:
 
 rule encoding_nmbroto:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
-                        nlag_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/nmbroto/nmbroto_nlag_{{nlag_val}}.csv",
+                        nlag_val=list(range(1, 31)))
     params:
          subworkflow="moran",
          snakefile="nodes/encodings/nmbroto/Snakefile",
@@ -628,11 +629,11 @@ rule encoding_nmbroto:
 
 rule encoding_moran:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/moran/moran_nlag_{nlag_val}.csv",
-                        nlag_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/moran/moran_nlag_{{nlag_val}}.csv",
+                        nlag_val=list(range(1, 31)))
     params:
          subworkflow="moran",
          snakefile="nodes/encodings/moran/Snakefile",
@@ -644,11 +645,11 @@ rule encoding_moran:
 
 rule encoding_ksctriad:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
-                        gap_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/ksctriad/ksctriad_gap_{{gap_val}}.csv",
+                        gap_val=list(range(1, 31)))
     params:
          subworkflow="ksctriad",
          snakefile="nodes/encodings/ksctriad/Snakefile",
@@ -660,10 +661,10 @@ rule encoding_ksctriad:
 
 rule encoding_gtpc:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/gtpc.csv"
+         csv_out=f"data/{DATASET}/csv/gtpc.csv"
     params:
          subworkflow="gtpc",
          snakefile="nodes/encodings/gtpc/Snakefile",
@@ -673,11 +674,11 @@ rule encoding_gtpc:
 
 rule encoding_geary:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/geary/geary_nlag_{nlag_val}.csv",
-                        nlag_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/geary/geary_nlag_{{nlag_val}}.csv",
+                        nlag_val=list(range(1, 31)))
     params:
          subworkflow="geary",
          snakefile="nodes/encodings/geary/Snakefile",
@@ -689,10 +690,10 @@ rule encoding_geary:
 
 rule encoding_gdpc:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/gdpc.csv"
+         csv_out=f"data/{DATASET}/csv/gdpc.csv"
     params:
          subworkflow="gdpc",
          snakefile="nodes/encodings/gdpc/Snakefile",
@@ -702,10 +703,10 @@ rule encoding_gdpc:
 
 rule encoding_gaac:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/gaac.csv"
+         csv_out=f"data/{DATASET}/csv/gaac.csv"
     params:
          subworkflow="gaac",
          snakefile="nodes/encodings/gaac/Snakefile",
@@ -715,11 +716,11 @@ rule encoding_gaac:
 
 rule encoding_egaac:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/egaac/egaac_window_{window_val}.csv",
-                        window_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/egaac/egaac_window_{{window_val}}.csv",
+                        window_val=list(range(1, 31)))
     params:
          subworkflow="egaac",
          snakefile="nodes/encodings/egaac/Snakefile",
@@ -731,11 +732,11 @@ rule encoding_egaac:
 
 rule encoding_eaac:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/eaac/eaac_window_{window_val}.csv",
-                        window_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/eaac/eaac_window_{{window_val}}.csv",
+                        window_val=list(range(1, 31)))
     params:
          subworkflow="eaac",
          snakefile="nodes/encodings/eaac/Snakefile",
@@ -747,10 +748,10 @@ rule encoding_eaac:
 
 rule encoding_dpc:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/dpc.csv"
+         csv_out=f"data/{DATASET}/csv/dpc.csv"
     params:
          subworkflow="dpc",
          snakefile="nodes/encodings/dpc/Snakefile",
@@ -760,10 +761,10 @@ rule encoding_dpc:
 
 rule encoding_dde:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/dde.csv"
+         csv_out=f"data/{DATASET}/csv/dde.csv"
     params:
          subworkflow="dde",
          snakefile="nodes/encodings/dde/Snakefile",
@@ -773,10 +774,10 @@ rule encoding_dde:
 
 rule encoding_ctriad:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ctriad.csv"
+         csv_out=f"data/{DATASET}/csv/ctriad.csv"
     params:
          subworkflow="ctriad",
          snakefile="nodes/encodings/ctriad/Snakefile",
@@ -788,10 +789,10 @@ rule encoding_ctriad:
 
 rule encoding_ctdt:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ctdt.csv"
+         csv_out=f"data/{DATASET}/csv/ctdt.csv"
     params:
          subworkflow="ctdt",
          snakefile="nodes/encodings/ctdt/Snakefile",
@@ -801,10 +802,10 @@ rule encoding_ctdt:
 
 rule encoding_ctdd:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ctdd.csv"
+         csv_out=f"data/{DATASET}/csv/ctdd.csv"
     params:
          subworkflow="ctdd",
          snakefile="nodes/encodings/ctdd/Snakefile",
@@ -814,10 +815,10 @@ rule encoding_ctdd:
 
 rule encoding_ctdc:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/ctdc.csv"
+         csv_out=f"data/{DATASET}/csv/ctdc.csv"
     params:
          subworkflow="ctdc",
          snakefile="nodes/encodings/ctdc/Snakefile",
@@ -827,11 +828,11 @@ rule encoding_ctdc:
 
 rule encoding_cksaap:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/cksaap/cksaap_gap_{gap_val}.csv",
-                        gap_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/cksaap/cksaap_gap_{{gap_val}}.csv",
+                        gap_val=list(range(1, 31)))
     params:
          subworkflow="cksaap",
          snakefile="nodes/encodings/cksaap/Snakefile",
@@ -843,11 +844,11 @@ rule encoding_cksaap:
 
 rule encoding_cksaagp:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
-                        gap_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/cksaagp/cksaagp_gap_{{gap_val}}.csv",
+                        gap_val=list(range(1, 31)))
     params:
          subworkflow="cksaagp",
          snakefile="nodes/encodings/cksaagp/Snakefile",
@@ -859,10 +860,10 @@ rule encoding_cksaagp:
 
 rule encoding_blosum62:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/blosum62.csv"
+         csv_out=f"data/{DATASET}/csv/blosum62.csv"
     params:
          subworkflow="blosum62",
          snakefile="nodes/encodings/blosum62/Snakefile",
@@ -872,10 +873,10 @@ rule encoding_blosum62:
 
 rule encoding_binary:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs_msa.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs_msa.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/binary.csv"
+         csv_out=f"data/{DATASET}/csv/binary.csv"
     params:
          subworkflow="binary",
          snakefile="nodes/encodings/binary/Snakefile",
@@ -885,11 +886,11 @@ rule encoding_binary:
 
 rule encoding_apaac:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/apaac/apaac_lambda_{lambda_val}.csv",
-                        lambda_val=list(range(1, 4)))
+         csv_out=expand(f"data/{DATASET}/csv/apaac/apaac_lambda_{{lambda_val}}.csv",
+                        lambda_val=list(range(1, 31)))
     params:
          subworkflow="apaac",
          snakefile="nodes/encodings/apaac/Snakefile",
@@ -901,10 +902,10 @@ rule encoding_apaac:
 
 rule encoding_aaindex:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out=expand("data/neuropeptides_ds3/csv/aaindex/aaindex_{aaindex}.csv",
+         csv_out=expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv",
                          aaindex=get_aaindex())
     params:
          subworkflow="aaindex",
@@ -917,11 +918,11 @@ rule encoding_aaindex:
 
 rule encoding_disorder:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/disorder.csv"
+         csv_out=f"data/{DATASET}/csv/disorder.csv"
     params:
          subworkflow="disorder",
          snakefile="nodes/encodings/disorder/Snakefile",
@@ -931,11 +932,11 @@ rule encoding_disorder:
 
 rule encoding_disorderb:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs_msa.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs_msa.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/disorderb.csv"
+         csv_out=f"data/{DATASET}/csv/disorderb.csv"
     params:
          subworkflow="disorderb",
          snakefile="nodes/encodings/disorderb/Snakefile",
@@ -945,11 +946,11 @@ rule encoding_disorderb:
 
 rule encoding_disorderc:
     input:
-         fasta_in="data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt",
-         profile=f"data/{config['dataset']}/profile"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+         profile=f"data/{DATASET}/profile"
     output:
-         csv_out="data/neuropeptides_ds3/csv/disorderc.csv"
+         csv_out=f"data/{DATASET}/csv/disorderc.csv"
     params:
          subworkflow="disorderc",
          snakefile="nodes/encodings/disorderc/Snakefile",
@@ -959,10 +960,10 @@ rule encoding_disorderc:
 
 rule encoding_aac:
     input:
-         fasta_in= "data/neuropeptides_ds3/annotated_seqs.fasta",
-         classes_in="data/neuropeptides_ds3/annotated_classes.txt"
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
     output:
-         csv_out="data/neuropeptides_ds3/csv/aac.csv"
+         csv_out=f"data/{DATASET}/csv/aac.csv"
     params:
          subworkflow="aac",
          snakefile="nodes/encodings/aac/Snakefile",
