@@ -20,3 +20,16 @@ docker load < docker/encoding_benchmark.tar
                     --config dataset=neuropeptides_ds3 \ 
                     --dag | dot -Tpdf > dag.pdf
 ```
+
+### Split datasets, if necessary
+
+```shell script
+./apps/run_pipeline -s create_datasets.smk --nolock --config dataset=neuropeptides
+```
+
+### Encoding benchmark
+
+```shell script
+mkdir data/neuropeptides_ds1/profile # if not existing yet
+./apps/run_pipeline -s encoding_benchmark.smk --nolock --config dataset=neuropeptides_ds1
+```
