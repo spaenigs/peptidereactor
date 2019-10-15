@@ -5,7 +5,7 @@ smk_args=$@
 if docker image inspect encoding_benchmark > /dev/null 2>&1; then
   docker run -v $PWD:/snakemake \
            -v $PWD/data:/snakemake/data \
-           -v /media/spaenigs/4B1DB7375F3291A11/uniprot_db/uniref90:/snakemake/db_tmp \
+           -v $DB_DIR:/snakemake/db_tmp \
            -u `id -u $USER` \
            encoding_benchmark $smk_args
   rm -rf db_tmp/
