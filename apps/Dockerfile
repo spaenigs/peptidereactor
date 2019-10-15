@@ -3,7 +3,7 @@ RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >>
     && apt-get update \
     && apt-get install -y libgfortran3
 ADD iFeature/ iFeature/
-RUN chmod -R 777 iFeature/
+RUN chmod -R 777 iFeature/data/
 ADD environment.yaml environment.yaml
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
