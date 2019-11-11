@@ -1,0 +1,112 @@
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Seq import Seq
+import joblib as jl
+from snakemake.io import temp, expand
+from modlamp.core import read_fasta, save_fasta
+import os
+
+TOKEN = config["token"]
+PROFILE_DIR = os.path.dirname(config["pdbs_out"][0]) + "/"
+
+rule init:
+    input:
+         "apps/RaptorX/setup.pl"
+    output:
+         temp(f"data/temp/{TOKEN}/initialized.txt")
+    shell:
+         """
+         export OLDWD=$PWD;
+         cd apps/RaptorX/;
+         ./setup.pl;
+         cd $OLDWD;
+         touch {output}
+         """
+
+# def generate_pdb_file_names(wildcards):
+#     files = []
+#     for ds in config["datasets"]["processed"]["names"]:
+#         files += expand("snakemake/pdb/{dataset}-{seq_name}.pdb",
+#                         dataset=ds,
+#                         seq_name=[i.rstrip().replace(">", "") for i in open(f"snakemake/fasta/{ds}.fasta").readlines()[0::2]])
+#     return files
+
+rule split_input_data:
+    input:
+         config["fasta_in"],
+         config["classes_in"],
+         f"data/temp/{TOKEN}/initialized.txt"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         seq_tuple = seq_tuples[wildcards.seq_name]
+         jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]), filename=str(output))
+
+rule to_fasta:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name,[A-Za-z0-9_]+}}.fasta"
+    run:
+         seq_tuples, seq_class = jl.load(str(input))
+         save_fasta(str(output), sequences=[seq_tuples[0][1]], names=[seq_tuples[0][0]])
+
+rule build_feature:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.tgt"
+    shell:
+         "./apps/RaptorX/buildFeature -i {input} -o {output} -c 1"
+
+rule search_template_database:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.tgt"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.rank"
+    shell:
+         f"./apps/RaptorX/CNFsearch -a 1 -q {{wildcards.seq_name}} -g data/temp/{TOKEN} -o {{output}}"
+
+rule best_template:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.rank"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt"
+    run:
+         import re
+         with open(str(input)) as f, open(str(output), mode="w") as out:
+             line_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None, f.readlines()))[0]
+             id = line_with_hit.split()[1]
+             out.write(f"{id}\n")
+             out.flush()
+
+rule align_to_template:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
+         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred"
+    shell:
+         f"""
+         export BEST_HIT=`head -n 1 {{input}}`;
+         ./apps/RaptorX/CNFalign_lite -q {{wildcards.seq_name}} -t $BEST_HIT -l databases/TPL_BC100/ -g data/temp/{TOKEN}/pdb -d data/temp/{TOKEN}/pdb;
+         mv snakemake/data/profile/$BEST_HIT-{{wildcards.seq_name}}.fasta {{output[0]}};
+         mv snakemake/data/profile/$BEST_HIT-{{wildcards.seq_name}}.cnfpred {{output[1]}};
+         """
+
+rule generate_structure:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
+         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred"
+    output:
+         PROFILE_DIR + "{seq_name}.pdb"
+    shell:
+         """
+         ./apps/RaptorX/build3Dmodel -i {input[0]} -q {wildcards.seq_name} -d databases/pdb_BC100/ -m mod9.23;
+         mv *{wildcards.seq_name}.*.pdb {output}
+         """
+
