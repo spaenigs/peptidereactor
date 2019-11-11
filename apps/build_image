@@ -3,5 +3,5 @@
 docker build -t encoding_benchmark apps/ --force-rm=true
 
 if [ $? -eq 127 ]; then
-  echo "Please install docker first (requires sudo privileges): ./docker/install_docker"
+  echo "Please install docker first (requires sudo privileges): ./apps/install_docker"
 fi
