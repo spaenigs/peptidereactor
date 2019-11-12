@@ -21,5 +21,7 @@ rule util_protein_structure_prediction:
          subworkflow="protein_structure_prediction",
          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
          configfile="nodes/utils/protein_structure_prediction/config.yaml"
+    resources:
+         cores=-1
     script:
          "utils/subworkflow.py"

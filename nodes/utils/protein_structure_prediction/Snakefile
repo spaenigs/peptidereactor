@@ -10,17 +10,44 @@ rule init:
     input:
          "nodes/utils/protein_structure_prediction/raptorx_download_link.txt"
     output:
-         temp(f"data/temp/{TOKEN}/initialized.txt")
-    run:
-         pass
-    # shell:
-    #      """
-    #      export OLDWD=$PWD;
-    #      cd apps/RaptorX/;
-    #      ./setup.pl;
-    #      cd $OLDWD;
-    #      touch {output}
-    #      """
+         "apps/RaptorX/setup.pl"
+    shell:
+         f"""
+         export link=$(head -n 1 {{input}}); 
+         wget $link -P data/temp/{TOKEN}/;
+         wget $(cat data/temp/{TOKEN}/index.html | grep CNFsearch | \
+            perl -ne 'print "$1\n" if /(http.*?)\W>/') -O data/temp/{TOKEN}/CNFsearch.zip \
+            -q --show-progress --progress=bar:force:noscroll;
+         unzip -q data/temp/{TOKEN}/CNFsearch.zip -d data/temp/{TOKEN}/; 
+         mv data/temp/{TOKEN}/CNFsearch1.66_complete/* apps/RaptorX/;   
+         export OLDWD=$PWD; cd apps/RaptorX/; ./setup.pl; cd $OLDWD;
+         """
+
+rule download_nr:
+    input:
+         "nodes/utils/protein_structure_prediction/raptorx_download_link.txt",
+         "apps/RaptorX/setup.pl"
+    output:
+         "apps/RaptorX/databases/NR_new/nr{size}.tar.gz"
+    shell:
+         f"""
+         export link=$(head -n 1 {{input[0]}}); 
+         wget $link -P data/temp/{TOKEN}/;
+         wget $(cat data/temp/{TOKEN}/index.html | grep nr{{wildcards.size}}.tar.gz | \
+            perl -ne 'print "$1\n" if /(http.*?)\W>/') -O {{output}} \
+            -q --show-progress --progress=bar:force:noscroll; 
+         """
+
+rule unzip_nr:
+    input:
+         "apps/RaptorX/databases/NR_new/nr{size}.tar.gz"
+    output:
+         "apps/RaptorX/databases/NR_new/nr{size}.pal"
+    shell:
+         f"""
+         tar -zxf {{input}} -C data/temp/{TOKEN}/
+         mv data/temp/{TOKEN}/nr{{wildcards.size}}/* apps/RaptorX/databases/NR_new/ 
+         """
 
 # def generate_pdb_file_names(wildcards):
 #     files = []
@@ -33,8 +60,7 @@ rule init:
 rule split_input_data:
     input:
          config["fasta_in"],
-         config["classes_in"],
-         f"data/temp/{TOKEN}/initialized.txt"
+         config["classes_in"]
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     run:
@@ -56,7 +82,8 @@ rule to_fasta:
 
 rule build_feature:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+         f"data/temp/{TOKEN}/{{seq_name}}.fasta",
+         expand("apps/RaptorX/databases/NR_new/nr{size}.pal", size=[70, 90])
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.tgt"
     shell:
