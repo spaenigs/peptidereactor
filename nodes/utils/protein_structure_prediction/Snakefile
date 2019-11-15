@@ -46,7 +46,7 @@ rule unzip_nr:
     shell:
          f"""
          tar -zxf {{input}} -C data/temp/{TOKEN}/
-         mv data/temp/{TOKEN}/nr{{wildcards.size}}/* apps/RaptorX/databases/NR_new/ 
+         mv data/temp/{TOKEN}/nr{{wildcards.size}}/nr{{wildcards.size}}* apps/RaptorX/databases/NR_new/ 
          """
 
 # def generate_pdb_file_names(wildcards):
