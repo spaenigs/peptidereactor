@@ -477,3 +477,6 @@ do_install
 
 echo "Adding $USER to docker group..." 
 sudo usermod -aG docker $USER
+
+echo "Installation finished. Please log out and log back in " \
+     "so that your group membership is re-evaluated."
