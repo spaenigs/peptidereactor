@@ -4,13 +4,22 @@ from modlamp.core import read_fasta, save_fasta
 import os
 
 TOKEN = config["token"]
-PROFILE_DIR = os.path.dirname(config["pdbs_out"][0]) + "/"
+TARGET_PDBS = config["pdbs_out"]
+TARGET_DIR = os.path.dirname(TARGET_PDBS[0]) + "/" \
+    if type(TARGET_PDBS) == list else os.path.dirname(TARGET_PDBS) + "/"
+PROFILE_DIR = TARGET_DIR.replace("pdb", "profile")
+print(PROFILE_DIR)
+
+wildcard_constraints:
+    seq_name="[A-Za-z0-9_]+"
 
 rule init:
     input:
-         "nodes/utils/protein_structure_prediction/raptorx_download_link.txt"
+         config["link_in"]
     output:
          "apps/RaptorX/setup.pl"
+    priority:
+         50
     shell:
          f"""
          export link=$(head -n 1 {{input}}); 
@@ -25,10 +34,12 @@ rule init:
 
 rule download_nr:
     input:
-         "nodes/utils/protein_structure_prediction/raptorx_download_link.txt",
-         "apps/RaptorX/setup.pl"
+         ancient("nodes/utils/protein_structure_prediction/raptorx_download_link.txt"),
+         ancient("apps/RaptorX/setup.pl")
     output:
          "apps/RaptorX/databases/NR_new/nr{size}.tar.gz"
+    priority:
+         50
     shell:
          f"""
          export link=$(head -n 1 {{input[0]}}); 
@@ -43,10 +54,63 @@ rule unzip_nr:
          "apps/RaptorX/databases/NR_new/nr{size}.tar.gz"
     output:
          "apps/RaptorX/databases/NR_new/nr{size}.pal"
+    priority:
+         30
     shell:
          f"""
-         tar -zxf {{input}} -C data/temp/{TOKEN}/
-         mv data/temp/{TOKEN}/nr{{wildcards.size}}/nr{{wildcards.size}}* apps/RaptorX/databases/NR_new/ 
+         tar -zxf {{input}} -C data/temp/{TOKEN}/;
+         mv data/temp/{TOKEN}/nr{{wildcards.size}}* apps/RaptorX/databases/NR_new/;
+         """
+
+rule download_tpl:
+    input:
+         ancient("nodes/utils/protein_structure_prediction/raptorx_download_link.txt"),
+         ancient("apps/RaptorX/setup.pl")
+    output:
+         "apps/RaptorX/databases/TPL_{type}/TPL_{type}.tar.gz"
+    priority:
+         50
+    shell:
+         f"""
+         export link=$(head -n 1 {{input[0]}}); 
+         wget $link -P data/temp/{TOKEN}/;
+         wget $(cat data/temp/{TOKEN}/index.html | grep TPL_{{wildcards.type}}.*.tar.gz | \
+            perl -ne 'print "$1\n" if /(http.*?)\W>/') -O {{output}} \
+            -q --show-progress --progress=bar:force:noscroll;
+         """
+
+rule unzip_tpl:
+    input:
+         "apps/RaptorX/databases/TPL_{type}/TPL_{type}.tar.gz"
+    output:
+         "apps/RaptorX/databases/TPL_{type}/TPL_{type}.finished.txt"
+    priority:
+         30
+    shell:
+         f"""
+         tar -zxf {{input}} -C data/temp/{TOKEN}/;
+         mv data/temp/{TOKEN}/TPL_{{wildcards.type}}/* apps/RaptorX/databases/TPL_{{wildcards.type}}/
+         # if [ '{{wildcards.type}}' = 'BC40' ]; then
+         #    target_dir=apps/RaptorX/databases/TPL_{{wildcards.type}}/
+         # else 
+         #    target_dir=apps/RaptorX/databases/TPL_BC100/;
+         # fi
+         # mv data/temp/{TOKEN}/TPL_{{wildcards.type}}/* $target_dir;
+         touch {{output}};
+         """
+
+rule move_tpl_remain:
+    input:
+         "apps/RaptorX/databases/TPL_Remain/TPL_Remain.finished.txt"
+    output:
+         "apps/RaptorX/databases/TPL_BC100/TPL_BC100.finished.txt"
+    shell:
+         """
+         for file in `ls -1 apps/RaptorX/databases/TPL_Remain/`; do 
+            mv apps/RaptorX/databases/TPL_Remain/$file apps/RaptorX/databases/TPL_BC100/$file; 
+         done
+         rm -r apps/RaptorX/databases/TPL_Remain/;
+         touch {output};
          """
 
 # def generate_pdb_file_names(wildcards):
@@ -63,6 +127,8 @@ rule split_input_data:
          config["classes_in"]
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
+    priority:
+         40
     run:
          seqs, names = read_fasta(str(input[0]))
          with open(str(input[1])) as f:
@@ -75,7 +141,7 @@ rule to_fasta:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
-         f"data/temp/{TOKEN}/{{seq_name,[A-Za-z0-9_]+}}.fasta"
+         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
     run:
          seq_tuples, seq_class = jl.load(str(input))
          save_fasta(str(output), sequences=[seq_tuples[0][1]], names=[seq_tuples[0][0]])
@@ -85,17 +151,27 @@ rule build_feature:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
          expand("apps/RaptorX/databases/NR_new/nr{size}.pal", size=[70, 90])
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.tgt"
+         PROFILE_DIR + "{seq_name}.tgt"
     shell:
-         "./apps/RaptorX/buildFeature -i {input} -o {output} -c 1"
+         """
+         export OLDWD=$PWD; cd apps/RaptorX/;
+         ./buildFeature -i $OLDWD/{input[0]} -o $OLDWD/{output} -c 1;
+         cd -;
+         """
 
 rule search_template_database:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}.tgt"
+         PROFILE_DIR + "{seq_name}.tgt",
+         "apps/RaptorX/databases/TPL_BC40/TPL_BC40.finished.txt",
+         "apps/RaptorX/databases/TPL_BC100/TPL_BC100.finished.txt"
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.rank"
     shell:
-         f"./apps/RaptorX/CNFsearch -a 1 -q {{wildcards.seq_name}} -g data/temp/{TOKEN} -o {{output}}"
+         f"""
+         export OLDWD=$PWD; cd apps/RaptorX/;
+         ./CNFsearch -a 1 -q {{wildcards.seq_name}} -g $OLDWD/{PROFILE_DIR} -o $OLDWD/{{output}}
+         cd -;
+         """
 
 rule best_template:
     input:
@@ -118,10 +194,12 @@ rule align_to_template:
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred"
     shell:
          f"""
+         export OLDWD=$PWD; cd apps/RaptorX/;
          export BEST_HIT=`head -n 1 {{input}}`;
-         ./apps/RaptorX/CNFalign_lite -q {{wildcards.seq_name}} -t $BEST_HIT -l databases/TPL_BC100/ -g data/temp/{TOKEN}/pdb -d data/temp/{TOKEN}/pdb;
-         mv snakemake/data/profile/$BEST_HIT-{{wildcards.seq_name}}.fasta {{output[0]}};
-         mv snakemake/data/profile/$BEST_HIT-{{wildcards.seq_name}}.cnfpred {{output[1]}};
+         ./CNFalign_lite -q {{wildcards.seq_name}} -t $BEST_HIT -l databases/TPL_BC100/ -g {PROFILE_DIR}/pdb/ -d data/temp/{TOKEN}/;
+         mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.fasta {{output[0]}};
+         mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.cnfpred {{output[1]}};
+         cd -;
          """
 
 rule generate_structure:
@@ -129,10 +207,16 @@ rule generate_structure:
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred"
     output:
-         PROFILE_DIR + "{seq_name}.pdb"
+         TARGET_DIR + "{seq_name}.pdb"
     shell:
          """
-         ./apps/RaptorX/build3Dmodel -i {input[0]} -q {wildcards.seq_name} -d databases/pdb_BC100/ -m mod9.23;
+         export OLDWD=$PWD; cd apps/RaptorX/;
+         ./build3Dmodel -i $OLDWD/{input[0]} -q {wildcards.seq_name} -d databases/pdb_BC100/ -m mod9.23;
          mv *{wildcards.seq_name}.*.pdb {output}
          """
 
+# onsuccess:
+#     shell("rm -r apps/RaptorX/tmp/")
+#
+# onerror:
+#     shell("rm -r apps/RaptorX/tmp/")
