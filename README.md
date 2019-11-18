@@ -33,3 +33,16 @@ docker load < docker/encoding_benchmark.tar
 mkdir data/neuropeptides_ds1/profile # if not existing yet
 ./apps/run_pipeline -s encoding_benchmark.smk --nolock --config dataset=neuropeptides_ds1
 ```
+
+#### Run pipelines isolated
+
+```shell script
+./apps/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \    
+data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file      
+--config dataset="neuropeptides_ds3" \     
+         fasta_in="data/neuropeptides_ds3/seqs.fasta" \    
+         classes_in="data/neuropeptides_ds3/classes.txt" \    
+         link_in="nodes/utils/protein_structure_prediction/raptorx_download_link.txt" \ 
+         pdbs_out="data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb" \
+         token="asd"
+```
