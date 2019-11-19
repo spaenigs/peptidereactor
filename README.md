@@ -37,12 +37,13 @@ mkdir data/neuropeptides_ds1/profile # if not existing yet
 #### Run pipelines isolated
 
 ```shell script
-./apps/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \    
-data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file      
---config dataset="neuropeptides_ds3" \     
+./apps/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \
+data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file
+--config dataset="neuropeptides_ds3" \
          fasta_in="data/neuropeptides_ds3/seqs.fasta" \    
          classes_in="data/neuropeptides_ds3/classes.txt" \    
-         link_in="nodes/utils/protein_structure_prediction/raptorx_download_link.txt" \ 
+         download_link_in="nodes/utils/protein_structure_prediction/raptorx_download_link.txt" \
+         license_key_in="nodes/utils/protein_structure_prediction/modeller_license_key.txt" \ 
          pdbs_out="data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb" \
          token="asd"
 ```
