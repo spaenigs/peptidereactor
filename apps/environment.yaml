@@ -19,7 +19,7 @@ dependencies:
   - muscle=3.8.1551
   - r-base
   - r-yaml
-  - modeller
+  - modeller=9.23
   - pip:
     - modlamp
     - joblib
