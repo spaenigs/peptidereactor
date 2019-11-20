@@ -21,8 +21,6 @@ rule split_input_data:
          config["classes_in"]
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
-    priority:
-         40
     run:
          seqs, names = read_fasta(str(input[0]))
          with open(str(input[1])) as f:
@@ -43,7 +41,8 @@ rule to_fasta:
 rule build_feature:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
-         expand("apps/RaptorX/databases/NR_new/nr{size}.pal", size=[70, 90])
+         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+                database=["nr70", "nr90"])
     output:
          PROFILE_DIR + "{seq_name}.tgt"
     shell:
@@ -57,7 +56,7 @@ rule search_template_database:
     input:
          PROFILE_DIR + "{seq_name}.tgt",
          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-                database=["TPL_BC40", "TPL_Remain"])
+                database=["TPL_BC40", "TPL_Remain", "TemplateLists"])
     output:
          PROFILE_DIR + "{seq_name}.rank"
     shell:
@@ -75,10 +74,14 @@ rule best_template:
     run:
          import re
          with open(str(input)) as f, open(str(output), mode="w") as out:
-             line_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None, f.readlines()))[0]
-             id = line_with_hit.split()[1]
-             out.write(f"{id}\n")
-             out.flush()
+             lines_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None, f.readlines()))
+             if len(lines_with_hit) == 1:
+                 line_with_hit = lines_with_hit[0]
+                 id = line_with_hit.split()[1]
+             else:
+                 id = ""
+                 out.write(f"{id}\n")
+                 out.flush()
 
 rule align_to_template:
     input:
