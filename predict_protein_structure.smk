@@ -22,7 +22,8 @@ rule util_protein_structure_prediction:
     params:
          subworkflow="protein_structure_prediction",
          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
-         configfile="nodes/utils/protein_structure_prediction/config.yaml"
+         configfile="nodes/utils/protein_structure_prediction/config.yaml",
+         dryrun=config["dryrun"]
     resources:
          cores=-1
     script:
