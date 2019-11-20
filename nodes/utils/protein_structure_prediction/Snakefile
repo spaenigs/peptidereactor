@@ -56,7 +56,8 @@ rule build_feature:
 rule search_template_database:
     input:
          PROFILE_DIR + "{seq_name}.tgt",
-         expand("apps/RaptorX/databases/TPL_{type}/TPL_{type}.finished.txt", type=["BC40", "BC100"])
+         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+                database=["TPL_BC40", "TPL_Remain"])
     output:
          PROFILE_DIR + "{seq_name}.rank"
     shell:
@@ -68,7 +69,7 @@ rule search_template_database:
 
 rule best_template:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}.rank"
+         PROFILE_DIR + "{seq_name}.rank"
     output:
          f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt"
     run:
@@ -103,8 +104,9 @@ rule generate_structure:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred",
-         expand("apps/RaptorX/databases/pdb_{type}/pdb_{type}.finished.txt", type=["BC40", "BC100"]),
-         f"data/temp/{TOKEN}/config.py"
+         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+                database=["pdb_BC40", "pdb_Remain"]),
+         "apps/RaptorX/modeller_activated.txt"
     output:
          TARGET_DIR + "{seq_name}.pdb"
     shell:
