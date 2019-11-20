@@ -22,6 +22,8 @@ GLOBAL_WORKDIR = snakemake.config["global_workdir"]
 NAME = snakemake.params.subworkflow
 SNAKEFILE = snakemake.params.snakefile
 CONFIGFILE = snakemake.params.configfile
+DRYRUN = snakemake.params.dryrun \
+    if hasattr(snakemake.params, "dryrun") else False
 INPUT, OUTPUT = dict(snakemake.input), dict(snakemake.output)
 RESOURCES = dict(snakemake.resources)
 TOKEN = secrets.token_hex(4)
@@ -54,7 +56,8 @@ use_cores = os.cpu_count() if RESOURCES.get("cores", 1) == -1 else RESOURCES.get
 
 workflow.check()
 success = workflow.execute(dryrun=False, updated_files=[], quiet=True, resources=dict(),
-                           subsnakemake=partial(smk_func, cores=use_cores, quiet=False, printreason=True))
+                           subsnakemake=partial(smk_func, dryrun=DRYRUN, cores=use_cores,
+                                                quiet=False, printreason=True))
 
 os.remove(CONFIGFILE)
 os.removedirs(f"data/temp/{TOKEN}")
