@@ -42,7 +42,8 @@ rule build_feature:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-                database=["nr70", "nr90"])
+                database=["nr70", "nr90"]),
+         "apps/RaptorX/setup.pl"
     output:
          PROFILE_DIR + "{seq_name}.tgt"
     shell:
