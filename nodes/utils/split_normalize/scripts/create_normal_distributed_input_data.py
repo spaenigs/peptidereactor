@@ -28,6 +28,10 @@ jl.dump(input_data_global_median, snakemake.output[0])
 
 # based on dataset \wo outliers: get sequences < median
 input_data_ds1 = list(filter(lambda tup: len(tup[0][1]) < global_median_new, zip(*input_data_global_median)))
+for tup in input_data_ds1:
+    seq = tup[0][0]
+    if seq[0:2] == "gi":
+        print(seq)
 seq_tups_ds1 = list(map(lambda tup: [re.sub("\W", "", tup[0][0]), tup[0][1]], input_data_ds1))  # clean sequence names
 classes_ds1 = list(map(lambda tup: tup[1], input_data_ds1))
 jl.dump((seq_tups_ds1, classes_ds1), snakemake.output[1])

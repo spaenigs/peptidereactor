@@ -2,9 +2,16 @@ import os
 
 config["global_workdir"] = os.getcwd() + "/"
 
+DATASET = config["dataset"]
+
 rule all:
     input:
-         expand("data/{dataset}/sequence_length_distribution.svg", dataset=config["dataset"])
+         expand("data/{dataset}/sequence_length_distribution.svg", dataset=config["dataset"]),
+         f"data/{DATASET}_ds1/seqs.fasta",
+         f"data/{DATASET}_ds1/classes.txt",
+         f"data/{DATASET}_ds2/seqs.fasta",
+         f"data/{DATASET}_ds2/classes.txt"
+
 
 rule plot_sequence_length_distribution:
         input:
