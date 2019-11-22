@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
 
-docker rm $(docker ps -a -q)
-docker rmi $(docker images -q)
+read -p "Delete all (running) container and images? (y/n)" -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    docker rm $(docker ps -a -q)
+    docker rmi $(docker images -q)
+fi
+
