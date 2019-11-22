@@ -1,16 +1,5 @@
 TOKEN = config["token"]
 
-# rule all:
-#     input:
-#          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-#                 database=["nr70", "nr90"]),
-#          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-#                 database=["TPL_BC40", "TPL_Remain"]),  #', "TemplateLists"]),
-#          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-#                 database=["pdb_BC40", "pdb_Remain"]),
-#          "apps/RaptorX/modeller/config.py",
-#          "apps/RaptorX/setup.pl",
-
 rule get_download_links:
     input:
          config["download_link_in"]
@@ -115,8 +104,6 @@ rule move_dbs:
          elif "nr" in db:
              target_dir = "apps/RaptorX/databases/NR_new/"
              shell("mkdir -p apps/RaptorX/databases/NR_new")
-         # elif db == "TemplateLists":
-         #     target_dir = "apps/RaptorX/databases/"
          else:
              move_files = False
              print(f"Got {db}. Nothing to do.")

@@ -58,7 +58,7 @@ rule search_template_database:
     input:
          PROFILE_DIR + "{seq_name}.tgt",
          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-                database=["TPL_BC40", "TPL_Remain"])  #, "TemplateLists"])
+                database=["TPL_BC40", "TPL_Remain"])
     output:
          PROFILE_DIR + "{seq_name}.rank"
     shell:
