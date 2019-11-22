@@ -15,4 +15,4 @@ RUN conda env list
 RUN chmod -R 777 /opt/conda/envs/encoding_benchmark/lib/modeller-9.23/modlib/modeller/
 VOLUME /snakemake
 WORKDIR /snakemake
-ENTRYPOINT ["snakemake"]
+ENTRYPOINT ["snakemake", "--nolock"]
