@@ -1,16 +1,28 @@
 TOKEN = config["token"]
 
-rule get_download_links:
+rule all:
+    input:
+        expand(f"data/temp/{TOKEN}/{{database}}_download_link.txt",
+               database=["nr70", "nr90", "TPL_BC40", "TPL_Remain", "pdb_BC40", "pdb_Remain", "CNFsearch"])
+
+rule download_index_html:
     input:
          config["download_link_in"]
+    output:
+         f"data/temp/{TOKEN}/index.html"
+    run:
+        with open(str(input)) as file_in:
+             link_to_index_html = list(file_in.readlines())[0]
+             shell(f"wget {link_to_index_html} -P data/temp/{TOKEN}/ 2> /dev/null")
+
+rule parse_download_links:
+    input:
+         f"data/temp/{TOKEN}/index.html"
     output:
          f"data/temp/{TOKEN}/{{database}}_download_link.txt"
     run:
          import re
-         with open(str(input)) as file_in:
-             link_to_index_html = list(file_in.readlines())[0]
-             shell(f"wget {link_to_index_html} -P data/temp/{TOKEN} 2> /dev/null")
-         with open(f"data/temp/{TOKEN}/index.html") as index_html:
+         with open(str(input)) as index_html:
              for line in index_html.readlines():
                  if re.match(f".*?({wildcards.database}).*", line) is not None:
                      download_link = re.match(".*href='(.*?)'", line).group(1)
@@ -18,7 +30,7 @@ rule get_download_links:
              file_out.write(download_link)
              file_out.flush()
 
-rule init:
+rule init_raptorx:
     input:
          f"data/temp/{TOKEN}/CNFsearch_download_link.txt"
     output:
@@ -35,7 +47,7 @@ rule init:
          export OLDWD=$PWD; cd apps/RaptorX/; ./setup.pl; cd $OLDWD;
          """
 
-rule set_modeller_license_key:
+rule init_modeller:
     input:
          config["license_key_in"]
     output:
@@ -86,7 +98,7 @@ rule unzip_databases:
          shell(f"""tar -zxf {{input}} -C {target_dir};
                    touch {str(output)}""")
 
-rule move_dbs:
+rule move_databases:
     input:
          "apps/RaptorX/databases/{database}/{database}.unzipped.txt"
     output:
