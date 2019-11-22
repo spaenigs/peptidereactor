@@ -20,7 +20,7 @@ rule split_input_data:
          config["fasta_in"],
          config["classes_in"]
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.joblib")
     run:
          seqs, names = read_fasta(str(input[0]))
          with open(str(input[1])) as f:
@@ -33,7 +33,7 @@ rule to_fasta:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.fasta")
     run:
          seq_tuples, seq_class = jl.load(str(input))
          save_fasta(str(output), sequences=[seq_tuples[0][1]], names=[seq_tuples[0][0]])
@@ -47,8 +47,10 @@ rule build_feature:
          PROFILE_DIR + "{seq_name}.tgt"
     shell:
          """
+         touch {output};
          export OLDWD=$PWD; cd apps/RaptorX/;
-         ./buildFeature -i $OLDWD/{input[0]} -o $OLDWD/{output} -c 1;
+         ./buildFeature -i $OLDWD/{input[0]} -o $OLDWD/{output} -c 1 || \
+            echo "No alignments found for {wildcards.seq_name}";
          cd - 1> /dev/null;
          """
 
@@ -56,51 +58,61 @@ rule search_template_database:
     input:
          PROFILE_DIR + "{seq_name}.tgt",
          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
-                database=["TPL_BC40", "TPL_Remain", "TemplateLists"])
+                database=["TPL_BC40", "TPL_Remain"])  #, "TemplateLists"])
     output:
          PROFILE_DIR + "{seq_name}.rank"
     shell:
          f"""
-         export OLDWD=$PWD; cd apps/RaptorX/;
-         ./CNFsearch -a 1 -q {{wildcards.seq_name}} -g $OLDWD/{PROFILE_DIR} -o $OLDWD/{{output}}
-         cd - 1> /dev/null;
+         touch {{output}};
+         if [ -s {{input[0]}} ]; then
+            export OLDWD=$PWD; cd apps/RaptorX/;
+            ./CNFsearch -a 1 -q {{wildcards.seq_name}} -g $OLDWD/{PROFILE_DIR} -o $OLDWD/{{output}}
+            cd - 1> /dev/null;
+         else
+            touch {{output}};
+         fi
          """
 
 rule best_template:
     input:
          PROFILE_DIR + "{seq_name}.rank"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt")
     run:
          import re
          with open(str(input)) as f, open(str(output), mode="w") as out:
-             lines_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None, f.readlines()))
+             lines_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None,
+                                          f.readlines()))
              if len(lines_with_hit) == 1:
                  line_with_hit = lines_with_hit[0]
                  id = line_with_hit.split()[1]
              else:
                  id = ""
-                 out.write(f"{id}\n")
-                 out.flush()
+             out.write(id)
+             out.flush()
 
 rule align_to_template:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
-         f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta"),
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred")
     shell:
          f"""
-         export BEST_HIT=`head -n 1 {{input}}`;
-         export OLDWD=$PWD; cd apps/RaptorX/;
-         ./CNFalign_lite -q {{wildcards.seq_name}} \
-                         -t $BEST_HIT \
-                         -l databases/TPL_BC100/ \
-                         -g $OLDWD/{PROFILE_DIR} \
-                         -d $OLDWD/data/temp/{TOKEN}/;
-         cd - 1> /dev/null;
-         mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.fasta {{output[0]}};
-         mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.cnfpred {{output[1]}};
+         if [ -s {{input}} ]; then
+            export BEST_HIT=`head -n 1 {{input}}`;
+            export OLDWD=$PWD; cd apps/RaptorX/; 
+            ./CNFalign_lite -q {{wildcards.seq_name}} \
+                            -t $BEST_HIT \
+                            -l databases/TPL_BC100/ \
+                            -g $OLDWD/{PROFILE_DIR} \
+                            -d $OLDWD/data/temp/{TOKEN}/;
+            cd - 1> /dev/null;
+            mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.fasta {{output[0]}};
+            mv data/temp/{TOKEN}/$BEST_HIT-{{wildcards.seq_name}}.cnfpred {{output[1]}};
+         else
+            touch {{output[0]}}; touch {{output[1]}};
+         fi         
          """
 
 rule generate_structure:
@@ -109,21 +121,30 @@ rule generate_structure:
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred",
          expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
                 database=["pdb_BC40", "pdb_Remain"]),
-         "apps/RaptorX/modeller_activated.txt"
+         "apps/RaptorX/modeller/config.py"
     output:
          TARGET_DIR + "{seq_name}.pdb"
     shell:
          """
-         export config_file=$(mod9.23 -v 2> >(grep config.py));
-         cp {input[4]} `dirname $config_file`
-         export OLDWD=$PWD; cd apps/RaptorX/;
-         ./build3Dmodel -i $OLDWD/{input[0]} -q {wildcards.seq_name} -d databases/pdb_BC100/ -m mod9.23 2> /dev/null;
-         mv *{wildcards.seq_name}.*.pdb $OLDWD/{output};
-         cd - 1> /dev/null;
+         if [ -s {input[0]} ]; then
+            export base_path=$(cat {input[4]} | \
+                grep install_dir | \
+                perl -ne 'print $1 if /.*? r\W([\-\.\d\w\/]*)/')
+            export full_path=$base_path/modlib/modeller/
+            # export config_file=$(mod9.23 -v 2> >(grep config.py)); rm -- -v.log;  # ensure... 
+            # echo "XXX $config_file XXX"
+            cp {input[4]} $full_path;  
+            export OLDWD=$PWD; cd apps/RaptorX/;
+            ./build3Dmodel -i $OLDWD/{input[0]} \
+                           -q {wildcards.seq_name} \
+                           -d databases/pdb_BC100/ \
+                           -m mod9.23;
+            mv *{wildcards.seq_name}.*.pdb $OLDWD/{output};
+            cd - 1> /dev/null;
+         else 
+            touch {output};
+         fi
          """
 
-# onsuccess:
-#     shell("rm -r apps/RaptorX/tmp/")
-#
-# onerror:
-#     shell("rm -r apps/RaptorX/tmp/")
+onsuccess:
+    shell("rm -r apps/RaptorX/tmp/")
