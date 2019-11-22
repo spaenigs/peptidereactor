@@ -13,6 +13,16 @@ docker save encoding_benchmark > encoding_benchmark.tar
 docker load < docker/encoding_benchmark.tar
 ```
 
+### Override entrypoint
+e.g.
+```shell script
+docker run --entrypoint "ls" encoding_benchmark -l /
+docker run --entrypoint "wget" encoding_benchmark http://raptorx.uchicago.edu/
+```
+or even access it interactively
+```shell script
+docker run -it --entrypoint "/bin/bash" encoding_benchmark
+```
 ### Create DAG of meta jobs
 
 ```shell script
