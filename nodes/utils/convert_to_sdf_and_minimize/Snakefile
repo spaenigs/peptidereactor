@@ -1,0 +1,32 @@
+import os
+
+TOKEN = config["token"]
+PDBS, SDFS = config["pdbs_in"], config["sdfs_out"]
+PDB_DIR = os.path.dirname(PDBS[0]) + "/" \
+    if type(PDBS) == list else os.path.dirname(PDBS) + "/"
+SDF_DIR = os.path.dirname(SDFS[0]) + "/" \
+    if type(SDFS) == list else os.path.dirname(SDFS) + "/"
+
+rule convert_to_sdf:
+    input:
+         PDB_DIR + "{seq_name}.pdb"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.sdf"
+    shell:
+         "obabel -ipdb {input} -osdf -O {output}"
+
+rule find_energy_minimized_conformation:
+    input:
+        f"data/temp/{TOKEN}/{{seq_name}}.sdf"
+    output:
+        f"data/temp/{TOKEN}/{{seq_name}}_minimized.sdf"
+    run:
+        pass
+
+rule move:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}_minimized.sdf"
+    output:
+         SDF_DIR + "{seq_name}.sdf"
+    shell:
+         "mv {input} {output}"
