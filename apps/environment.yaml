@@ -5,6 +5,7 @@ channels:
   - conda-forge
   - biocore
   - salilab
+  - openbabel
 dependencies:
   - biopython=1.74
   - numpy=1.17.1
@@ -20,6 +21,7 @@ dependencies:
   - r-base
   - r-yaml
   - modeller=9.23
+  - openbabel
   - pip:
     - modlamp
     - joblib
