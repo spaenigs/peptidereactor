@@ -5,7 +5,9 @@ import os
 
 TOKEN = config["token"]
 PROFILE_DIR = os.path.dirname(config["profiles_out"][0]) + "/"
-REFSEQ_DB_DIR = config["refseq_db"]
+
+include:
+    "setup.smk"
 
 rule split_input_data:
     input:
@@ -40,7 +42,7 @@ rule generate_pssm_profile:
          record = input_data[0][0]
          query_string = '>' + record[0] + '\n' + str(record[1])
          matrix_file_name = f"{PROFILE_DIR}/{record[0]}.pssm"
-         cline = NcbipsiblastCommandline(cmd="psiblast", db=REFSEQ_DB_DIR, inclusion_ethresh=0.001,
+         cline = NcbipsiblastCommandline(cmd="psiblast", db="apps/db/uniref90/uniref90.db", inclusion_ethresh=0.001,
                                          num_iterations=3, num_threads=1,
                                          out_pssm=f"{PROFILE_DIR}/{record[0]}.asn.pssm",
                                          out_ascii_pssm=matrix_file_name)
