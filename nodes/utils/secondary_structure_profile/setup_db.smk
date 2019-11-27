@@ -1,20 +1,30 @@
 import os
 
-TARGET_DIR = config["target_dir"]
+# TARGET_DIR = config["target_dir"]
 
-rule all:
+# rule all:
+#     input:
+#         "apps/db/uniref90/uniref90.db"
+#         # TARGET_DIR + "uniref90.db"
+
+rule download_db:
     input:
-        "apps/db/uniref90/uniref90.db"
-        # TARGET_DIR + "uniref90.db"
-
-rule download:
+         config["uniprot90_download_link_in"]
     output:
          "apps/db/uniref90/uniref90.fasta.gz"
          # TARGET_DIR + "uniref90.fasta.gz"
+    priority:
+         50
+    threads:
+         1000
     shell:
-         "wget ftp://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/uniref90.fasta.gz -P {output}"
+         """
+         wget $(head -n 1 {input[0]}) \
+            -P {output} \
+            -q --show-progress --progress=bar:force:noscroll;
+         """
 
-rule unzip:
+rule unzip_db:
     input:
          "apps/db/uniref90/uniref90.fasta.gz"
          # TARGET_DIR + "uniref90.fasta.gz"

@@ -7,7 +7,10 @@ TOKEN = config["token"]
 PROFILE_DIR = os.path.dirname(config["profiles_out"][0]) + "/"
 
 include:
-    "setup.smk"
+    "setup_db.smk"
+
+include:
+    "setup_libs.smk"
 
 rule split_input_data:
     input:
@@ -25,14 +28,15 @@ rule split_input_data:
 
 rule generate_pssm_profile:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib",
+         # "apps/db/uniref90/uniref90.db"
     output:
          PROFILE_DIR + "{seq_name}.pssm",
          PROFILE_DIR + "{seq_name}.asn.pssm"
     priority:
          50
     run:
-         input_data = jl.load(str(input))
+         input_data = jl.load(str(input[0]))
          input_data[0][0][0] = f"{wildcards.seq_name}"
 
          for o in list(output):
@@ -42,7 +46,7 @@ rule generate_pssm_profile:
          record = input_data[0][0]
          query_string = '>' + record[0] + '\n' + str(record[1])
          matrix_file_name = f"{PROFILE_DIR}/{record[0]}.pssm"
-         cline = NcbipsiblastCommandline(cmd="psiblast", db="apps/db/uniref90/uniref90.db", inclusion_ethresh=0.001,
+         cline = NcbipsiblastCommandline(cmd="psiblast", db=str(input[1]), inclusion_ethresh=0.001,
                                          num_iterations=3, num_threads=1,
                                          out_pssm=f"{PROFILE_DIR}/{record[0]}.asn.pssm",
                                          out_ascii_pssm=matrix_file_name)
@@ -61,7 +65,8 @@ rule copy_pssm_file:
 rule generate_psipred_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
-         PROFILE_DIR + "{seq_name}.asn.pssm"
+         PROFILE_DIR + "{seq_name}.asn.pssm",
+         "apps/psipred/psipred_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.ss2",
          PROFILE_DIR + "{seq_name}.horiz",
@@ -89,7 +94,8 @@ rule generate_vsl2_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
          PROFILE_DIR + "{seq_name}.asn.pssm",
-         PROFILE_DIR + "{seq_name}.ss2"
+         PROFILE_DIR + "{seq_name}.ss2",
+         "apps/VSL2/VSL2_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.dis",
          PROFILE_DIR + "{seq_name}.flat"
@@ -112,7 +118,8 @@ rule generate_vsl2_profile:
 rule generate_spx_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
-         PROFILE_DIR + "{seq_name}.mat"
+         PROFILE_DIR + "{seq_name}.mat",
+         "apps/spineXpublic/spineXpublic_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.spXout",
          temp(f"data/temp/{TOKEN}/protein-list-file_{{seq_name}}.txt")
