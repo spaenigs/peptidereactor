@@ -9,17 +9,17 @@ rule download_index_html:
     input:
          config["download_link_in"]
     output:
-         f"data/temp/{TOKEN}/index.html"
+         temp(f"data/temp/{TOKEN}/index.html")
     run:
-        with open(str(input)) as file_in:
-             link_to_index_html = list(file_in.readlines())[0]
-             shell(f"wget {link_to_index_html} -P data/temp/{TOKEN}/ 2> /dev/null")
+         with open(str(input)) as file_in:
+              link_to_index_html = list(file_in.readlines())[0]
+              shell(f"wget {link_to_index_html} -P data/temp/{TOKEN}/ 2> /dev/null")
 
 rule parse_download_links:
     input:
          f"data/temp/{TOKEN}/index.html"
     output:
-         f"data/temp/{TOKEN}/{{database}}_download_link.txt"
+         temp(f"data/temp/{TOKEN}/{{database}}_download_link.txt")
     run:
          import re
          with open(str(input)) as index_html:
@@ -34,7 +34,8 @@ rule init_raptorx:
     input:
          f"data/temp/{TOKEN}/CNFsearch_download_link.txt"
     output:
-         "apps/RaptorX/setup.pl"
+         "apps/RaptorX/setup.pl",
+         temp(f"data/temp/{TOKEN}/CNFsearch.zip")
     priority:
          50
     shell:
@@ -44,6 +45,7 @@ rule init_raptorx:
             -q --show-progress --progress=bar:force:noscroll;   
          unzip -q data/temp/{TOKEN}/CNFsearch.zip -d data/temp/{TOKEN}/; 
          mv data/temp/{TOKEN}/CNFsearch*_complete/* apps/RaptorX/;   
+         rm -r data/temp/{TOKEN}/CNFsearch*_complete/;
          export OLDWD=$PWD; cd apps/RaptorX/; ./setup.pl; cd $OLDWD;
          """
 
@@ -76,7 +78,7 @@ rule download_databases:
     priority:
          40
     threads:
-         1
+         1000
     shell:
          """
          wget $(head -n 1 {input}) -O {output} -q --show-progress --progress=bar:force:noscroll
@@ -89,6 +91,8 @@ rule unzip_databases:
          "apps/RaptorX/databases/{database}/{database}.unzipped.txt"
     priority:
          30
+    threads:
+         1000
     run:
          db = wildcards.database
          if db in ["nr70", "nr90"]:
