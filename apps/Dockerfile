@@ -1,5 +1,4 @@
 FROM continuumio/miniconda3
-# see https://wiki.debian.org/SourcesList#Name_Resolution if following command fails:
 RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
     && apt-get update \
     && apt-get install -y libgfortran3 \
