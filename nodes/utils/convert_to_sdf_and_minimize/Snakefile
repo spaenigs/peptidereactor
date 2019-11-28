@@ -7,25 +7,41 @@ PDB_DIR = os.path.dirname(PDBS[0]) + "/" \
 SDF_DIR = os.path.dirname(SDFS[0]) + "/" \
     if type(SDFS) == list else os.path.dirname(SDFS) + "/"
 
-rule convert_to_sdf:
+rule find_energy_minimized_conformation:
     input:
          PDB_DIR + "{seq_name}.pdb"
+    output:
+         "data/temp/{TOKEN}/{{seq_name}}_minimized.pdb"
+    run:
+         from simtk.openmm.app import *
+         from simtk.openmm import *
+         from simtk.unit import *
+         from sys import stdout
+
+         pdb = PDBFile(str(input))
+         forcefield = ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
+         system = forcefield.createSystem(pdb.topology, nonbondedMethod=PME,
+                 nonbondedCutoff=1*nanometer, constraints=HBonds)
+         integrator = LangevinIntegrator(300*kelvin, 1/picosecond, 0.002*picoseconds)
+         simulation = Simulation(pdb.topology, system, integrator)
+         simulation.context.setPositions(pdb.positions)
+         simulation.minimizeEnergy()
+         simulation.reporters.append(PDBReporter(str(output), 10000))
+         simulation.reporters.append(StateDataReporter(
+             stdout, 1000, step=True, potentialEnergy=True, temperature=True))
+         simulation.step(10000)
+
+rule convert_to_sdf:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb"
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.sdf"
     shell:
          "obabel -ipdb {input} -osdf -O {output}"
 
-rule find_energy_minimized_conformation:
-    input:
-        f"data/temp/{TOKEN}/{{seq_name}}.sdf"
-    output:
-        f"data/temp/{TOKEN}/{{seq_name}}_minimized.sdf"
-    run:
-        pass
-
 rule move:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}_minimized.sdf"
+         f"data/temp/{TOKEN}/{{seq_name}}.sdf"
     output:
          SDF_DIR + "{seq_name}.sdf"
     shell:
