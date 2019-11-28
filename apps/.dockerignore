@@ -1,1 +1,11 @@
+db/
+psipred/
+spineXpublic/
+VSL2/
 RaptorX/
+Interpol/
+build_image
+delete_container
+install_docker_ce
+install_docker_io
+run_pipeline
