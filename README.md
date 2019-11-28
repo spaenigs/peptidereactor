@@ -55,11 +55,63 @@ data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file
          token="asd"
 ```
 
+## Meta-workflow
+
+### Add new meta-workflow
+
+The following example demonstrates how to add a new meta-workflow, i.e., a workflow, which incorporates
+sub-workflows or nodes, respectively.
+
+1) Create the workflow file: `touch meta_workflow.smk`
+2) Paste the following content into it:
+    ```snakemake
+    import os
+    
+    config["global_workdir"] = os.getcwd() + "/"  
+    
+    DATASET = config["dataset"]
+    
+    rule all:
+        input:
+             f"data/{DATASET}/csv/aaindex/aaindex_ANDN920101.csv",
+             f"data/{DATASET}/csv/aac.csv"
+
+    rule encoding_aaindex:
+        input:
+             fasta_in=f"data/{DATASET}/seqs.fasta",
+             classes_in=f"data/{DATASET}/classes.txt"
+        output:
+             csv_out=f"data/{DATASET}/csv/aaindex/aaindex_ANDN920101.csv"
+        params:
+             subworkflow="aaindex",
+             snakefile="nodes/encodings/aaindex/Snakefile",
+             configfile="nodes/encodings/aaindex/config.yaml"
+        script:
+             "utils/subworkflow.py"
+   
+   rule encoding_aac:
+        input:
+             fasta_in=f"data/{DATASET}/seqs.fasta",
+             classes_in=f"data/{DATASET}/classes.txt"
+        output:
+             csv_out=f"data/{DATASET}/csv/aac.csv"
+        params:
+             subworkflow="aac",
+             snakefile="nodes/encodings/aac/Snakefile",
+             configfile="nodes/encodings/aac/config.yaml"
+        script:
+             "utils/subworkflow.py"
+    ```
+
+3) In case one would like to process, e.g., `data/neuropeptides/csv/aaindex/aaindex_ANDN920101.csv` 
+in a subsequent sub-workflow, ***make sure to use the same file name as input***.
+4) Run the meta-workflow as follows: `./apps/run_pipeline -s meta_workflow.smk --config dataset=neuropeptides`
+
 ## Nodes
 
 ### Add new node
 
-Example: add a new node to convert 
+Example: add a new node, i.e., sub-workflow, to convert 
 [pdb]([link](https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format)) to 
 [sdf](https://en.wikipedia.org/wiki/Chemical_table_file) files and 
 find their respective, energy-minimized conformation.
