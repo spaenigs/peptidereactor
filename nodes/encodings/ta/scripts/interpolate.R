@@ -1,5 +1,3 @@
-.libPaths(c("apps/", .libPaths()))
-
 library(yaml)
 library(Interpol)
 
