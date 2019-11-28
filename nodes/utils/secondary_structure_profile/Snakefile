@@ -29,7 +29,7 @@ rule split_input_data:
 rule generate_pssm_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
-         # "apps/db/uniref90/uniref90.db"
+         "apps/db/uniref90/uniref90.db"
     output:
          PROFILE_DIR + "{seq_name}.pssm",
          PROFILE_DIR + "{seq_name}.asn.pssm"

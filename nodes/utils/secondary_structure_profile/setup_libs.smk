@@ -15,10 +15,9 @@ def download_input(wildcards):
 
 rule download_libs:
     input:
-         # LINKS_DIR + "{target}_download_link.txt",
          download_input
     output:
-         f"data/temp/{TOKEN}/{{target}}.tar.gz"
+         temp(f"data/temp/{TOKEN}/{{target}}.tar.gz")
     priority:
          50
     threads:
