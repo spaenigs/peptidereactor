@@ -112,7 +112,7 @@ in a subsequent sub-workflow, __make sure to use the same file name as input__.
 ### Add new node
 
 Example: add a new node, i.e., sub-workflow, to convert 
-[pdb](https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format\))  to 
+[pdb](https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))  to 
 [sdf](https://en.wikipedia.org/wiki/Chemical_table_file) files and 
 find their respective, energy-minimized conformation.
 
