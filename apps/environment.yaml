@@ -6,6 +6,7 @@ channels:
   - biocore
   - salilab
   - openbabel
+  - omnia
 dependencies:
   - biopython=1.74
   - numpy=1.17.1
@@ -22,6 +23,7 @@ dependencies:
   - r-yaml
   - modeller=9.23
   - openbabel
+  - openmm
   - pip:
     - modlamp
     - joblib
