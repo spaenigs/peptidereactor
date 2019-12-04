@@ -132,8 +132,6 @@ rule generate_structure:
                 grep install_dir | \
                 perl -ne 'print $1 if /.*? r\W([\-\.\d\w\/]*)/')
             export full_path=$base_path/modlib/modeller/
-            # export config_file=$(mod9.23 -v 2> >(grep config.py)); rm -- -v.log;  # ensure... 
-            # echo "XXX $config_file XXX"
             cp {input[4]} $full_path;  
             export OLDWD=$PWD; cd apps/RaptorX/;
             ./build3Dmodel -i $OLDWD/{input[0]} \
@@ -146,6 +144,39 @@ rule generate_structure:
             touch {output};
          fi
          """
+
+rule remove_non_hits:
+    input:
+         config["fasta_in"],
+         config["classes_in"],
+         expand(TARGET_DIR + "{seq_name}",
+                seq_name=read_fasta(config["fasta_in"])[1])
+    output:
+         config["fasta_out"],
+         config["classes_out"]
+    run:
+         from modlamp.core import save_fasta
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[2])) as f:
+            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         in_da = [[[n, s] for n, s in zip(names, seqs)], classes]
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         res_names, res_seqs, res_classes = [], [], []
+         for file_path in list(input[2:]):
+             print(file_path)
+             if os.path.getsize(file_path) > 0:
+                 seq_name = os.path.basename(file_path).replace(".pdb", "")
+                 seq, class_ = seq_tuples[seq_name]
+                 res_names.append(seq_name)
+                 res_seqs.append(seq)
+                 res_classes.append(class_)
+
+         save_fasta(str(output[0]), sequences=res_seqs, names=res_names)
+
+         with open(str(output[1]), mode="a") as f:
+             for c in res_classes:
+                 f.write(f"{c}\n")
 
 onsuccess:
     shell("rm -r apps/RaptorX/tmp/")
