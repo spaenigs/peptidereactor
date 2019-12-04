@@ -7,6 +7,7 @@ channels:
   - salilab
   - omnia
   - rdkit
+  - mordred-descriptor
 dependencies:
   - biopython=1.74
   - numpy=1.17.1
@@ -24,6 +25,7 @@ dependencies:
   - modeller=9.23
   - openmm
   - rdkit
+  - mordred
   - pip:
     - modlamp
     - joblib
