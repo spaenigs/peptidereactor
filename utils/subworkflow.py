@@ -11,9 +11,10 @@ from snakemake import snakemake as smk_func
 
 
 def set_input_output(_configfile, _input, _output, token):
-    for k, v in _output.items():
-        if type(v) == Namedlist:
-            _output[k] = list(v)
+    for obj in [_input, _output]:
+        for k, v in obj.items():
+            if type(v) == Namedlist:
+                obj[k] = list(v)
     with open(_configfile, mode="a") as stream:
         yaml.safe_dump({**_input, **_output, **{"token": token}}, stream)
 
