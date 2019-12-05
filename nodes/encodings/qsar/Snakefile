@@ -1,4 +1,3 @@
-import os
 from modlamp.core import read_fasta
 import joblib as jl
 import pandas as pd
@@ -10,11 +9,6 @@ from simtk.unit import *
 
 TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
-# PDBS_IN, PDBS_OUT = config["pdbs_in"], config["pdbs_out"]
-# PDB_DIR_IN = os.path.dirname(PDBS_IN[0]) + "/" \
-#     if type(PDBS_IN) == list else os.path.dirname(PDBS_IN) + "/"
-# PDB_DIR_OUT = os.path.dirname(PDBS_OUT[0]) + "/" \
-#     if type(PDBS_OUT) == list else os.path.dirname(PDBS_OUT) + "/"
 
 rule split_input_data:
     input:
@@ -71,6 +65,7 @@ rule compute_molecular_descriptors:
          pdb = Chem.MolFromPDBFile(str(input[0]))
          seqs, classes = jl.load(str(input[1]))
 
+         # see https://github.com/mordred-descriptor/mordred/issues/65
          descs = get_descriptors_in_module(descriptors, submodule=True)
          descs = filter(lambda d: d.__module__ != DetourMatrix.__name__, descs)
          calc = Calculator(descs)
