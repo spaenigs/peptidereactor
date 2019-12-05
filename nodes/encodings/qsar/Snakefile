@@ -16,26 +16,26 @@ PDB_DIR = config["pdb_dir"]
 # PDB_DIR_OUT = os.path.dirname(PDBS_OUT[0]) + "/" \
 #     if type(PDBS_OUT) == list else os.path.dirname(PDBS_OUT) + "/"
 
-# rule split_input_data:
-#     input:
-#          config["fasta_in"],
-#          config["classes_in"]
-#     output:
-#          temp(f"data/temp/{TOKEN}/{{seq_name}}.joblib")
-#     run:
-#          seqs, names = read_fasta(str(input[0]))
-#          with open(str(input[1])) as f:
-#              classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-#          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
-#          seq_tuple = seq_tuples[wildcards.seq_name]
-#          jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]),
-#                  filename=str(output))
+rule split_input_data:
+    input:
+         config["fasta_in"],
+         config["classes_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.joblib")
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         seq_tuple = seq_tuples[wildcards.seq_name]
+         jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]),
+                 filename=str(output))
 
 rule find_energy_minimized_conformation:
     input:
          PDB_DIR + "{seq_name}.pdb"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb")
     run:
          from sys import stdout
 
@@ -59,17 +59,25 @@ rule find_energy_minimized_conformation:
 
 rule compute_molecular_descriptors:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb"
+         f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb",
+         f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv")
     run:
          from rdkit import Chem
          from mordred import Calculator, descriptors
+         from mordred import DetourMatrix, get_descriptors_in_module
 
-         pdb = Chem.MolFromPDBFile(str(input))
-         calc = Calculator(descriptors)
+         pdb = Chem.MolFromPDBFile(str(input[0]))
+         seqs, classes = jl.load(str(input[1]))
+
+         descs = get_descriptors_in_module(descriptors, submodule=True)
+         descs = filter(lambda d: d.__module__ != DetourMatrix.__name__, descs)
+         calc = Calculator(descs)
          res = calc.pandas([pdb], quiet=True)
+
          res.index = [wildcards.seq_name]
+         res["y"] = [classes]
          res.to_csv(str(output))
 
 rule combine:
@@ -77,7 +85,7 @@ rule combine:
          expand(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv",
                 seq_name=read_fasta(config["fasta_in"])[1])
      output:
-         f"data/temp/{TOKEN}/qsar_raw.csv"
+         temp(f"data/temp/{TOKEN}/qsar_raw.csv")
      run:
          df_res = pd.DataFrame()
 
@@ -91,7 +99,7 @@ rule remove_invalid:
     input:
          f"data/temp/{TOKEN}/qsar_raw.csv"
     output:
-         f"data/temp/{TOKEN}/qsar_raw_removed_invalid.csv"
+         temp(f"data/temp/{TOKEN}/qsar_raw_removed_invalid.csv")
     run:
          df = pd.read_csv(str(input), index_col=0)
          # watch out for missing values in not all rows, i.e., peptides/proteins
@@ -103,7 +111,7 @@ rule remove_zero_variance:
     input:
          f"data/temp/{TOKEN}/qsar_raw_removed_invalid.csv"
     output:
-         f"data/temp/{TOKEN}/qsar_raw_removed_zero_variance.csv"
+         temp(f"data/temp/{TOKEN}/qsar_raw_removed_zero_variance.csv")
     run:
          df = pd.read_csv(str(input), index_col=0)
          df = df.loc[:, [i != 0.0 for i in df.apply(np.var, axis=0)]]
@@ -113,11 +121,10 @@ rule remove_highly_correlated:
     input:
          f"data/temp/{TOKEN}/qsar_raw_removed_zero_variance.csv"
     output:
-         f"data/temp/{TOKEN}/qsar_raw_removed_highly_correlated.csv"
+         temp(f"data/temp/{TOKEN}/qsar_raw_removed_highly_correlated.csv")
     run:
          df = pd.read_csv(str(input), index_col=0)
          cm = df.corr()
-         print(cm.shape)
 
          cmindex, cmcolumns = cm.index.values.tolist(), cm.columns.values.tolist()
          for idx in cmindex:
@@ -126,9 +133,31 @@ rule remove_highly_correlated:
                       cmindex.remove(col)
                       cmcolumns.remove(col)
                       cm = cm.loc[cmindex, cmcolumns]
-         print(cm.shape)
 
-         df.loc[:, cm.columns].to_csv(str(output))
+         df.loc[:, cm.columns.append(pd.Index(["y"]))].to_csv(str(output))
+
+rule run_pca:
+    input:
+         f"data/temp/{TOKEN}/qsar_raw_removed_highly_correlated.csv"
+    output:
+         config["csv_out"]
+    run:
+         from sklearn.decomposition import PCA
+
+         df = pd.read_csv(str(input), index_col=0)
+         X, y = df.iloc[:, :-1].values, df["y"]
+
+         pca = PCA(n_components=np.min([7,
+                                        np.min([X.shape[0], X.shape[1]])]
+                                       ))
+         X_new = pca.fit_transform(X, y)
+
+         df_res = pd.DataFrame(X_new, index=df.index)
+         df_res["y"] = df["y"]
+         df_res.to_csv(str(output))
+
+
+
 
 
 
