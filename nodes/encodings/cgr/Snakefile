@@ -1,0 +1,59 @@
+from modlamp.core import read_fasta
+import pandas as pd
+import os
+import yaml
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+wildcard_constraints:
+    sfactor="[\d.]+"
+
+rule split_input_data:
+    input:
+         config["fasta_in"],
+         config["classes_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{resolution}}_sf_{{sfactor}}.yaml")
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         seq_tuple = seq_tuples[wildcards.seq_name]
+
+         with open(str(output), mode="w") as f:
+             to_dump = {"seq_name": wildcards.seq_name, "seq": seq_tuple[0], "class": seq_tuple[1],
+                        "res": int(wildcards.resolution), "sf": float(wildcards.sfactor)}
+             yaml.safe_dump(to_dump, f)
+
+rule encode:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}_{{resolution}}_sf_{{sfactor}}.yaml"
+    output:
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{resolution}}_sf_{{sfactor}}_encoded.yaml")
+    script:
+         "scripts/encode.R"
+
+rule dump:
+    input:
+         lambda wildcards: \
+             expand(f"data/temp/{TOKEN}/{{seq_name}}_{wildcards.resolution}_sf_{wildcards.sfactor}_encoded.yaml",
+                    seq_name=read_fasta(config["fasta_in"])[1])
+    output:
+         TARGET_DIR + "/cgr_res_{resolution}_sf_{sfactor}.csv"
+    run:
+         df_res = pd.DataFrame()
+         for path in list(input):
+             with open(path) as f:
+                 seq_yaml = yaml.safe_load(f)
+                 df_tmp = pd.DataFrame([seq_yaml["vec"]], index=[seq_yaml["seq_name"]])
+                 df_tmp["y"] = [seq_yaml["class"]]
+                 print(df_tmp)
+                 df_res = pd.concat([df_res, df_tmp])
+         df_res.to_csv(str(output))
