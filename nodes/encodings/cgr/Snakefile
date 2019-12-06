@@ -54,6 +54,5 @@ rule dump:
                  seq_yaml = yaml.safe_load(f)
                  df_tmp = pd.DataFrame([seq_yaml["vec"]], index=[seq_yaml["seq_name"]])
                  df_tmp["y"] = [seq_yaml["class"]]
-                 print(df_tmp)
                  df_res = pd.concat([df_res, df_tmp])
          df_res.to_csv(str(output))
