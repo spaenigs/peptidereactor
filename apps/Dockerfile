@@ -2,20 +2,19 @@ FROM continuumio/miniconda3
 
 RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >> /etc/apt/sources.list \
     && apt-get update \
-    && apt-get install -y libgfortran3 \
-    && apt-get install -y unzip
+    && apt-get install -y libgfortran3
+
+RUN apt-get update && apt-get install -y unzip
+RUN apt-get update && apt-get install -y r-base r-base-dev
+RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr'), repos = 'https://cran.uni-muenster.de/')"
 
 ADD iFeature/ iFeature/
 RUN chmod -R 777 iFeature/data/
 
 ADD environment.yaml environment.yaml
-
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
     && echo "conda activate encoding_benchmark" >> ~/.bashrc
-
-RUN /opt/conda/envs/encoding_benchmark/bin/R -e \
-    "install.packages('Interpol', lib = '/opt/conda/envs/encoding_benchmark/lib/R/library', repos = 'https://cran.uni-muenster.de/')"
 
 ENV PATH /opt/conda/envs/encoding_benchmark/bin:$PATH
 

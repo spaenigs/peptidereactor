@@ -20,8 +20,6 @@ dependencies:
   - blast=2.9.0
   - java-jdk
   - muscle=3.8.1551
-  - r-base
-  - r-yaml
   - modeller=9.23
   - openmm
   - rdkit
