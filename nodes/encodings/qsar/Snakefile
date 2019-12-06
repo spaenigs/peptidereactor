@@ -7,6 +7,8 @@ from simtk.openmm.app import *
 from simtk.openmm import *
 from simtk.unit import *
 
+# pipeline adapted from https://www.nature.com/articles/s41598-018-19669-4.pdf
+
 TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
 
