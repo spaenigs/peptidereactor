@@ -1,5 +1,8 @@
 import os
 from modlamp.core import read_fasta
+from utils.snakemake_config import SnakemakeConfig, MetaWorkflow
+
+mwf = MetaWorkflow()
 
 config["global_workdir"] = os.getcwd() + "/"
 
@@ -7,14 +10,16 @@ DATASET = config["dataset"]
 
 rule all:
     input:
-         f"data/{DATASET}/csv/qsar.csv"
+         f"data/{DATASET}/csv/qsar.csv",
          # expand(f"data/{DATASET}/profile/{{seq_name}}.{{ftype}}",
          #        seq_name=read_fasta(f"data/{config['dataset']}/seqs.fasta")[1],
          #        ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"])
-         # expand(f"data/{DATASET}/pdb/{{seq_name}}_minimized.pdb",
-         #        seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1])[:10]
-         # expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
-         #        seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1])[-1]
+         expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
+                seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1]),
+         f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         f"data/{DATASET}/annotated_pdbs_classes.txt",
+         expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
+                        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
 
 # rule util_secondary_structure_profile:
 #     input:
@@ -55,8 +60,8 @@ rule util_protein_structure_prediction:
          license_key_in="nodes/utils/protein_structure_prediction/" + \
                         "download_links/modeller_license_key.txt"
     output:
-         fasta_out=f"data/{DATASET}/annotated_pdbs_seqs.pdb",
-         classes_out=f"data/{DATASET}/annotated_pdbs_classes.pdb",
+         fasta_out=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         classes_out=f"data/{DATASET}/annotated_pdbs_classes.txt",
          pdbs_out=expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
                          seq_name=read_fasta(f"data/{config['dataset']}/seqs.fasta")[1])
     params:
@@ -68,27 +73,6 @@ rule util_protein_structure_prediction:
          cores=-1
     script:
          "utils/subworkflow.py"
-
-# rule util_convert_to_sdf_and_minimize:
-#         input:
-#              fasta_in=,
-#              classes_in=,
-#              pdbs_in=expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
-#                             seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1])[:10]
-#         output:
-#              fasta_out=,
-#              classes_out,
-#              pdbs_out=expand(f"data/{DATASET}/pdb/{{seq_name}}_minimized.pdb",
-#                             seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1])[:10]
-#         params:
-#              subworkflow="convert_to_sdf_and_minimize",
-#              snakefile="nodes/utils/convert_to_sdf_and_minimize/Snakefile",
-#              configfile="nodes/utils/convert_to_sdf_and_minimize/config.yaml",
-#              dryrun=config["dryrun"]
-#         resources:
-#              cores=1  # can be omitted, uses one core per default
-#         script:
-#              "utils/subworkflow.py"
 
 rule encoding_qsar:
     input:
@@ -103,6 +87,50 @@ rule encoding_qsar:
          configfile="nodes/encodings/qsar/config.yaml",
          dryrun=config["dryrun"]
     resources:
-         cores=1  # can be omitted, uses one core per default
+         cores=-1  # can be omitted, uses one core per default
     script:
          "utils/subworkflow.py"
+
+# rule encoding_cgr:
+#     input:
+#          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+#          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
+#     output:
+#          csv_out=expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
+#                         resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
+#     params:
+#          subworkflow="cgr",
+#          snakefile="nodes/encodings/cgr/Snakefile",
+#          configfile="nodes/encodings/cgr/config.yaml",
+#          dryrun=config["dryrun"]
+#     resources:
+#          cores=-1  # can be omitted, uses one core per default
+#     script:
+#          "utils/subworkflow.py"
+    # shell:
+    #      "snakemake -s nodes/encodings/cgr/Snakefile --config fasta_in={input.fasta_in} ... --cores 4 --directory $PWD ..."
+
+rule encoding_cgr:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
+                        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
+    params:
+         snakefile="nodes/encodings/cgr/Snakefile",
+         configfile="nodes/encodings/cgr/config.yaml"
+    resources:
+         cores=-1  # can be omitted, uses one core per default
+    run:
+         sc = SnakemakeConfig(input_files=dict(input), output_files=dict(output))
+         sc.dump(path_to_configfile=params.configfile)
+         wf = f"""snakemake -s {params.snakefile} {output.csv_out} \
+                        --cores {sc.get_cores(resources.cores)} \
+                        --directory $PWD \
+                        --configfile {params.configfile}"""
+         mwf.register(wf)
+         shell(wf)
+
+
+mwf.dryrun()
