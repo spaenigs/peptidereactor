@@ -1,0 +1,22 @@
+# used to calculate the solvent accessible grid point for the template
+read
+    mol pqr template.pqr
+end
+elec
+    mg-manual
+    dime 33 33 33
+    grid 3 3 3
+    gcent mol 1
+    mol 1
+    bcfl sdh
+    npbe
+    pdie 5.0
+    sdie 5.0
+    srfm smol
+    chgm spl2
+    sdens 10.00
+    srad 1.40
+    temp 310.0
+    write smol dx smol
+end
+quit
