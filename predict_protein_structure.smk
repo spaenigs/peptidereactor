@@ -19,7 +19,9 @@ rule all:
          f"data/{DATASET}/annotated_pdbs_seqs.fasta",
          f"data/{DATASET}/annotated_pdbs_classes.txt",
          expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
-                        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
+                        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713]),
+         expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+                distance=[0,3,6,9,12])
 
 # rule util_secondary_structure_profile:
 #     input:
@@ -120,17 +122,32 @@ rule encoding_cgr:
     params:
          snakefile="nodes/encodings/cgr/Snakefile",
          configfile="nodes/encodings/cgr/config.yaml"
-    resources:
-         cores=-1  # can be omitted, uses one core per default
     run:
-         sc = SnakemakeConfig(input_files=dict(input), output_files=dict(output))
-         sc.dump(path_to_configfile=params.configfile)
-         wf = f"""snakemake -s {params.snakefile} {output.csv_out} \
-                        --cores {sc.get_cores(resources.cores)} \
-                        --directory $PWD \
-                        --configfile {params.configfile}"""
-         mwf.register(wf)
-         shell(wf)
+         SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
+            .dump(params.configfile)
+         shell(f"""
+         snakemake -s {{params.snakefile}} {{output.csv_out}} \
+             --cores 4 \
+             --directory $PWD \
+             --configfile {{params.configfile}}""")
 
+rule encoding_electrostatic_hull:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
+         pdb_dir=f"data/{DATASET}/pdb/"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+                        distance=[0,3,6,9,12])
+    params:
+         snakefile="nodes/encodings/electrostatic_hull/Snakefile",
+         configfile="nodes/encodings/electrostatic_hull/config.yaml"
+    run:
+         SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
+            .dump(params.configfile)
+         shell(f"""
+         snakemake -s {{params.snakefile}} {{output.csv_out}} \
+             --cores 4 \
+             --directory $PWD \
+             --configfile {{params.configfile}}""")
 
-mwf.dryrun()
