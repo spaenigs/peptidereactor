@@ -28,6 +28,7 @@ for i in names:
         if i != j:
             if points[i][j] == 0.0:
                 # https://en.wikipedia.org/wiki/Geometric_median
+                # better: https://stackoverflow.com/questions/1401712/how-can-the-euclidean-distance-be-calculated-with-numpy
                 points[i][j] = euclidean(df_type_filtered.loc[i, ["x1", "x2"]],
                                          df_type_filtered.loc[j, ["x1", "x2"]])
             else:
