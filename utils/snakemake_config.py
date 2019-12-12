@@ -5,7 +5,7 @@ import secrets
 import os
 
 
-class SnakemakeConfig:
+class WorkflowExecuter:
 
     @staticmethod
     def get_cores(cores):
@@ -19,14 +19,25 @@ class SnakemakeConfig:
         return {**self.input_files, **self.output_files,
                 **{"token": secrets.token_hex(4)}}
 
-    def dump(self, path_to_configfile):
-        with open(path_to_configfile, mode="w") as stream:
+    def write_configfile(self):
+        with open(self.path_to_configfile, mode="w") as stream:
             yaml.safe_dump(self.config, stream)
 
-    def __init__(self, input_files, output_files):
+    def remove_configfile(self):
+        os.remove(self.path_to_configfile)
+
+    def __enter__(self):
+        self.write_configfile()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.remove_configfile()
+
+    def __init__(self, input_files, output_files, path_to_configfile):
         self.input_files = input_files
         self.output_files = output_files
         self.config = self._set_config()
+        self.path_to_configfile = path_to_configfile
 
 
 class MetaWorkflow(list):
