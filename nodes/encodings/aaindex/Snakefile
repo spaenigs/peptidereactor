@@ -16,42 +16,50 @@ else:
 
 rule encode:
     input:
-        config["fasta_in"]
+         config["fasta_in"]
     output:
-        temp(f"data/temp/{TOKEN}/{{aaindex}}.yaml")
+         temp(f"data/temp/{TOKEN}/{{aaindex}}.yaml")
     run:
-        seqs, names = read_fasta(str(input[0]))
-        fastas = [[n, s] for s, n in zip(seqs, names)]
+         seqs, names = read_fasta(str(input[0]))
+         fastas = [[n, s] for s, n in zip(seqs, names)]
 
-        enco = {"enco_seqs": {}}
-        for tup in fastas:
-            res = np.array(AAINDEX.AAINDEX([tup]))
-            df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
-            df.index = np.array(res)[1:, 0]
-            df = df.filter(like=wildcards.aaindex, axis=1)
-            enco["enco_seqs"][tup[0]] = df.iloc[0, :].to_list()
+         enco = {"enco_seqs": {}}
+         for tup in fastas:
+             res = np.array(AAINDEX.AAINDEX([tup]))
+             df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+             df.index = np.array(res)[1:, 0]
+             df = df.filter(like=wildcards.aaindex, axis=1)
+             enco["enco_seqs"][tup[0]] = df.iloc[0, :].to_list()
 
-        with open(str(output), mode="w") as f:
-            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
-            yaml.safe_dump(enco, f)
+         with open(str(output), mode="w") as f:
+             enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+             yaml.safe_dump(enco, f)
 
 rule interpolate:
     input:
-        enco=f"data/temp/{TOKEN}/{{aaindex}}.yaml"
+         enco=f"data/temp/{TOKEN}/{{aaindex}}.yaml"
     output:
-        temp(f"data/temp/{TOKEN}/{{aaindex}}.csv")
+         temp(f"data/temp/{TOKEN}/{{aaindex}}.csv")
     script:
-        "scripts/interpolate.R"
+         "scripts/interpolate.R"
 
 rule dump:
     input:
-        f"data/temp/{TOKEN}/{{aaindex}}.csv",
-        config["classes_in"]
+         config["fasta_in"],
+         config["classes_in"],
+         f"data/temp/{TOKEN}/{{aaindex}}.csv"
     output:
-        f"{TARGET_DIR}/aaindex_{{aaindex}}.csv"
+         f"{TARGET_DIR}/aaindex_{{aaindex}}.csv"
     run:
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        df = pd.read_csv(str(input[0]), index_col=0)
-        df["y"] = classes
-        df.to_csv(str(output))
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+         df = pd.read_csv(str(input[2]), index_col=0)
+         df["y"] = -1
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         for (name, (seq, class_)) in seq_tuples.items():
+             df.loc[name, "y"] = class_
+
+         df.to_csv(str(output))
