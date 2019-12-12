@@ -1,12 +1,17 @@
 import os
+import pandas as pd
 from modlamp.core import read_fasta
-from utils.snakemake_config import SnakemakeConfig, MetaWorkflow
-
-mwf = MetaWorkflow()
+from utils.snakemake_config import WorkflowExecuter
 
 config["global_workdir"] = os.getcwd() + "/"
 
 DATASET = config["dataset"]
+
+def get_aaindex():
+    df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
+    df.columns = df.columns[1:].tolist() + ["NaN"]
+    df = df.iloc[:, :-1]
+    return df.index.to_list()[:5]
 
 rule all:
     input:
@@ -21,7 +26,10 @@ rule all:
          expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
                         resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713]),
          expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
-                distance=[0,3,6,9,12])
+                distance=[0,3,6,9,12]),
+         f"data/{DATASET}/csv/distance_distribution.csv",
+         expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv", aaindex=get_aaindex()),
+         expand(f"data/{DATASET}/csv/fft/fft_{{aaindex}}.csv", aaindex=get_aaindex())
 
 # rule util_secondary_structure_profile:
 #     input:
@@ -112,42 +120,102 @@ rule encoding_qsar:
     # shell:
     #      "snakemake -s nodes/encodings/cgr/Snakefile --config fasta_in={input.fasta_in} ... --cores 4 --directory $PWD ..."
 
-rule encoding_cgr:
+# rule encoding_cgr:
+#     input:
+#          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+#          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt"
+#     output:
+#          csv_out=expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
+#                         resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
+#     params:
+#          snakefile="nodes/encodings/cgr/Snakefile",
+#          configfile="nodes/encodings/cgr/config.yaml"
+#     run:
+#          SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
+#             .dump(params.configfile)
+#          shell(f"""
+#          snakemake -s {{params.snakefile}} {{output.csv_out}} \
+#              --cores 4 \
+#              --directory $PWD \
+#              --configfile {{params.configfile}}""")
+
+# rule encoding_electrostatic_hull:
+#     input:
+#          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+#          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
+#          pdb_dir=f"data/{DATASET}/pdb/"
+#     output:
+#          csv_out=expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+#                         distance=[0,3,6,9,12])
+#     params:
+#          snakefile="nodes/encodings/electrostatic_hull/Snakefile",
+#          configfile="nodes/encodings/electrostatic_hull/config.yaml"
+#     run:
+#          SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
+#             .dump(params.configfile)
+#          shell(f"""
+#          snakemake -s {{params.snakefile}} {{output.csv_out}} \
+#              --cores 4 \
+#              --directory $PWD \
+#              --configfile {{params.configfile}}""")
+
+# rule encoding_distance_distribution:
+#     input:
+#          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+#          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
+#          pdb_dir=f"data/{DATASET}/pdb/"
+#     output:
+#          csv_out=f"data/{DATASET}/csv/distance_distribution.csv"
+#     params:
+#          snakefile="nodes/encodings/distance_distribution/Snakefile",
+#          configfile="nodes/encodings/distance_distribution/config.yaml"
+#     run:
+#          SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
+#             .dump(params.configfile)
+#          shell(f"""
+#          snakemake -s {{params.snakefile}} {{output.csv_out}} \
+#              --cores 4 \
+#              --directory $PWD \
+#              --configfile {{params.configfile}}""")
+
+rule encoding_aaindex:
     input:
          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt"
     output:
-         csv_out=expand(f"data/{DATASET}/csv/cgr/cgr_res_{{resolution}}_sf_{{sfactor}}.csv",
-                        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])
+         csv_out=expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv",
+                         aaindex=get_aaindex())
     params:
-         snakefile="nodes/encodings/cgr/Snakefile",
-         configfile="nodes/encodings/cgr/config.yaml"
+         subworkflow="aaindex",
+         snakefile="nodes/encodings/aaindex/Snakefile",
+         configfile="nodes/encodings/aaindex/config.yaml"
+    resources:
+         cores=4
     run:
-         SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
-            .dump(params.configfile)
-         shell(f"""
-         snakemake -s {{params.snakefile}} {{output.csv_out}} \
-             --cores 4 \
-             --directory $PWD \
-             --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores 8 \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
 
-rule encoding_electrostatic_hull:
+rule encoding_fft:
     input:
          fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
-         pdb_dir=f"data/{DATASET}/pdb/"
+         csv_in=expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv",
+                       aaindex=get_aaindex())
     output:
-         csv_out=expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
-                        distance=[0,3,6,9,12])
+         csv_out=expand(f"data/{DATASET}/csv/fft/fft_{{aaindex}}.csv",
+                        aaindex=get_aaindex())
     params:
-         snakefile="nodes/encodings/electrostatic_hull/Snakefile",
-         configfile="nodes/encodings/electrostatic_hull/config.yaml"
+         snakefile="nodes/encodings/fft/Snakefile",
+         configfile="nodes/encodings/distance_distribution/config.yaml"
     run:
-         SnakemakeConfig(input_files=dict(input), output_files=dict(output))\
-            .dump(params.configfile)
-         shell(f"""
-         snakemake -s {{params.snakefile}} {{output.csv_out}} \
-             --cores 4 \
-             --directory $PWD \
-             --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores 8 \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+
 
