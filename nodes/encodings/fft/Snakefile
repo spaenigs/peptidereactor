@@ -1,0 +1,41 @@
+from modlamp.core import read_fasta
+import numpy as np
+import os
+import pandas as pd
+
+TOKEN = config["token"]
+
+SOURCE_FILES = config["csv_in"]
+
+if type(SOURCE_FILES) == list:
+    SOURCE_DIR = os.path.dirname(SOURCE_FILES[0])
+else:
+    SOURCE_DIR = os.path.dirname(SOURCE_FILES)
+
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule encode:
+    input:
+        f"{SOURCE_DIR}/aaindex_{{aaindex}}.csv"
+    output:
+        f"{TARGET_DIR}/fft_{{aaindex}}.csv"
+    run:
+        def compute_fft(values):
+            signal = np.array(values)
+            fourier = np.fft.fft(signal)
+            return np.sqrt(np.real(fourier)**2 + np.imag(fourier)**2)
+
+        df = pd.read_csv(str(input), index_col=0)
+        df_res = df.iloc[:,:-1].apply(
+            lambda row: pd.Series(compute_fft(row), index=row.index), axis=1)
+
+        df_res["y"] = -1
+        for idx in df.index:
+            df_res.loc[idx, "y"] = df.loc[idx, "y"]
+
+        df_res.to_csv(str(output))
