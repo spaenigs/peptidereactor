@@ -1,0 +1,39 @@
+from modlamp.core import read_fasta
+import os
+import yaml
+
+TOKEN = config["token"]
+TARGET_FILES = config["length_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule get_maximum_window_length:
+    input:
+         config["fasta_in"]
+    output:
+         f"{TARGET_DIR}/{{encoding}}.yaml"
+    run:
+         seqs, names = read_fasta(str(input))
+
+         shortest_seq_len = len(sorted(seqs, key=lambda seq: len(seq))[0])
+
+         if wildcards.encoding == "ksctriad":
+             max_val = int((shortest_seq_len-3)/2)
+         elif wildcards.encoding in ["moran", "nmbroto", "geary",
+                                     "qsorder", "socnumber", "eaac",
+                                     "apaac", "paac"]:
+             max_val = shortest_seq_len - 1
+         elif wildcards.encoding in ["cksaagp", "cksaap"]:
+             max_val = shortest_seq_len - 2
+         else:
+             raise ValueError(f"Unknown encoding: {wildcards.encoding}")
+
+         with open(str(output), mode="w") as f:
+             yaml.safe_dump(max_val, f)
+
+
+
+
