@@ -9,44 +9,51 @@ TOKEN = config["token"]
 
 rule encode:
     input:
-        config["fasta_in"],
-        config["profile"]
+         config["fasta_in"],
+         config["profile"]
     output:
-        temp(f"data/temp/{TOKEN}/enco_seqs.yaml")
+         temp(f"data/temp/{TOKEN}/enco_seqs.yaml")
     run:
-        seqs, names = read_fasta(str(input[0]))
-        fastas = [[n, s] for s, n in zip(seqs, names)]
+         seqs, names = read_fasta(str(input[0]))
+         fastas = [[n, s] for s, n in zip(seqs, names)]
 
-        enco = {"enco_seqs": {}}
-        for tup in fastas:
-            _, encoded_seq = PSSM.PSSM([tup], path=str(input[1]))
-            enco["enco_seqs"][tup[0]] = encoded_seq[1:]
+         enco = {"enco_seqs": {}}
+         for tup in fastas:
+             _, encoded_seq = PSSM.PSSM([tup], path=str(input[1]))
+             enco["enco_seqs"][tup[0]] = encoded_seq[1:]
 
-        with open(str(output), mode="w") as f:
-            enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
-            yaml.safe_dump(enco, f)
+         with open(str(output), mode="w") as f:
+             enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+             yaml.safe_dump(enco, f)
 
 rule interpolate:
     input:
-        enco=f"data/temp/{TOKEN}/enco_seqs.yaml"
+         enco=f"data/temp/{TOKEN}/enco_seqs.yaml"
     output:
-        temp(f"data/temp/{TOKEN}/out.csv")
+         temp(f"data/temp/{TOKEN}/out.csv")
     script:
-        "scripts/interpolate.R"
+         "scripts/interpolate.R"
 
 rule dump:
     input:
-        f"data/temp/{TOKEN}/out.csv",
-        config["classes_in"]
+         config["fasta_in"],
+         config["classes_in"],
+         f"data/temp/{TOKEN}/out.csv",
     output:
-        config["csv_out"]
+         config["csv_out"]
     run:
-        df = pd.read_csv(str(input[0]), index_col=0)
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
-        df["y"] = classes
-        df.to_csv(str(output))
+         df = pd.read_csv(str(input[2]), index_col=0)
+         df["y"] = -1
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         for (name, (seq, class_)) in seq_tuples.items():
+             df.loc[name, "y"] = class_
+
+         df.to_csv(str(output))
 
 
 
