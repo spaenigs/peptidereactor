@@ -36,8 +36,17 @@ docker run -it --entrypoint "/bin/bash" encoding_benchmark
 
 ### Encoding benchmark
 
+Create the profile dir, if not existing yet.
 ```shell script
-mkdir data/neuropeptides_ds1/profile # if not existing yet
+mkdir data/neuropeptides_ds1/profile 
+```
+Make sure, that the parameter-based encodings are set (or set them manually). See, e.g., 
+`apps/iFeature/codes/ksctriad.py` for details.
+```shell script
+./apps/run_pipeline -s workflows/maximum_window_length.smk --config dataset=neuropeptides_ds1
+```
+Finally, execute the pipeline:
+```
 ./apps/run_pipeline -s encoding_benchmark.smk --config dataset=neuropeptides_ds1
 ```
 
