@@ -159,7 +159,10 @@ rule all:
         f"data/{DATASET}/csv/distance_distribution.csv",
         f"data/{DATASET}/csv/qsar.csv",
         expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
-               distance=[0,3,6,9,12])
+               distance=[0,3,6,9,12]),
+        expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+               algorithm=["average_distance", "total_distance", "cartesian_product",
+                          "number_instances", "frequency_instances"])
 
 rule util_multiple_sequence_alignment:
     input:

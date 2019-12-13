@@ -4,7 +4,7 @@ import os
 
 TOKEN = config["token"]
 TARGET_FILES = config["csv_out"]
-PROFILE_DIR = config["profile"]
+PDB_DIR = config["pdb_dir"]
 
 if type(TARGET_FILES) == list:
     TARGET_DIR = os.path.dirname(TARGET_FILES[0])
@@ -23,7 +23,7 @@ rule encode:
 
          res = {}
          for name in names:
-             pdb_file = PROFILE_DIR + f"/{name}.pdb"
+             pdb_file = PDB_DIR + f"{name}.pdb"
              if wildcards.algorithm == "average_distance":
                  vals = ProteinStructure(protein=pdb_file)\
                      .average_distance()

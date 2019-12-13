@@ -173,3 +173,22 @@ rule encoding_distance_distribution:
                             --cores {CORES} \
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
+
+rule encoding_delaunay:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_pdbs_classes.txt",
+         pdb_dir=f"data/{DATASET}/pdb/"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+                        algorithm=["average_distance", "total_distance", "cartesian_product",
+                                   "number_instances", "frequency_instances"])
+    params:
+         snakefile="nodes/encodings/delaunay/Snakefile",
+         configfile="nodes/encodings/delaunay/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
