@@ -1,0 +1,68 @@
+import os
+import pandas as pd
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+def parse_aaindices(path):
+    aaindex_df = pd.read_csv(path, sep="\t", index_col=0)\
+                     .iloc[:, :-1]
+    aaindex_df.columns = pd.read_csv(path, sep="\t", index_col=0)\
+                             .columns.values[1:]
+    return aaindex_df
+
+rule get_cluster:
+    input:
+         config["aaindex_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/fldpc/aaindex_cluster_{{aaindex}}.csv")
+    run:
+         from sklearn.cluster import KMeans
+
+         aaindex_df = parse_aaindices(str(input))
+
+         kmeans = KMeans(n_clusters=5)\
+             .fit(aaindex_df.loc[wildcards.aaindex, :].values.reshape(-1, 1))
+
+         sorted_df = pd.DataFrame({
+             "aa": aaindex_df.columns,
+             "val": aaindex_df.loc[wildcards.aaindex, :],
+             "class": kmeans.labels_}).sort_values(by="val")
+         sorted_df["new_class"] = "NA"
+
+         new_classes = ["T", "H", "M", "L", "B"]
+         for c in sorted_df["class"].unique():
+             sorted_df.loc[sorted_df["class"] == c, "new_class"] = new_classes.pop()
+
+         sorted_df.to_csv(str(output))
+
+rule encode_five_level_dpc:
+    input:
+         config["csv_in"],
+         f"data/temp/{TOKEN}/fldpc/aaindex_cluster_{{aaindex}}.csv"
+    output:
+         f"{TARGET_DIR}/fldpc_{{aaindex}}.csv"
+    run:
+         from itertools import product
+
+         df = pd.read_csv(str(input[0]), index_col=0)
+         sorted_df = pd.read_csv(str(input[1]), index_col=0)
+
+         groups = product(["T", "H", "M", "L", "B"], repeat=2)
+         df_res = pd.DataFrame(0, index=df.index,
+                               columns=[f"{group_1}{group_2}"
+                                        for group_1, group_2 in groups])
+         df_res["y"] = df["y"]
+
+         indices = [list(cols) for cols in df.columns[:-1]]
+         for idx in df.index:
+             for aa1, aa2 in indices:
+                 group_1, group_2 = sorted_df.loc[[aa1, aa2], "new_class"]
+                 df_res.loc[idx, f"{group_1}{group_2}"] += \
+                     df.loc[idx, f"{aa1}{aa2}"].sum()
+
+         df_res.to_csv(str(output))
