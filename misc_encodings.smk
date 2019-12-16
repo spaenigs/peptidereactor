@@ -253,8 +253,6 @@ rule encoding_aaindex:
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
 
-
-
 rule encoding_aac:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
@@ -282,11 +280,62 @@ rule encoding_fft:
                         aaindex=get_aaindex())
     params:
          snakefile="nodes/encodings/fft/Snakefile",
-         configfile="nodes/encodings/distance_distribution/config.yaml"
+         configfile="nodes/encodings/fft/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores 8 \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_waac:
+    input:
+         csv_in=f"data/{DATASET}/csv/aac.csv",
+         aaindex_in="apps/iFeature/data/AAindex.tsv"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/waac/waac_{{aaindex}}.csv",
+                        aaindex=get_aaindex())
+    params:
+         snakefile="nodes/encodings/waac/Snakefile",
+         configfile="nodes/encodings/waac/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_flgc:
+    input:
+         csv_in=f"data/{DATASET}/csv/aac.csv",
+         aaindex_in="apps/iFeature/data/AAindex.tsv"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/flgc/flgc_{{aaindex}}.csv",
+                        aaindex=get_aaindex())
+    params:
+         snakefile="nodes/encodings/flgc/Snakefile",
+         configfile="nodes/encodings/flgc/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_fldpc:
+    input:
+         csv_in=f"data/{DATASET}/csv/dpc.csv",
+         aaindex_in="apps/iFeature/data/AAindex.tsv"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/fldpc/fldpc_{{aaindex}}.csv",
+                        aaindex=get_aaindex())
+    params:
+         snakefile="nodes/encodings/fldpc/Snakefile",
+         configfile="nodes/encodings/fldpc/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
 

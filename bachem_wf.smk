@@ -164,4 +164,10 @@ rule all:
                distance=[0,3,6,9,12]),
         expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
                algorithm=["average_distance", "total_distance", "cartesian_product",
-                          "number_instances", "frequency_instances"])
+                          "number_instances", "frequency_instances"]),
+        expand(f"data/{DATASET}/csv/waac/waac_{{aaindex}}.csv",
+                        aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/flgc/flgc_{{aaindex}}.csv",
+                        aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/fldpc/fldpc_{{aaindex}}.csv",
+                        aaindex=get_aaindex())
