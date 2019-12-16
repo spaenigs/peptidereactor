@@ -1,0 +1,32 @@
+import os
+import pandas as pd
+from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import svds
+
+TARGET_FILES = config["csv_out"]
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule encode:
+    input:
+         config["csv_in"]
+    output:
+         f"{TARGET_DIR}/ngram_a3_{{dim}}.csv",
+         f"{TARGET_DIR}/ngram_a3_lsv_{{dim}}.csv",
+         f"{TARGET_DIR}/ngram_a3_sv_{{dim}}.csv"
+    run:
+         df = pd.read_csv(str(input), index_col=0)
+
+         X = csc_matrix(df.iloc[:, :-1].transpose().values, dtype=float)
+         T, S, P = svds(X, k=int(wildcards.dim))
+
+         df_res = pd.DataFrame(P.transpose())
+         df_res.index = df.index
+         df_res["y"] = df["y"]
+
+         df_res.to_csv(str(output[0]))
+         pd.DataFrame(T).to_csv(str(output[1]))
+         pd.DataFrame(S).to_csv(str(output[2]))
+
