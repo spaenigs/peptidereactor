@@ -1,4 +1,3 @@
-from modlamp.core import read_fasta
 import numpy as np
 import os
 import pandas as pd
