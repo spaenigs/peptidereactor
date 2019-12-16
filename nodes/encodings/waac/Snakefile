@@ -15,12 +15,12 @@ def parse_aaindices(path):
                              .columns.values[1:]
     return aaindex_df
 
-rule encode_weighted_aac:
+rule encode_waac:
     input:
          config["csv_in"],
          config["aaindex_in"]
     output:
-         f"{TARGET_DIR}/aaindexloc_weighted_{{aaindex}}.csv"
+         f"{TARGET_DIR}/waac_{{aaindex}}.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          aaindex_df = parse_aaindices(str(input[1]))

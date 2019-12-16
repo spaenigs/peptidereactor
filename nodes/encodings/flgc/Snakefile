@@ -19,7 +19,7 @@ rule get_cluster:
     input:
          config["aaindex_in"]
     output:
-         f"data/temp/{TOKEN}/aaindex_cluster_{{aaindex}}.csv"
+         temp(f"data/temp/{TOKEN}/flgc/aaindex_cluster_{{aaindex}}.csv")
     run:
          from sklearn.cluster import KMeans
 
@@ -40,12 +40,12 @@ rule get_cluster:
 
          sorted_df.to_csv(str(output))
 
-rule encode_fivegroup_aac:
+rule encode_five_level_grouping_composition:
     input:
          config["csv_in"],
-         f"data/temp/{TOKEN}/aaindex_cluster_{{aaindex}}.csv"
+         f"data/temp/{TOKEN}/flgc/aaindex_cluster_{{aaindex}}.csv"
     output:
-         f"{TARGET_DIR}/aaindexloc_fivegroup_{{aaindex}}.csv"
+         f"{TARGET_DIR}/flgc_{{aaindex}}.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          sorted_df = pd.read_csv(str(input[1]))
