@@ -1,0 +1,34 @@
+import os
+import pandas as pd
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+def parse_aaindices(path):
+    aaindex_df = pd.read_csv(path, sep="\t", index_col=0)\
+                     .iloc[:, :-1]
+    aaindex_df.columns = pd.read_csv(path, sep="\t", index_col=0)\
+                             .columns.values[1:]
+    return aaindex_df
+
+rule encode_weighted_aac:
+    input:
+         config["csv_in"],
+         config["aaindex_in"]
+    output:
+         f"{TARGET_DIR}/aaindexloc_weighted_{{aaindex}}.csv"
+    run:
+         df = pd.read_csv(str(input[0]), index_col=0)
+         aaindex_df = parse_aaindices(str(input[1]))
+
+         df_res = df.copy()
+         for idx in df.index:
+             for col in df.columns[:-1]:
+                 df_res.loc[idx, col] = \
+                    df.loc[idx, col] * aaindex_df.loc[wildcards.aaindex, col]
+
+         df_res.to_csv(str(output))
