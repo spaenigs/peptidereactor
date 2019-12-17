@@ -8,6 +8,14 @@ from collections import ChainMap
 from modlamp.core import read_fasta
 import joblib as jl
 
+try:
+    config["length_in"]
+except KeyError:
+    exit("Run node utils 'dim_size' beforehand or set dimension manually.")
+
+# if "length_in" not in config:
+#     raise ValueError("Run node utils 'dim_size' beforehand or set dimension manually.")
+
 TOKEN = config["token"]
 TARGET_FILES = config["csv_out"]
 if type(TARGET_FILES) == list:
@@ -74,6 +82,8 @@ rule encode:
              df_tmp = pd.DataFrame({name: total}).transpose()
              df_tmp["y"] = class_
              df_res = pd.concat([df_res, df_tmp], axis=0)
+
+         print(df_res.shape)
 
          df_res.to_csv(str(output))
 
