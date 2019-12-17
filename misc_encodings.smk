@@ -1,5 +1,7 @@
 from utils.snakemake_config import WorkflowExecuter
 import pandas as pd
+import yaml
+import sys
 
 DATASET = config["dataset"]
 CORES = 8
@@ -9,6 +11,16 @@ def get_aaindex():
     df.columns = df.columns[1:].tolist() + ["NaN"]
     df = df.iloc[:, :-1]
     return df.index.to_list()
+
+def get_max_dim_size(ngram):
+    ngram_type, size = list(ngram)
+    try:
+        with open(f"data/{DATASET}/misc/ngram_{ngram_type}{size}.yaml") as f:
+            return yaml.safe_load(f)  # range is exclusive
+    except FileNotFoundError:
+        sys.exit("""
+        Please run node dim_size beforehand (or set dimension manually): min(len(shape[0], shape[1]).
+        """)
 
 rule encoding_pssm:
     input:
@@ -341,14 +353,15 @@ rule encoding_fldpc:
 
 rule encoding_ngram_a2:
     input:
-         csv_in=f"data/{DATASET}/csv/dpc.csv"
+         csv_in=f"data/{DATASET}/csv/dpc.csv",
+         length_in=f"data/{DATASET}/misc/ngram_a2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_{{dim}}.csv",
-                        dim=[3]),  #[5, 15, 15]), k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("a2"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_lsv_{{dim}}.csv",
-                        dim=[3]),  #[5, 15, 15]),
+                        dim=range(1, get_max_dim_size("a2"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_sv_{{dim}}.csv",
-                       dim=[3]),  #[5, 15, 15])
+                       dim=range(1, get_max_dim_size("a2"))),
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -361,14 +374,15 @@ rule encoding_ngram_a2:
 
 rule encoding_ngram_a3:
     input:
-         csv_in=f"data/{DATASET}/csv/tpc.csv"
+         csv_in=f"data/{DATASET}/csv/tpc.csv",
+         length_in=f"data/{DATASET}/misc/ngram_a3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_{{dim}}.csv",
-                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("a3"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_lsv_{{dim}}.csv",
-                        dim=[3]),
+                        dim=range(1, get_max_dim_size("a3"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_sv_{{dim}}.csv",
-                       dim=[3]),
+                       dim=range(1, get_max_dim_size("a3"))),
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -383,13 +397,14 @@ rule encoding_ngram_e2:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_classes.txt",
+         length_in=f"data/{DATASET}/misc/ngram_e2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_{{dim}}.csv",
-                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("e2"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_lsv_{{dim}}.csv",
-                        dim=[3]),
+                        dim=range(1, get_max_dim_size("e2"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_sv_{{dim}}.csv",
-                       dim=[3])
+                       dim=range(1, get_max_dim_size("e2")))
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -404,13 +419,14 @@ rule encoding_ngram_e3:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_classes.txt",
+         length_in=f"data/{DATASET}/misc/ngram_e3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_{{dim}}.csv",
-                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("e3"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_lsv_{{dim}}.csv",
-                        dim=[3]),
+                        dim=range(1, get_max_dim_size("e3"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_sv_{{dim}}.csv",
-                       dim=[3])
+                       dim=range(1, get_max_dim_size("e3")))
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -425,13 +441,14 @@ rule encoding_ngram_s2:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_classes.txt",
+         length_in=f"data/{DATASET}/misc/ngram_s2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_{{dim}}.csv",
-                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("s2"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_lsv_{{dim}}.csv",
-                        dim=[3]),
+                        dim=range(1, get_max_dim_size("s2"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_sv_{{dim}}.csv",
-                       dim=[3])
+                       dim=range(1, get_max_dim_size("s2")))
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -446,13 +463,14 @@ rule encoding_ngram_s3:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
          classes_in=f"data/{DATASET}/annotated_classes.txt",
+         length_in=f"data/{DATASET}/misc/ngram_s3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv",
-                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+                        dim=range(1, get_max_dim_size("s3"))),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv",
-                        dim=[3]),
+                        dim=range(1, get_max_dim_size("s3"))),
          sv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv",
-                       dim=[3])
+                       dim=range(1, get_max_dim_size("s3")))
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -462,30 +480,6 @@ rule encoding_ngram_s3:
                             --cores {CORES} \
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
-
-# rule encoding_ngram_eg:
-#     input:
-#          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
-#          classes_in=f"data/{DATASET}/annotated_classes.txt",
-#     output:
-#          csv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
-#                             f"ngram_{{type}}{{size}}_{{dim}}.csv",
-#                         type=["e","s"], size=[2,3], dim=[3]), # k must be between 1 and min(A.shape), k=4
-#          lsv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
-#                             f"ngram_e{{size}}_lsv_{{dim}}.csv",
-#                         type=["e","s"], size=[2,3], dim=[3]),
-#          sv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
-#                             f"ngram_e{{size}}_sv_{{dim}}.csv",
-#                        type=["e","s"], size=[2,3], dim=[3])
-#     params:
-#          snakefile="nodes/encodings/ngram_eg/Snakefile",
-#          configfile="nodes/encodings/ngram_eg/config.yaml"
-#     run:
-#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-#              shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-#                             --cores {CORES} \
-#                             --directory $PWD \
-#                             --configfile {{params.configfile}}""")
 
 rule encoding_cgr:
     input:
