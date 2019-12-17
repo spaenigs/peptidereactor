@@ -1,0 +1,24 @@
+from modlamp.core import read_fasta
+import yaml
+import os
+
+TARGET_FILES = config["length_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+checkpoint get_max_dim_size:
+    input:
+         config["fasta_in"]
+    output:
+         f"{TARGET_DIR}/ngram_{{type}}{{size}}.yaml"
+    run:
+         seqs, _ = read_fasta(str(input))
+
+         x1 = len(seqs)
+         x2 = {"a": 20, "e": 6, "s": 3}[wildcards.type]**int(wildcards.size)
+
+         with open(str(output), mode="w") as f:
+             yaml.safe_dump(min(x1, x2), f)
