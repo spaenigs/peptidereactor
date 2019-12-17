@@ -339,6 +339,154 @@ rule encoding_fldpc:
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
 
+rule encoding_ngram_a2:
+    input:
+         csv_in=f"data/{DATASET}/csv/dpc.csv"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_{{dim}}.csv",
+                        dim=[3]),  #[5, 15, 15]), k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_lsv_{{dim}}.csv",
+                        dim=[3]),  #[5, 15, 15]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_sv_{{dim}}.csv",
+                       dim=[3]),  #[5, 15, 15])
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_ngram_a3:
+    input:
+         csv_in=f"data/{DATASET}/csv/tpc.csv"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_{{dim}}.csv",
+                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_lsv_{{dim}}.csv",
+                        dim=[3]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_sv_{{dim}}.csv",
+                       dim=[3]),
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_ngram_e2:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_{{dim}}.csv",
+                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_lsv_{{dim}}.csv",
+                        dim=[3]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_sv_{{dim}}.csv",
+                       dim=[3])
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_ngram_e3:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_{{dim}}.csv",
+                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_lsv_{{dim}}.csv",
+                        dim=[3]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_sv_{{dim}}.csv",
+                       dim=[3])
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_ngram_s2:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_{{dim}}.csv",
+                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_lsv_{{dim}}.csv",
+                        dim=[3]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_sv_{{dim}}.csv",
+                       dim=[3])
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_ngram_s3:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt",
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv",
+                        dim=[3]), # k must be between 1 and min(A.shape), k=4
+         lsv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv",
+                        dim=[3]),
+         sv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv",
+                       dim=[3])
+    params:
+         snakefile="nodes/encodings/ngram/Snakefile",
+         configfile="nodes/encodings/ngram/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+# rule encoding_ngram_eg:
+#     input:
+#          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+#          classes_in=f"data/{DATASET}/annotated_classes.txt",
+#     output:
+#          csv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
+#                             f"ngram_{{type}}{{size}}_{{dim}}.csv",
+#                         type=["e","s"], size=[2,3], dim=[3]), # k must be between 1 and min(A.shape), k=4
+#          lsv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
+#                             f"ngram_e{{size}}_lsv_{{dim}}.csv",
+#                         type=["e","s"], size=[2,3], dim=[3]),
+#          sv_out=expand(f"data/{DATASET}/csv/ngram_{{type}}{{size}}/" + \
+#                             f"ngram_e{{size}}_sv_{{dim}}.csv",
+#                        type=["e","s"], size=[2,3], dim=[3])
+#     params:
+#          snakefile="nodes/encodings/ngram_eg/Snakefile",
+#          configfile="nodes/encodings/ngram_eg/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+#                             --cores {CORES} \
+#                             --directory $PWD \
+#                             --configfile {{params.configfile}}""")
+
 rule encoding_cgr:
     input:
          fasta_in=f"data/{DATASET}/annotated_seqs.fasta",

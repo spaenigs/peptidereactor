@@ -165,9 +165,24 @@ rule all:
         expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
                algorithm=["average_distance", "total_distance", "cartesian_product",
                           "number_instances", "frequency_instances"]),
-        expand(f"data/{DATASET}/csv/waac/waac_{{aaindex}}.csv",
-                        aaindex=get_aaindex()),
-        expand(f"data/{DATASET}/csv/flgc/flgc_{{aaindex}}.csv",
-                        aaindex=get_aaindex()),
-        expand(f"data/{DATASET}/csv/fldpc/fldpc_{{aaindex}}.csv",
-                        aaindex=get_aaindex())
+        expand(f"data/{DATASET}/csv/waac/waac_{{aaindex}}.csv", aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/flgc/flgc_{{aaindex}}.csv", aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/fldpc/fldpc_{{aaindex}}.csv", aaindex=get_aaindex()),
+        expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_{{dim}}.csv", dim=[3]),  #5, 15, 15]),
+        expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_lsv_{{dim}}.csv", dim=[3]),  #[5, 15, 15]),
+        expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_sv_{{dim}}.csv", dim=[3]),  #[5, 15, 15])
+        expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_lsv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_sv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_{{dim}}.csv", dim=[3]), # k must be between 1 and min(A.shape), k=4
+        expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_lsv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_sv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_{{dim}}.csv", dim=[3]), # k must be between 1 and min(A.shape), k=4
+        expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_lsv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_sv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_{{dim}}.csv", dim=[3]), # k must be between 1 and min(A.shape), k=4
+        expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_lsv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_sv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv", dim=[3]), # k must be between 1 and min(A.shape), k=4
+        expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv", dim=[3]),
