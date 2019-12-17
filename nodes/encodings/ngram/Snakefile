@@ -1,0 +1,105 @@
+import os
+import pandas as pd
+from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import svds
+from itertools import product
+from more_itertools import windowed
+from collections import ChainMap
+from modlamp.core import read_fasta
+import joblib as jl
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+# Exchange groups (E): M,I,L,V; F,Y,W, S,T,P,A,G; N,D,E,Q; H,R,K and C.
+# see: Wu et al. (1990): PROCANS: a protein classification system using a neural network
+EXCHANGE_GROUPS = \
+    {"C": "6", "H": "5", "R": "5", "K": "5", "N": "4", "D": "4", "E": "4",
+     "Q": "4", "S": "3", "T": "3", "P": "3", "A": "3", "G": "3", "F": "2",
+     "Y": "2", "W": "2", "M": "1", "I": "1", "L": "1", "V": "1"}
+
+# Three letter structural groups (S): internal (I): F, I, L, M, V;
+#                                   ambivalent (A): A, C, G, P, S, T, W, Y;
+#                                     external (E): D, E, H, K, N, Q, R;
+# see: Liu et al. (2006): Protein-based phylogenetic analysis by using hydropathy profile of amino acids
+STRUCTURAL_GROUPS = \
+    {"F": "I", "I": "I", "L": "I", "M": "I", "V": "I",
+     "A": "A", "C": "A", "G": "A", "P": "A", "S": "A", "T": "A", "W": "A", "Y": "A",
+     "D": "E", "E": "E", "H": "E", "K": "E", "N": "E", "Q": "E", "R": "E"}
+
+rule read_input_data:
+    input:
+         config["fasta_in"] if "fasta_in" in config else "",
+         config["classes_in"] if "classes_in" in config else ""
+    output:
+         temp(f"data/temp/{TOKEN}/input_data.jl")
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         jl.dump(seq_tuples, str(output))
+
+rule encode:
+    input:
+         f"data/temp/{TOKEN}/input_data.jl"
+    output:
+         temp(f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv")
+    run:
+         seq_tuples = jl.load(str(input))
+         type_, size = wildcards.type, int(wildcards.size)
+
+         if size not in [2,3]:
+             raise ValueError(f"Size should be 2 or 3, but was {size}!")
+         elif type_ == "e":
+             groups, mapping = "123456", EXCHANGE_GROUPS
+         elif type_ == "s":
+             groups, mapping = "IAE", STRUCTURAL_GROUPS
+         else:
+             raise ValueError(f"Type should be 'e' or 's', but was '{type_}'!")
+
+         prod = product(groups, repeat=size)
+         total = dict(ChainMap(*list(map(lambda duo: {"".join(duo): 0}, prod))))
+         df_res = pd.DataFrame()
+         for (name, (seq, class_)) in seq_tuples.items():
+             mapped_seq = list(map(lambda aa: mapping[aa], seq))
+             for duo in windowed(mapped_seq, size):
+                 total["".join(duo)] += 1
+             for k in total.keys():
+                 total[k] /= len(total)
+             df_tmp = pd.DataFrame({name: total}).transpose()
+             df_tmp["y"] = class_
+             df_res = pd.concat([df_res, df_tmp], axis=0)
+
+         df_res.to_csv(str(output))
+
+rule svd:
+    input:
+         config["csv_in"] if "csv_in" in config else \
+             f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv"
+    output:
+         f"{TARGET_DIR}/ngram_{{type}}{{size}}_{{dim}}.csv",
+         f"{TARGET_DIR}/ngram_{{type}}{{size}}_lsv_{{dim}}.csv",
+         f"{TARGET_DIR}/ngram_{{type}}{{size}}_sv_{{dim}}.csv"
+    run:
+         df = pd.read_csv(str(input), index_col=0)
+
+         X = csc_matrix(df.iloc[:, :-1].transpose().values, dtype=float)
+         T, S, P = svds(X, k=int(wildcards.dim))
+
+         df_res = pd.DataFrame(P.transpose())
+         df_res.index = df.index
+         df_res["y"] = df["y"]
+
+         df_res.to_csv(str(output[0]))
+         pd.DataFrame(T).to_csv(str(output[1]))
+         pd.DataFrame(S).to_csv(str(output[2]))
+
+
+
+
+
