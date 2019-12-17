@@ -43,10 +43,15 @@ mkdir data/neuropeptides_ds1/profile
 Make sure, that the parameter-based encodings are set (or set them manually). See, e.g., 
 `apps/iFeature/codes/ksctriad.py` for details.
 ```shell script
-./apps/run_pipeline -s workflows/maximum_window_length.smk --config dataset=neuropeptides_ds1
+./apps/run_pipeline -s maximum_window_length.smk --config dataset=neuropeptides_ds1
+```
+Moreover, ngram-based encodings require a predetermined dimension. Either run the respective rule 
+or set the maximum dimension manually:
+```shell script
+./apps/run_pipeline -s maximum_dim_size.smk --config dataset=neuropeptides_ds1
 ```
 Finally, execute the pipeline:
-```
+```shell script
 ./apps/run_pipeline -s encoding_benchmark.smk --config dataset=neuropeptides_ds1
 ```
 
