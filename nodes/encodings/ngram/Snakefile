@@ -83,8 +83,6 @@ rule encode:
              df_tmp["y"] = class_
              df_res = pd.concat([df_res, df_tmp], axis=0)
 
-         print(df_res.shape)
-
          df_res.to_csv(str(output))
 
 rule svd:
