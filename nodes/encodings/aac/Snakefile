@@ -25,11 +25,11 @@ rule dump:
          f"data/temp/{TOKEN}/out.csv",
          config["classes_in"]
     output:
-        config["csv_out"]
+         config["csv_out"]
     run:
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
-        df = pd.read_csv(str(input[0]), index_col=0)
-        df["y"] = classes
-        df.to_csv(str(output))
+         df = pd.read_csv(str(input[0]), index_col=0)
+         df["y"] = classes
+         df.to_csv(str(output))
