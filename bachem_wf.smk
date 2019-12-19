@@ -186,3 +186,6 @@ rule all:
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv", dim=[3]), # k must be between 1 and min(A.shape), k=4
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv", dim=[3]),
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv", dim=[3]),
+        expand(f"data/{DATASET}/csv/distance_frequency/distance_frequency_dn_{{nterminal}}_dc_{{cterminal}}.csv",
+               nterminal=[5, 10, 20, 50, 100], cterminal=[5, 10, 20, 50, 100]),
+        f"data/{DATASET}/csv/blomap.csv"

@@ -513,3 +513,38 @@ rule encoding_ctriad:
                             --cores {CORES} \
                             --directory $PWD \
                             --configfile {{params.configfile}}""")
+
+rule encoding_distance_frequency:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
+    output:
+         csv_out=expand(f"data/{DATASET}/csv/distance_frequency/" + \
+                        f"distance_frequency_dn_{{nterminal}}_dc_{{cterminal}}.csv",
+                        nterminal=[5, 10, 20, 50, 100],
+                        cterminal=[5, 10, 20, 50, 100])
+    params:
+         snakefile="nodes/encodings/distance_frequency/Snakefile",
+         configfile="nodes/encodings/distance_frequency/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
+
+rule encoding_blomap:
+    input:
+         fasta_in=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_in=f"data/{DATASET}/annotated_classes.txt"
+    output:
+         csv_out=f"data/{DATASET}/csv/blomap.csv"
+    params:
+         snakefile="nodes/encodings/blomap/Snakefile",
+         configfile="nodes/encodings/blomap/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
