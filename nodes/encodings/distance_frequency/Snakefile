@@ -1,0 +1,38 @@
+import os
+from modlamp.core import read_fasta
+import pandas as pd
+
+TOKEN = config["token"]
+TARGET_FILES = config["csv_out"]
+
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES)
+
+rule encode:
+    input:
+         config["fasta_in"],
+         config["classes_in"]
+    output:
+         f"{TARGET_DIR}/distance_frequency_dn_{{nterminal}}_dc_{{cterminal}}.csv"
+    run:
+         from nodes.encodings.distance_frequency.scripts.distance_frequency \
+             import DistanceFrequency
+
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+         df_res = pd.DataFrame()
+         for seq, name, class_ in zip(seqs, names, classes):
+             encoded_seq = \
+                 DistanceFrequency(seq=seq,
+                                   dn=int(wildcards.nterminal),
+                                   dc=int(wildcards.cterminal))\
+                     .feature_vector()
+             df_tmp = pd.DataFrame.from_dict({name: encoded_seq}).transpose()
+             df_tmp["y"] = class_
+             df_res = pd.concat([df_res, df_tmp])
+
+         df_res.to_csv(str(output))
