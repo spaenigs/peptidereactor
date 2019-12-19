@@ -1,0 +1,75 @@
+from modlamp.core import read_fasta
+import pandas as pd
+import numpy as np
+from more_itertools import flatten
+import yaml
+
+TOKEN = config["token"]
+
+BLOMAP = \
+    {"A": [-0.57,  0.39, -0.96, -0.61, -0.69],
+     "R": [-0.40, -0.83, -0.61,  1.26, -0.28],
+     "N": [-0.70, -0.63, -1.47,  1.02,  1.06],
+     "D": [-1.62, -0.52, -0.67,  1.02,  1.47],
+     "C": [ 0.07,  2.04,  0.65, -1.13, -0.39],
+     "Q": [-0.05, -1.50, -0.67,  0.49,  0.21],
+     "E": [-0.64, -1.59, -0.39,  0.69,  1.04],
+     "G": [-0.90,  0.87, -0.36,  1.08,  1.95],
+     "H": [ 0.73, -0.67, -0.42,  1.13,  0.99],
+     "I": [ 0.59,  0.79,  1.44, -1.90, -0.93],
+     "L": [ 0.65,  0.84,  1.25, -0.99, -1.90],
+     "K": [-0.64, -1.19, -0.65,  0.68, -0.13],
+     "M": [ 0.76,  0.05,  0.06, -0.62, -1.59],
+     "F": [ 1.87,  1.04,  1.28, -0.61, -0.16],
+     "P": [-1.82, -0.63,  0.32,  0.03,  0.68],
+     "S": [-0.39, -0.27, -1.51, -0.25,  0.31],
+     "T": [-0.04, -0.30, -0.82, -1.02, -0.04],
+     "W": [ 1.38,  1.69,  1.91,  1.07, -0.05],
+     "Y": [ 1.75,  0.11,  0.65,  0.21, -0.41],
+     "V": [-0.02,  0.30,  0.97, -1.55, -1.16]}
+
+rule encode:
+    input:
+         config["fasta_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/blomap.yaml")
+    run:
+         seqs, names = read_fasta(str(input))
+
+         enco = {"enco_seqs": {}}
+         for seq, name in zip(seqs, names):
+             encoded_seq = flatten(map(lambda aa: BLOMAP[aa], seq))
+             enco["enco_seqs"][name] = list(encoded_seq)
+
+         with open(str(output), mode="w") as f:
+             enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+             yaml.safe_dump(enco, f)
+
+rule interpolate:
+    input:
+         enco=f"data/temp/{TOKEN}/blomap.yaml"
+    output:
+         temp(f"data/temp/{TOKEN}/blomap.csv")
+    script:
+         "scripts/interpolate.R"
+
+rule dump:
+    input:
+         config["fasta_in"],
+         config["classes_in"],
+         f"data/temp/{TOKEN}/blomap.csv"
+    output:
+         config["csv_out"]
+    run:
+         seqs, names = read_fasta(str(input[0]))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+         df = pd.read_csv(str(input[2]), index_col=0)
+         df["y"] = -1
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         for (name, (seq, class_)) in seq_tuples.items():
+             df.loc[name, "y"] = class_
+
+         df.to_csv(str(output))
