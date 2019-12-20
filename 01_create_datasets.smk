@@ -1,8 +1,7 @@
-import os
-
-config["global_workdir"] = os.getcwd() + "/"
+from utils.snakemake_config import WorkflowExecuter
 
 DATASET = config["dataset"]
+CORES = int(config["cores"])
 
 rule all:
     input:
@@ -11,7 +10,6 @@ rule all:
          f"data/{DATASET}_ds1/classes.txt",
          f"data/{DATASET}_ds2/seqs.fasta",
          f"data/{DATASET}_ds2/classes.txt"
-
 
 rule plot_sequence_length_distribution:
         input:
@@ -24,11 +22,14 @@ rule plot_sequence_length_distribution:
         output:
              svg_out="data/{dataset}/sequence_length_distribution.svg"
         params:
-             subworkflow="sequence_length_distribution",
              snakefile="nodes/plots/sequence_length_distribution/Snakefile",
              configfile="nodes/plots/sequence_length_distribution/config.yaml"
-        script:
-             "utils/subworkflow.py"
+        run:
+             with WorkflowExecuter(dict(input), dict(output), params.configfile):
+                 shell(f"""snakemake -s {{params.snakefile}} {{output.svg_out}} \
+                                --cores {CORES} \
+                                --directory $PWD \
+                                --configfile {{params.configfile}}""")
 
 rule util_split_normalize:
     input:
@@ -40,8 +41,14 @@ rule util_split_normalize:
          fasta_out_2="data/{dataset}_ds2/seqs.fasta",
          classes_out_2="data/{dataset}_ds2/classes.txt"
     params:
-         subworkflow="split_normalize",
          snakefile="nodes/utils/split_normalize/Snakefile",
          configfile="nodes/utils/split_normalize/config.yaml"
-    script:
-         "utils/subworkflow.py"
+    run:
+         import os
+         print(os.getcwd())
+         print(os.listdir(os.getcwd()))
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} {{output.fasta_out_1}} {{output.classes_out_2}} {{output.fasta_out_2}} {{output.classes_out_2}} \
+                            --cores {CORES} \
+                            --directory $PWD \
+                            --configfile {{params.configfile}}""")
