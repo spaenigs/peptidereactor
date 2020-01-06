@@ -3,6 +3,13 @@ from Bio import SeqIO
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         config["fasta_out_1"],
+         config["classes_out_2"],
+         config["fasta_out_2"],
+         config["classes_out_2"]
+
 rule read_fasta:
     input:
          config["fasta_in"]

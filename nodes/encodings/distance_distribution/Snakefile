@@ -4,6 +4,10 @@ import pandas as pd
 TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule compute_distance_distribution:
     input:
          PDB_DIR + "{seq_name}.pdb"

@@ -29,10 +29,10 @@ rule util_multiple_sequence_alignment:
          configfile="nodes/utils/multiple_sequence_alignment/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.fasta_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule util_secondary_structure_profile:
     input:
@@ -59,10 +59,10 @@ rule util_secondary_structure_profile:
          configfile="nodes/utils/secondary_structure_profile/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.fasta_anno_out}} {{output.fasta_anno_msa_out}} {{output.classes_anno}} {{output.profiles_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \ 
+                                 --configfile {{params.configfile}}""")
 
 rule util_protein_structure_prediction:
     input:
@@ -82,7 +82,7 @@ rule util_protein_structure_prediction:
          configfile="nodes/utils/protein_structure_prediction/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.fasta_out}} {{output.classes_out}} {{output.pdbs_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")

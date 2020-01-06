@@ -12,6 +12,13 @@ include:
 include:
     "setup_libs.smk"
 
+rule all:
+    input:
+         config["profiles_out"],
+         config["fasta_anno_out"],
+         config["fasta_anno_msa_out"],
+         config["classes_anno"]
+
 rule split_input_data:
     input:
          config["fasta_in"],

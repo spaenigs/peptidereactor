@@ -25,10 +25,10 @@ rule util_window_length:
          configfile="nodes/utils/window_length/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.length_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule util_dim_size:
     input:
@@ -41,8 +41,8 @@ rule util_dim_size:
          configfile="nodes/utils/dim_size/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.length_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 

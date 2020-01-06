@@ -13,6 +13,10 @@ if type(TARGET_FILES) == list:
 else:
     TARGET_DIR = os.path.dirname(TARGET_FILES)
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule encode:
     input:
         config["fasta_in"]
@@ -27,7 +31,6 @@ rule encode:
                              raactype=int(wildcards.raac_val),
                              ktuple=int(wildcards.ktuple_val),
                              glValue=int(wildcards.lambda_val)))
-        # print(res)
         df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
         df.index = np.array(res)[1:, 0]
         df.to_csv(str(output))

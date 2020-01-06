@@ -12,24 +12,24 @@ rule all:
          f"data/{DATASET}_ds2/classes.txt"
 
 rule plot_sequence_length_distribution:
-        input:
-             fasta_in="data/{dataset}/seqs.fasta",
-             classes_in="data/{dataset}/classes.txt",
-             fasta_out_1="data/{dataset}_ds1/seqs.fasta",
-             classes_out_1="data/{dataset}_ds1/classes.txt",
-             fasta_out_2="data/{dataset}_ds2/seqs.fasta",
-             classes_out_2="data/{dataset}_ds2/classes.txt"
-        output:
-             svg_out="data/{dataset}/sequence_length_distribution.svg"
-        params:
-             snakefile="nodes/plots/sequence_length_distribution/Snakefile",
-             configfile="nodes/plots/sequence_length_distribution/config.yaml"
-        run:
-             with WorkflowExecuter(dict(input), dict(output), params.configfile):
-                 shell(f"""snakemake -s {{params.snakefile}} {{output.svg_out}} \
-                                --cores {CORES} \
-                                --directory $PWD \
-                                --configfile {{params.configfile}}""")
+    input:
+         fasta_in="data/{dataset}/seqs.fasta",
+         classes_in="data/{dataset}/classes.txt",
+         fasta_out_1="data/{dataset}_ds1/seqs.fasta",
+         classes_out_1="data/{dataset}_ds1/classes.txt",
+         fasta_out_2="data/{dataset}_ds2/seqs.fasta",
+         classes_out_2="data/{dataset}_ds2/classes.txt"
+    output:
+         svg_out="data/{dataset}/sequence_length_distribution.svg"
+    params:
+         snakefile="nodes/plots/sequence_length_distribution/Snakefile",
+         configfile="nodes/plots/sequence_length_distribution/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule util_split_normalize:
     input:
@@ -44,11 +44,8 @@ rule util_split_normalize:
          snakefile="nodes/utils/split_normalize/Snakefile",
          configfile="nodes/utils/split_normalize/config.yaml"
     run:
-         import os
-         print(os.getcwd())
-         print(os.listdir(os.getcwd()))
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.fasta_out_1}} {{output.classes_out_2}} {{output.fasta_out_2}} {{output.classes_out_2}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")

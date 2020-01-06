@@ -13,9 +13,6 @@ try:
 except KeyError:
     exit("Run node utils 'dim_size' beforehand or set dimension manually.")
 
-# if "length_in" not in config:
-#     raise ValueError("Run node utils 'dim_size' beforehand or set dimension manually.")
-
 TOKEN = config["token"]
 TARGET_FILES = config["csv_out"]
 if type(TARGET_FILES) == list:
@@ -38,6 +35,10 @@ STRUCTURAL_GROUPS = \
     {"F": "I", "I": "I", "L": "I", "M": "I", "V": "I",
      "A": "A", "C": "A", "G": "A", "P": "A", "S": "A", "T": "A", "W": "A", "Y": "A",
      "D": "E", "E": "E", "H": "E", "K": "E", "N": "E", "Q": "E", "R": "E"}
+
+rule all:
+    input:
+         config["csv_out"]
 
 rule read_input_data:
     input:

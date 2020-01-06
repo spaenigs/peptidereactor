@@ -15,6 +15,10 @@ def parse_aaindices(path):
                              .columns.values[1:]
     return aaindex_df
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule encode_waac:
     input:
          config["csv_in"],

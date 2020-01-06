@@ -12,6 +12,10 @@ from simtk.unit import *
 TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule split_input_data:
     input:
          config["fasta_in"],

@@ -6,6 +6,10 @@ from modlamp.core import read_fasta
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         config["svg_out"]
+
 rule plot_sequence_length_distribution:
     input:
          config["fasta_in"],

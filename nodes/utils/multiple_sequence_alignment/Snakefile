@@ -6,6 +6,10 @@ from modlamp.core import read_fasta, save_fasta
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         config["fasta_out"]
+
 rule temp_file:
     input:
          config["fasta_in"],

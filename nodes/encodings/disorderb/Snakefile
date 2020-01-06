@@ -5,6 +5,10 @@ import pandas as pd
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule encode:
     input:
         config["fasta_in"],

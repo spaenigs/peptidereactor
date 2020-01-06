@@ -9,7 +9,11 @@ if type(TARGET_FILES) == list:
 else:
     TARGET_DIR = os.path.dirname(TARGET_FILES)
 
-checkpoint get_max_dim_size:
+rule all:
+    input:
+         config["length_out"]
+
+rule get_max_dim_size:
     input:
          config["fasta_in"]
     output:

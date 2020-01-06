@@ -14,6 +14,10 @@ else:
 wildcard_constraints:
     sfactor="[\d.]+"
 
+rule all:
+    input:
+         config["csv_out"]
+
 rule split_input_data:
     input:
          config["fasta_in"],

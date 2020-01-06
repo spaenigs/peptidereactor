@@ -240,10 +240,10 @@ rule encoding_pssm:
          configfile="nodes/encodings/pssm/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_zscale:
     input:
@@ -256,10 +256,10 @@ rule encoding_zscale:
          configfile="nodes/encodings/zscale/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_tpc:
     input:
@@ -272,10 +272,10 @@ rule encoding_tpc:
          configfile="nodes/encodings/tpc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_gtpc:
     input:
@@ -288,10 +288,10 @@ rule encoding_gtpc:
          configfile="nodes/encodings/gtpc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_gdpc:
     input:
@@ -304,10 +304,10 @@ rule encoding_gdpc:
          configfile="nodes/encodings/gdpc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_gaac:
     input:
@@ -320,10 +320,10 @@ rule encoding_gaac:
          configfile="nodes/encodings/gaac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_egaac:
     input:
@@ -337,10 +337,10 @@ rule encoding_egaac:
          configfile="nodes/encodings/egaac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_dpc:
     input:
@@ -353,10 +353,10 @@ rule encoding_dpc:
          configfile="nodes/encodings/dpc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_dde:
     input:
@@ -369,10 +369,10 @@ rule encoding_dde:
          configfile="nodes/encodings/dde/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ctdt:
     input:
@@ -385,10 +385,10 @@ rule encoding_ctdt:
          configfile="nodes/encodings/ctdt/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ctdd:
     input:
@@ -401,10 +401,10 @@ rule encoding_ctdd:
          configfile="nodes/encodings/ctdd/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ctdc:
     input:
@@ -417,10 +417,10 @@ rule encoding_ctdc:
          configfile="nodes/encodings/ctdc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_blosum62:
     input:
@@ -433,10 +433,10 @@ rule encoding_blosum62:
          configfile="nodes/encodings/blosum62/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_binary:
     input:
@@ -449,10 +449,10 @@ rule encoding_binary:
          configfile="nodes/encodings/binary/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_aaindex:
     input:
@@ -466,10 +466,10 @@ rule encoding_aaindex:
          configfile="nodes/encodings/aaindex/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_aac:
     input:
@@ -482,10 +482,10 @@ rule encoding_aac:
          configfile="nodes/encodings/aac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_fft:
     input:
@@ -501,10 +501,10 @@ rule encoding_fft:
          configfile="nodes/encodings/fft/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_waac:
     input:
@@ -518,10 +518,10 @@ rule encoding_waac:
          configfile="nodes/encodings/waac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_flgc:
     input:
@@ -535,10 +535,10 @@ rule encoding_flgc:
          configfile="nodes/encodings/flgc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_fldpc:
     input:
@@ -552,10 +552,10 @@ rule encoding_fldpc:
          configfile="nodes/encodings/fldpc/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_a2:
     input:
@@ -573,10 +573,10 @@ rule encoding_ngram_a2:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_a3:
     input:
@@ -594,10 +594,10 @@ rule encoding_ngram_a3:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_e2:
     input:
@@ -616,10 +616,10 @@ rule encoding_ngram_e2:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_e3:
     input:
@@ -638,10 +638,10 @@ rule encoding_ngram_e3:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_s2:
     input:
@@ -660,10 +660,10 @@ rule encoding_ngram_s2:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ngram_s3:
     input:
@@ -682,10 +682,10 @@ rule encoding_ngram_s3:
          configfile="nodes/encodings/ngram/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_cgr:
     input:
@@ -699,10 +699,10 @@ rule encoding_cgr:
          configfile="nodes/encodings/cgr/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ctriad:
     input:
@@ -715,10 +715,10 @@ rule encoding_ctriad:
          configfile="nodes/encodings/ctriad/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_distance_frequency:
     input:
@@ -734,10 +734,10 @@ rule encoding_distance_frequency:
          configfile="nodes/encodings/distance_frequency/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_blomap:
     input:
@@ -750,10 +750,10 @@ rule encoding_blomap:
          configfile="nodes/encodings/blomap/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 ########################################################################################################################
 ########################################### PARAM_BASED ENCODINGS ######################################################
@@ -772,10 +772,10 @@ rule encoding_cksaagp:
          configfile="nodes/encodings/cksaagp/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_socnumber:
     input:
@@ -792,10 +792,10 @@ rule encoding_socnumber:
          cores=4
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_qsorder:
     input:
@@ -810,10 +810,10 @@ rule encoding_qsorder:
          configfile="nodes/encodings/qsorder/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_nmbroto:
     input:
@@ -828,10 +828,10 @@ rule encoding_nmbroto:
          configfile="nodes/encodings/nmbroto/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_moran:
     input:
@@ -846,10 +846,10 @@ rule encoding_moran:
          configfile="nodes/encodings/moran/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ksctriad:
     input:
@@ -864,10 +864,10 @@ rule encoding_ksctriad:
          configfile="nodes/encodings/ksctriad/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_geary:
     input:
@@ -882,10 +882,10 @@ rule encoding_geary:
          configfile="nodes/encodings/geary/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_eaac:
     input:
@@ -900,10 +900,10 @@ rule encoding_eaac:
          configfile="nodes/encodings/eaac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_cksaap:
     input:
@@ -918,10 +918,10 @@ rule encoding_cksaap:
          configfile="nodes/encodings/cksaap/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_apaac:
     input:
@@ -936,10 +936,10 @@ rule encoding_apaac:
          configfile="nodes/encodings/apaac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_paac:
     input:
@@ -954,10 +954,10 @@ rule encoding_paac:
          configfile="nodes/encodings/paac/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 ########################################################################################################################
 ############################################## PSEKRAAC ENCODINGS ######################################################
@@ -977,10 +977,10 @@ rule encoding_psekraac_type16:
          configfile="nodes/encodings/psekraac_type16/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type15:
     input:
@@ -996,10 +996,10 @@ rule encoding_psekraac_type15:
          configfile="nodes/encodings/psekraac_type15/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type14:
     input:
@@ -1015,10 +1015,10 @@ rule encoding_psekraac_type14:
          configfile="nodes/encodings/psekraac_type14/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type13:
     input:
@@ -1034,10 +1034,10 @@ rule encoding_psekraac_type13:
          configfile="nodes/encodings/psekraac_type13/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type12:
     input:
@@ -1053,10 +1053,10 @@ rule encoding_psekraac_type12:
          configfile="nodes/encodings/psekraac_type12/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type11:
     input:
@@ -1072,10 +1072,10 @@ rule encoding_psekraac_type11:
          configfile="nodes/encodings/psekraac_type11/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type10:
     input:
@@ -1091,10 +1091,10 @@ rule encoding_psekraac_type10:
          configfile="nodes/encodings/psekraac_type10/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type9:
     input:
@@ -1110,10 +1110,10 @@ rule encoding_psekraac_type9:
          configfile="nodes/encodings/psekraac_type9/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type8:
     input:
@@ -1129,10 +1129,10 @@ rule encoding_psekraac_type8:
          configfile="nodes/encodings/psekraac_type8/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type7:
     input:
@@ -1148,10 +1148,10 @@ rule encoding_psekraac_type7:
          configfile="nodes/encodings/psekraac_type7/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type6C:
     input:
@@ -1169,10 +1169,10 @@ rule encoding_psekraac_type6C:
          cores=8
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type6B:
     input:
@@ -1188,10 +1188,10 @@ rule encoding_psekraac_type6B:
          configfile="nodes/encodings/psekraac_type6B/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type6A:
     input:
@@ -1207,10 +1207,10 @@ rule encoding_psekraac_type6A:
          configfile="nodes/encodings/psekraac_type6A/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type5:
     input:
@@ -1226,10 +1226,10 @@ rule encoding_psekraac_type5:
          configfile="nodes/encodings/psekraac_type5/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type4:
     input:
@@ -1245,10 +1245,10 @@ rule encoding_psekraac_type4:
          configfile="nodes/encodings/psekraac_type4/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type3B:
     input:
@@ -1264,10 +1264,10 @@ rule encoding_psekraac_type3B:
          configfile="nodes/encodings/psekraac_type3B/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type3A:
     input:
@@ -1283,10 +1283,10 @@ rule encoding_psekraac_type3A:
          configfile="nodes/encodings/psekraac_type3A/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type2:
     input:
@@ -1302,10 +1302,10 @@ rule encoding_psekraac_type2:
          configfile="nodes/encodings/psekraac_type2/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_psekraac_type1:
     input:
@@ -1321,10 +1321,10 @@ rule encoding_psekraac_type1:
          configfile="nodes/encodings/psekraac_type1/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 ########################################################################################################################
 ############################################ STRUCTURE-BASED ENCODINGS #################################################
@@ -1342,10 +1342,10 @@ rule encoding_asa:
          configfile="nodes/encodings/asa/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ta:
     input:
@@ -1359,10 +1359,10 @@ rule encoding_ta:
          configfile="nodes/encodings/ta/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_ssec:
     input:
@@ -1376,10 +1376,10 @@ rule encoding_ssec:
          configfile="nodes/encodings/ssec/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_sseb:
     input:
@@ -1393,10 +1393,10 @@ rule encoding_sseb:
          configfile="nodes/encodings/sseb/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_disorder:
     input:
@@ -1410,10 +1410,10 @@ rule encoding_disorder:
          configfile="nodes/encodings/disorder/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_disorderb:
     input:
@@ -1427,10 +1427,10 @@ rule encoding_disorderb:
          configfile="nodes/encodings/disorderb/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_disorderc:
     input:
@@ -1444,10 +1444,10 @@ rule encoding_disorderc:
          configfile="nodes/encodings/disorderc/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_qsar:
     input:
@@ -1461,10 +1461,10 @@ rule encoding_qsar:
          configfile="nodes/encodings/qsar/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_electrostatic_hull:
     input:
@@ -1479,10 +1479,10 @@ rule encoding_electrostatic_hull:
          configfile="nodes/encodings/electrostatic_hull/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_distance_distribution:
     input:
@@ -1496,10 +1496,10 @@ rule encoding_distance_distribution:
          configfile="nodes/encodings/distance_distribution/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
 
 rule encoding_delaunay:
     input:
@@ -1515,7 +1515,7 @@ rule encoding_delaunay:
          configfile="nodes/encodings/delaunay/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} {{output.csv_out}} \
-                            --cores {CORES} \
-                            --directory $PWD \
-                            --configfile {{params.configfile}}""")
+             shell(f"""snakemake -s {{params.snakefile}} \
+                                 --cores {CORES} \
+                                 --directory $PWD \
+                                 --configfile {{params.configfile}}""")
