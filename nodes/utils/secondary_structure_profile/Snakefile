@@ -4,7 +4,7 @@ import joblib as jl
 import os
 
 TOKEN = config["token"]
-PROFILE_DIR = os.path.dirname(config["profiles_out"][0]) + "/"
+PROFILE_DIR = config["profiles_out"]
 
 include:
     "setup_db.smk"
@@ -14,7 +14,6 @@ include:
 
 rule all:
     input:
-         config["profiles_out"],
          config["fasta_anno_out"],
          config["fasta_anno_msa_out"],
          config["classes_anno"]
@@ -137,7 +136,7 @@ rule generate_spx_profile:
          if [ -s {{input[1]}} ]
          then
              $spineXcodir/spX.pl '{{output[1]}}' {PROFILE_DIR} {PROFILE_DIR}
-         else 
+         else
              touch '{{output[0]}}';
              touch '{{output[1]}}';
          fi
