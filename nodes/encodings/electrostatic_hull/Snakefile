@@ -5,7 +5,7 @@ import yaml
 import os
 
 TOKEN = config["token"]
-PDB_DIR = config["pdb_dir"] + "/"
+PDB_DIR = config["pdb_dir"]
 TARGET_FILES = config["csv_out"]
 
 if type(TARGET_FILES) == list:
@@ -23,7 +23,7 @@ rule assign_charges_and_radii:
     output:
           temp(f"data/temp/{TOKEN}/{{seq_name}}.pqr")
     shell:
-          "pdb2pqr --ff=amber {input} {output} 1> /dev/null;"
+          "pdb2pqr --whitespace --ff=amber {input} {output} 1> /dev/null;"
 
 rule solvent_accessible_surface:
     input:
