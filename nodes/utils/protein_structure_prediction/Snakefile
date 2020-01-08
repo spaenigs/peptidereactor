@@ -18,8 +18,7 @@ wildcard_constraints:
 rule all:
     input:
          config["fasta_out"],
-         config["classes_out"],
-         config["pdbs_out"]
+         config["classes_out"]
 
 rule split_input_data:
     input:
