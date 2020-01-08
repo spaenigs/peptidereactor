@@ -10,13 +10,10 @@ rule all:
          f"data/{DATASET}/annotated_seqs.fasta",
          f"data/{DATASET}/annotated_seqs_msa.fasta",
          f"data/{DATASET}/annotated_classes.txt",
-         expand(f"data/{DATASET}/profile/{{seq_name}}.{{ftype}}",
-                seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1],
-                ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"]),
+         f"data/{DATASET}/profile/",
          f"data/{DATASET}/annotated_pdbs_seqs.fasta",
          f"data/{DATASET}/annotated_pdbs_classes.txt",
-         expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
-                seq_name=read_fasta(f"data/{DATASET}/seqs.fasta")[1])
+         f"data/{DATASET}/pdb/"
 
 rule util_multiple_sequence_alignment:
     input:
@@ -51,9 +48,7 @@ rule util_secondary_structure_profile:
          fasta_anno_out=f"data/{DATASET}/annotated_seqs.fasta",
          fasta_anno_msa_out=f"data/{DATASET}/annotated_seqs_msa.fasta",
          classes_anno=f"data/{DATASET}/annotated_classes.txt",
-         profiles_out=expand(f"data/{DATASET}/profile/{{seq_name}}.{{ftype}}",
-                         seq_name=read_fasta(f"data/{config['dataset']}/seqs.fasta")[1],
-                         ftype=["ss2", "horiz", "dis", "flat", "spXout", "mat", "pssm", "asn.pssm"])
+         profiles_out=directory(f"data/{DATASET}/profile/")
     params:
          snakefile="nodes/utils/secondary_structure_profile/Snakefile",
          configfile="nodes/utils/secondary_structure_profile/config.yaml"
@@ -75,8 +70,7 @@ rule util_protein_structure_prediction:
     output:
          fasta_out=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
          classes_out=f"data/{DATASET}/annotated_pdbs_classes.txt",
-         pdbs_out=expand(f"data/{DATASET}/pdb/{{seq_name}}.pdb",
-                         seq_name=read_fasta(f"data/{config['dataset']}/seqs.fasta")[1])
+         pdbs_out=directory(f"data/{DATASET}/pdb/")
     params:
          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
          configfile="nodes/utils/protein_structure_prediction/config.yaml",

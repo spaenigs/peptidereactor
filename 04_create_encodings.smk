@@ -1,7 +1,5 @@
 from utils.snakemake_config import WorkflowExecuter
 import pandas as pd
-import yaml
-import sys
 
 DATASET = config["dataset"]
 CORES = int(config["cores"])
@@ -12,54 +10,34 @@ def get_aaindex():
     df = df.iloc[:, :-1]
     return df.index.to_list()
 
-def get_max_vals(encoding):
-    try:
-        with open(f"data/{DATASET}/misc/{encoding}.yaml") as f:
-            return yaml.safe_load(f) + 1  # range is exclusive
-    except FileNotFoundError:
-        sys.exit("""
-        Please run node window_length beforehand (or set them manually).
-        See, e.g., apps/iFeature/codes/KSCTriad.py for details.
-        """)
-
-def get_max_dim_size(ngram):
-    ngram_type, size = list(ngram)
-    try:
-        with open(f"data/{DATASET}/misc/ngram_{ngram_type}{size}.yaml") as f:
-            return yaml.safe_load(f)  # range is exclusive
-    except FileNotFoundError:
-        sys.exit("""
-        Please run node dim_size beforehand (or set dimension manually): min(len(shape[0], shape[1]).
-        """)
-
 rule all:
     input:
         expand(f"data/{DATASET}/csv/aaindex/aaindex_{{aaindex}}.csv",
                aaindex=get_aaindex()),
         expand(f"data/{DATASET}/csv/apaac/apaac_lambda_{{lambda_val}}.csv",
-               lambda_val=list(range(1, get_max_vals("apaac")))),
+               lambda_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/cksaagp/cksaagp_gap_{{gap_val}}.csv",
-               gap_val=list(range(1, get_max_vals("cksaagp")))),
+               gap_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/cksaap/cksaap_gap_{{gap_val}}.csv",
-               gap_val=list(range(1, get_max_vals("cksaap")))),
+               gap_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/eaac/eaac_window_{{window_val}}.csv",
-               window_val=list(range(1, get_max_vals("eaac")))),
+               window_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/egaac/egaac_window_{{window_val}}.csv",
                window_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/geary/geary_nlag_{{nlag_val}}.csv",
-               nlag_val=list(range(1, get_max_vals("geary")))),
+               nlag_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/ksctriad/ksctriad_gap_{{gap_val}}.csv",
-               gap_val=list(range(1, get_max_vals("ksctriad")))),
+               gap_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/moran/moran_nlag_{{nlag_val}}.csv",
-               nlag_val=list(range(1, get_max_vals("moran")))),
+               nlag_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/nmbroto/nmbroto_nlag_{{nlag_val}}.csv",
-               nlag_val=list(range(1, get_max_vals("nmbroto")))),
+               nlag_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/paac/paac_lambda_{{lambda_val}}.csv",
-               lambda_val=list(range(1, get_max_vals("paac")))),
+               lambda_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/qsorder/qsorder_nlag_{{nlag_val}}.csv",
-               nlag_val=list(range(1, get_max_vals("qsorder")))),
+               nlag_val=list(range(1, 31))),
         expand(f"data/{DATASET}/csv/socnumber/socnumber_nlag_{{nlag_val}}.csv",
-               nlag_val=list(range(1, get_max_vals("socnumber")))),
+               nlag_val=list(range(1, 31))),
 
         expand(f"data/{DATASET}/csv/psekraac_type1/psekraac_type1_"
                "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
@@ -154,46 +132,46 @@ rule all:
                aaindex=get_aaindex()),
 
         expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("a3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("e3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s2"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
         expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv",
-               dim=range(1, get_max_dim_size("s3"))),
+               dim=[1, 5, 20, 50, 100, 200, 300]),
 
         expand(f"data/{DATASET}/csv/distance_frequency/distance_frequency_dn_{{nterminal}}_dc_{{cterminal}}.csv",
                nterminal=[5, 10, 20, 50, 100], cterminal=[5, 10, 20, 50, 100]),
@@ -563,11 +541,11 @@ rule encoding_ngram_a2:
          length_in=f"data/{DATASET}/misc/ngram_a2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("a2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("a2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_a2/ngram_a2_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("a2"))),
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -584,11 +562,11 @@ rule encoding_ngram_a3:
          length_in=f"data/{DATASET}/misc/ngram_a3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("a3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("a3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_a3/ngram_a3_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("a3"))),
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -606,11 +584,11 @@ rule encoding_ngram_e2:
          length_in=f"data/{DATASET}/misc/ngram_e2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("e2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("e2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_e2/ngram_e2_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("e2")))
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -628,11 +606,11 @@ rule encoding_ngram_e3:
          length_in=f"data/{DATASET}/misc/ngram_e3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("e3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("e3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_e3/ngram_e3_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("e3")))
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -650,11 +628,11 @@ rule encoding_ngram_s2:
          length_in=f"data/{DATASET}/misc/ngram_s2.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("s2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("s2"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_s2/ngram_s2_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("s2")))
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -672,11 +650,11 @@ rule encoding_ngram_s3:
          length_in=f"data/{DATASET}/misc/ngram_s3.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("s3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          lsv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_lsv_{{dim}}.csv",
-                        dim=range(1, get_max_dim_size("s3"))),
+                        dim=[1, 5, 20, 50, 100, 200, 300]),
          sv_out=expand(f"data/{DATASET}/csv/ngram_s3/ngram_s3_sv_{{dim}}.csv",
-                       dim=range(1, get_max_dim_size("s3")))
+                       dim=[1, 5, 20, 50, 100, 200, 300])
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -766,7 +744,7 @@ rule encoding_cksaagp:
          length_in=f"data/{DATASET}/misc/cksaagp.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/cksaagp/cksaagp_gap_{{gap_val}}.csv",
-                        gap_val=list(range(1, get_max_vals("cksaagp"))))
+                        gap_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/cksaagp/Snakefile",
          configfile="nodes/encodings/cksaagp/config.yaml"
@@ -784,7 +762,7 @@ rule encoding_socnumber:
          length_in=f"data/{DATASET}/misc/socnumber.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/socnumber/socnumber_nlag_{{nlag_val}}.csv",
-                        nlag_val=list(range(1, get_max_vals("socnumber"))))
+                        nlag_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/socnumber/Snakefile",
          configfile="nodes/encodings/socnumber/config.yaml"
@@ -804,7 +782,7 @@ rule encoding_qsorder:
          length_in=f"data/{DATASET}/misc/qsorder.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/qsorder/qsorder_nlag_{{nlag_val}}.csv",
-                        nlag_val=list(range(1, get_max_vals("qsorder"))))
+                        nlag_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/qsorder/Snakefile",
          configfile="nodes/encodings/qsorder/config.yaml"
@@ -822,7 +800,7 @@ rule encoding_nmbroto:
          length_in=f"data/{DATASET}/misc/nmbroto.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/nmbroto/nmbroto_nlag_{{nlag_val}}.csv",
-                        nlag_val=list(range(1, get_max_vals("nmbroto"))))
+                        nlag_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/nmbroto/Snakefile",
          configfile="nodes/encodings/nmbroto/config.yaml"
@@ -840,7 +818,7 @@ rule encoding_moran:
          length_in=f"data/{DATASET}/misc/moran.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/moran/moran_nlag_{{nlag_val}}.csv",
-                        nlag_val=list(range(1, get_max_vals("moran"))))
+                        nlag_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/moran/Snakefile",
          configfile="nodes/encodings/moran/config.yaml"
@@ -858,7 +836,7 @@ rule encoding_ksctriad:
          length_in=f"data/{DATASET}/misc/ksctriad.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/ksctriad/ksctriad_gap_{{gap_val}}.csv",
-                        gap_val=list(range(1, get_max_vals("ksctriad"))))
+                        gap_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/ksctriad/Snakefile",
          configfile="nodes/encodings/ksctriad/config.yaml"
@@ -876,7 +854,7 @@ rule encoding_geary:
          length_in=f"data/{DATASET}/misc/geary.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/geary/geary_nlag_{{nlag_val}}.csv",
-                        nlag_val=list(range(1, get_max_vals("geary"))))
+                        nlag_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/geary/Snakefile",
          configfile="nodes/encodings/geary/config.yaml"
@@ -894,7 +872,7 @@ rule encoding_eaac:
          length_in=f"data/{DATASET}/misc/eaac.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/eaac/eaac_window_{{window_val}}.csv",
-                        window_val=list(range(1, get_max_vals("eaac"))))
+                        window_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/eaac/Snakefile",
          configfile="nodes/encodings/eaac/config.yaml"
@@ -912,7 +890,7 @@ rule encoding_cksaap:
          length_in=f"data/{DATASET}/misc/cksaap.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/cksaap/cksaap_gap_{{gap_val}}.csv",
-                        gap_val=list(range(1, get_max_vals("cksaap"))))
+                        gap_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/cksaap/Snakefile",
          configfile="nodes/encodings/cksaap/config.yaml"
@@ -930,7 +908,7 @@ rule encoding_apaac:
          length_in=f"data/{DATASET}/misc/apaac.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/apaac/apaac_lambda_{{lambda_val}}.csv",
-                        lambda_val=list(range(1, get_max_vals("apaac"))))
+                        lambda_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/apaac/Snakefile",
          configfile="nodes/encodings/apaac/config.yaml"
@@ -948,7 +926,7 @@ rule encoding_paac:
          length_in=f"data/{DATASET}/misc/paac.yaml"
     output:
          csv_out=expand(f"data/{DATASET}/csv/paac/paac_lambda_{{lambda_val}}.csv",
-                        lambda_val=list(range(1, get_max_vals("paac"))))
+                        lambda_val=list(range(1, 31)))
     params:
          snakefile="nodes/encodings/paac/Snakefile",
          configfile="nodes/encodings/paac/config.yaml"

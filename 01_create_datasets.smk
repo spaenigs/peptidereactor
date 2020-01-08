@@ -5,7 +5,7 @@ CORES = int(config["cores"])
 
 rule all:
     input:
-         expand("data/{dataset}/sequence_length_distribution.svg", dataset=config["dataset"]),
+         expand("data/{dataset}/sequence_length_distribution.svg", dataset=DATASET),
          f"data/{DATASET}_ds1/seqs.fasta",
          f"data/{DATASET}_ds1/classes.txt",
          f"data/{DATASET}_ds2/seqs.fasta",
