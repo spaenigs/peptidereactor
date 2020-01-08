@@ -1,3 +1,17 @@
+""" Encoding: ngram
+
+This snakefile encodes given sequences with the ngram-encoding.
+Refer to Wu et al. (1995) for more information [1].
+
+Ngram-models based on di- and triamino acid composition (DPC, TPC, resp.)
+require the pre-encoded sequences passed via config["csv_in"], whereas the
+remaining require the original sequences and their respective classes
+passed via config["fasta_in"] and config["classes_in"], resp.
+
+[1] Neural networks for full-scale protein sequence classification:
+Sequence encoding with singular value decomposition.
+"""
+
 import os
 import pandas as pd
 from scipy.sparse import csc_matrix
@@ -7,6 +21,7 @@ from more_itertools import windowed
 from collections import ChainMap
 from modlamp.core import read_fasta
 import joblib as jl
+import yaml
 
 try:
     config["length_in"]
@@ -42,8 +57,10 @@ rule all:
 
 rule read_input_data:
     input:
-         config["fasta_in"] if "fasta_in" in config else "",
-         config["classes_in"] if "classes_in" in config else ""
+         config["fasta_in"] \
+             if "fasta_in" in config else "",
+         config["classes_in"] \
+             if "classes_in" in config else ""
     output:
          temp(f"data/temp/{TOKEN}/input_data.jl")
     run:
@@ -88,25 +105,34 @@ rule encode:
 
 rule svd:
     input:
-         config["csv_in"] if "csv_in" in config else \
-             f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv"
+         config["csv_in"] \
+             if "csv_in" in config else \
+                f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv",
+         config["length_in"]
     output:
          f"{TARGET_DIR}/ngram_{{type}}{{size}}_{{dim}}.csv",
          f"{TARGET_DIR}/ngram_{{type}}{{size}}_lsv_{{dim}}.csv",
          f"{TARGET_DIR}/ngram_{{type}}{{size}}_sv_{{dim}}.csv"
     run:
-         df = pd.read_csv(str(input), index_col=0)
+         df = pd.read_csv(str(input[0]), index_col=0)
+         dim = int(wildcards.dim)
 
-         X = csc_matrix(df.iloc[:, :-1].transpose().values, dtype=float)
-         T, S, P = svds(X, k=int(wildcards.dim))
+         with open(str(input[1])) as f:
+             max_dim = yaml.safe_load(f)
 
-         df_res = pd.DataFrame(P.transpose())
-         df_res.index = df.index
-         df_res["y"] = df["y"]
+         if dim > max_dim:
+             shell("touch {output[0]} {output[1]} {output[2]}")
+         else:
+             X = csc_matrix(df.iloc[:, :-1].transpose().values, dtype=float)
+             T, S, P = svds(X, k=dim)
 
-         df_res.to_csv(str(output[0]))
-         pd.DataFrame(T).to_csv(str(output[1]))
-         pd.DataFrame(S).to_csv(str(output[2]))
+             df_res = pd.DataFrame(P.transpose())
+             df_res.index = df.index
+             df_res["y"] = df["y"]
+
+             df_res.to_csv(str(output[0]))
+             pd.DataFrame(T).to_csv(str(output[1]))
+             pd.DataFrame(S).to_csv(str(output[2]))
 
 
 

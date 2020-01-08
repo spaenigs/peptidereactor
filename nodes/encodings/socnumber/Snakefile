@@ -4,6 +4,7 @@ from iFeature import SOCNumber
 import pandas as pd
 import numpy as np
 import os
+import yaml
 
 TOKEN = config["token"]
 TARGET_FILES = config["csv_out"]
@@ -19,26 +20,40 @@ rule all:
 
 rule encode:
     input:
-        config["fasta_in"]
+         config["fasta_in"],
+         config["length_in"]
     output:
-        temp(f"data/temp/{TOKEN}/socnumber_nlag_{{nlag_val}}.csv")
+         temp(f"data/temp/{TOKEN}/socnumber_nlag_{{nlag_val}}.csv")
     run:
-        seqs, names = read_fasta(str(input[0]))
-        fastas = [[n, s] for s, n in zip(seqs, names)]
-        res = np.array(SOCNumber.SOCNumber(fastas, nlag=int(wildcards.nlag_val)))
-        df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
-        df.index = np.array(res)[1:, 0]
-        df.to_csv(str(output))
+         seqs, names = read_fasta(str(input[0]))
+
+         with open(str(input[1])) as f:
+             max_nlv = yaml.safe_load(f)
+
+         fastas = [[n, s] for s, n in zip(seqs, names)]
+         nlv = int(wildcards.nlag_val)
+
+         if nlv > max_nlv:
+             shell("touch {output}")
+         else:
+             res = np.array(SOCNumber.SOCNumber(fastas, nlag=int(wildcards.nlag_val)))
+             df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
+             df.index = np.array(res)[1:, 0]
+             df.to_csv(str(output))
 
 rule dump:
     input:
-        f"data/temp/{TOKEN}/socnumber_nlag_{{nlag_val}}.csv",
-        config["classes_in"]
+         f"data/temp/{TOKEN}/socnumber_nlag_{{nlag_val}}.csv",
+         config["classes_in"]
     output:
-        f"{TARGET_DIR}/socnumber_nlag_{{nlag_val}}.csv"
+         f"{TARGET_DIR}/socnumber_nlag_{{nlag_val}}.csv"
     run:
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        df = pd.read_csv(str(input[0]), index_col=0)
-        df["y"] = classes
-        df.to_csv(str(output))
+         with open(str(input[1])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+         if os.path.getsize(str(input[0])) == 0:
+             shell("touch {output}")
+         else:
+             df = pd.read_csv(str(input[0]), index_col=0)
+             df["y"] = classes
+             df.to_csv(str(output))

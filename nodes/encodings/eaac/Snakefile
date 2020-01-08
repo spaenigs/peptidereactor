@@ -20,21 +20,29 @@ rule all:
 
 rule encode:
     input:
-         config["fasta_in"]
+         config["fasta_in"],
+         config["length_in"]
     output:
          temp(f"data/temp/{TOKEN}/eaac_window_{{window_val}}.yaml")
     run:
          seqs, names = read_fasta(str(input[0]))
+
+         with open(str(input[1])) as f:
+             max_wv = yaml.safe_load(f)
+
          fastas = [[n, s] for s, n in zip(seqs, names)]
+         wv = int(wildcards.window_val)
 
-         enco = {"enco_seqs": {}}
-         for tup in fastas:
-             _, encoded_seq = EAAC.EAAC([tup], window=int(wildcards.window_val), **{"order": None})
-             enco["enco_seqs"][tup[0]] = encoded_seq[1:]
-
-         with open(str(output), mode="w") as f:
-             enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
-             yaml.safe_dump(enco, f)
+         if wv > max_wv:
+             shell("touch {output}")
+         else:
+             enco = {"enco_seqs": {}}
+             for tup in fastas:
+                 _, encoded_seq = EAAC.EAAC([tup], window=int(wildcards.window_val), **{"order": None})
+                 enco["enco_seqs"][tup[0]] = encoded_seq[1:]
+             with open(str(output), mode="w") as f:
+                 enco["interpolate_to"] = int(np.median([len(seq) for seq in seqs]))
+                 yaml.safe_dump(enco, f)
 
 rule interpolate:
     input:
@@ -42,7 +50,7 @@ rule interpolate:
     output:
          temp(f"data/temp/{TOKEN}/eaac_window_{{window_val}}.csv")
     script:
-         "scripts/interpolate.R"
+         "scripts/check.R"
 
 rule dump:
     input:
@@ -56,14 +64,17 @@ rule dump:
          with open(str(input[1])) as f:
              classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
-         df = pd.read_csv(str(input[2]), index_col=0)
-         df["y"] = -1
+         if os.path.getsize(str(input[2])) == 0:
+             shell("touch {output}")
+         else:
+             df = pd.read_csv(str(input[2]), index_col=0)
+             df["y"] = -1
 
-         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
-         for (name, (seq, class_)) in seq_tuples.items():
-             df.loc[name, "y"] = class_
+             seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+             for (name, (seq, class_)) in seq_tuples.items():
+                df.loc[name, "y"] = class_
 
-         df.to_csv(str(output))
+             df.to_csv(str(output))
 
 
 
