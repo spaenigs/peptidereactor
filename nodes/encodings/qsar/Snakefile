@@ -1,3 +1,4 @@
+from multiprocessing import Process, Queue
 from modlamp.core import read_fasta
 import joblib as jl
 import pandas as pd
@@ -75,11 +76,22 @@ rule compute_molecular_descriptors:
          descs = get_descriptors_in_module(descriptors, submodule=True)
          descs = filter(lambda d: d.__module__ != DetourMatrix.__name__, descs)
          calc = Calculator(descs)
-         res = calc.pandas([pdb], quiet=True)
 
-         res.index = [wildcards.seq_name]
-         res["y"] = [classes]
-         res.to_csv(str(output))
+         # adding timeout for huge molecules, since comp. would last forever
+         q = Queue()
+         calc_fn = lambda: q.put(calc.pandas([pdb], quiet=True))
+
+         p = Process(target=calc_fn, name="Calc mol. descr.")
+         p.start()
+         p.join(timeout=1200)
+
+         if p.exitcode is None:
+             shell("touch {output}")
+         elif p.exitcode == 0:
+             res = q.get()
+             res.index = [wildcards.seq_name]
+             res["y"] = [classes]
+             res.to_csv(str(output))
 
 rule combine:
      input:
@@ -91,6 +103,8 @@ rule combine:
          df_res = pd.DataFrame()
 
          for csv_path in list(input):
+             if os.path.getsize(csv_path) == 0:
+                 continue
              df_tmp = pd.read_csv(csv_path, index_col=0)
              df_res = pd.concat([df_res, df_tmp])
 
