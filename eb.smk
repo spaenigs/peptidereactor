@@ -245,8 +245,8 @@ rule all:
                 normalized_dataset=NORMALIZED_DATASETS),
          expand("data/{normalized_dataset}/csv/distance_distribution.csv",
                 normalized_dataset=NORMALIZED_DATASETS),
-         # expand("data/{normalized_dataset}/csv/qsar.csv",
-         #       normalized_dataset=NORMALIZED_DATASETS),
+         expand("data/{normalized_dataset}/csv/qsar.csv",
+               normalized_dataset=NORMALIZED_DATASETS),
 
 # expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=NORMALIZED_DATASETS)
 # expand("data/{dataset}/sequence_length_distribution.svg", dataset=DATASETS),

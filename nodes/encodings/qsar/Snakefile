@@ -75,6 +75,8 @@ rule compute_molecular_descriptors:
          descs = get_descriptors_in_module(descriptors, submodule=True)
          descs = filter(lambda d: d.__module__ != DetourMatrix.__name__, descs)
          calc = Calculator(descs)
+
+         ## this part will compute forever, if the input peptide/protein is to large!!!
          res = calc.pandas([pdb], quiet=True)
 
          res.index = [wildcards.seq_name]
