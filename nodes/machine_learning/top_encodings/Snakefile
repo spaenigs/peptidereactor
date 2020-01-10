@@ -18,7 +18,7 @@ rule split_datasets:
     input:
          config["csvs_in"]
     output:
-         f"data/temp/{TOKEN}/{{encoding}}.csv"
+         temp(f"data/temp/{TOKEN}/{{encoding}}.csv")
     run:
          csv_path = list(filter(lambda p: wildcards.encoding in p, list(input)))[0]
          file_name = os.path.basename(csv_path)
@@ -28,7 +28,7 @@ rule repeated_k_fold_cv:
     input:
          f"data/temp/{TOKEN}/{{encoding}}.csv"
     output:
-         f"data/temp/{TOKEN}/{{encoding}}.tmp"
+         temp(f"data/temp/{TOKEN}/{{encoding}}.tmp")
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          X, y = df.iloc[:, :-1].values, df["y"]
