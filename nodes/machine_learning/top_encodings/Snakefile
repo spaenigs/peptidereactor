@@ -1,0 +1,73 @@
+from sklearn.model_selection import RepeatedStratifiedKFold
+from imblearn.ensemble import BalancedRandomForestClassifier
+from sklearn.metrics import f1_score
+import pandas as pd
+import os
+
+TOKEN = config["token"]
+
+# ruleorder: split_datasets > repeated_k_fold_cv
+# wildcard_constraints:
+#     encoding="[\w\d_]"
+
+rule all:
+    input:
+         config["csv_out"]
+
+rule split_datasets:
+    input:
+         config["csvs_in"]
+    output:
+         f"data/temp/{TOKEN}/{{encoding}}.csv"
+    run:
+         csv_path = list(filter(lambda p: wildcards.encoding in p, list(input)))[0]
+         file_name = os.path.basename(csv_path)
+         shell(f"cp {csv_path} data/temp/{TOKEN}/{file_name}")
+
+rule repeated_k_fold_cv:
+    input:
+         f"data/temp/{TOKEN}/{{encoding}}.csv"
+    output:
+         f"data/temp/{TOKEN}/{{encoding}}.tmp"
+    run:
+         df = pd.read_csv(str(input[0]), index_col=0)
+         X, y = df.iloc[:, :-1].values, df["y"]
+
+         rskf = RepeatedStratifiedKFold(n_splits=5, n_repeats=10)
+
+         f1_scores = []
+         for train_index, test_index in rskf.split(X, y):
+             X_train, X_test = X[train_index], X[test_index]
+             y_train, y_test = y[train_index], y[test_index]
+             brf = BalancedRandomForestClassifier(n_estimators=100)
+             brf.fit(X_train, y_train)
+             y_pred = brf.predict(X_test)
+             f1_scores += [f1_score(y_test, y_pred)]
+
+         encoding = wildcards.encoding
+
+         df_res = pd.DataFrame({encoding: f1_scores}).transpose()
+         df_res.to_csv(str(output))
+
+def get_encoding_names():
+    if type(config["csvs_in"]) == list:
+        return [os.path.basename(path).replace(".csv", "")
+                for path in config["csvs_in"]]
+    else:
+        return os.path.basename(config["csvs_in"])\
+            .replace(".csv", "")
+
+rule collect:
+    input:
+         expand(f"data/temp/{TOKEN}/{{encoding}}.tmp",
+                encoding=get_encoding_names())
+    output:
+         config["csv_out"]
+    run:
+         df_res = pd.DataFrame()
+
+         for path in list(input):
+             df_res = pd.concat([df_res, pd.read_csv(path, index_col=0)])
+
+         df_res.to_csv(str(output))
+
