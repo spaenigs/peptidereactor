@@ -5,7 +5,7 @@ from glob import glob
 DATASET = "bachem"
 # DATASETS = expand("bachem_window_length_{window_length}", window_length=range(6,21))
 DATASETS = ["bachem_window_length_8"]
-CORES = 4
+CORES = 8
 
 def get_aaindex():
     df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
@@ -15,7 +15,7 @@ def get_aaindex():
 
 rule all:
     input:
-         expand("data/{normalized_dataset}/machine_learning/best_encodings.csv",
+         expand("data/{normalized_dataset}/machine_learning/top_encodings.csv",
                 normalized_dataset=DATASETS)
 
 ########################################################################################################################
