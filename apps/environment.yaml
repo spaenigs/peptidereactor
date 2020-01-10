@@ -24,6 +24,7 @@ dependencies:
   - openmm
   - rdkit
   - mordred=1.2.0
+  - imbalanced-learn
   - pip:
     - modlamp
     - joblib
