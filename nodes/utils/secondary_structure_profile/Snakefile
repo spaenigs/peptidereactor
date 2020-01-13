@@ -159,8 +159,11 @@ rule remove_non_pssm_hits:
              filtered_seq_names = \
                  [fi.replace(PROFILE_DIR, "").replace(".mat", "")
                   for fi in filter(lambda path: ".mat" in path and os.stat(path).st_size > 0, list(input[3:]))]
-             res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
-             return res_seqs, res_classes
+             if len(filtered_seq_names) == 0:
+                 return [], []
+             else:
+                 res_seqs, res_classes = zip(*filter(lambda tup: tup[0][0] in filtered_seq_names, zip(*input_data_)))
+                 return res_seqs, res_classes
 
          seqs, names = read_fasta(str(input[0]))
          seqs_msa, names_msa = read_fasta(str(input[1]))
@@ -195,14 +198,17 @@ rule annotate_sequence_names:
          out = add_names(input_data)
          out_msa = add_names(input_data_msa)
 
-         names, seqs = zip(*out[0])
-         classes = out[1]
-         save_fasta(str(output[0]), seqs, names)
+         if len(out[0]) == 0:
+             shell("touch {output[0]} {output[1]} {output[2]}")
+         else:
+             names, seqs = zip(*out[0])
+             classes = out[1]
+             save_fasta(str(output[0]), seqs, names)
 
-         names_msa, seqs_msa = zip(*out_msa[0])
-         save_fasta(str(output[1]), seqs_msa, names_msa)
+             names_msa, seqs_msa = zip(*out_msa[0])
+             save_fasta(str(output[1]), seqs_msa, names_msa)
 
-         with open(str(output[2]), mode="a") as f:
-             for c in out[1]:
-                 f.write(f"{str(c)}\n")
-                 f.flush()
+             with open(str(output[2]), mode="a") as f:
+                 for c in out[1]:
+                     f.write(f"{str(c)}\n")
+                     f.flush()
