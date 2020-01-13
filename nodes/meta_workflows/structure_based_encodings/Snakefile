@@ -1,0 +1,176 @@
+import os, sys
+
+sys.path.append(os.getcwd())
+
+from utils.snakemake_config import WorkflowExecuter
+
+TOKEN = config["token"]
+CORES = config["cores"]
+
+# rule all:
+#     input:
+#          config["asa_out"],
+#          config["ta_out"],
+#          config["ssec_out"],
+#          config["sseb_out"],
+#          config["disorder_out"],
+#          config["disorderb_out"],
+#          config["disorderc_out"],
+#          config["qsar_out"],
+#          config["electrostatic_hull_out"],
+#          config["distance_distribution_out"],
+#          config["delaunay_out"]
+
+rule encoding_asa:
+    input:
+         fasta_in=config["fasta_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["asa_out"]
+    params:
+         snakefile="nodes/encodings/asa/Snakefile",
+         configfile="nodes/encodings/asa/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_ta:
+    input:
+         fasta_in=config["fasta_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["ta_out"]
+    params:
+         snakefile="nodes/encodings/ta/Snakefile",
+         configfile="nodes/encodings/ta/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_ssec:
+    input:
+         fasta_in=config["fasta_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["ssec_out"]
+    params:
+         snakefile="nodes/encodings/ssec/Snakefile",
+         configfile="nodes/encodings/ssec/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_sseb:
+    input:
+         fasta_in=config["fasta_msa_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["sseb_out"]
+    params:
+         snakefile="nodes/encodings/sseb/Snakefile",
+         configfile="nodes/encodings/sseb/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_disorder:
+    input:
+         fasta_in=config["fasta_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["disorder_out"]
+    params:
+         snakefile="nodes/encodings/disorder/Snakefile",
+         configfile="nodes/encodings/disorder/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_disorderb:
+    input:
+         fasta_in=config["fasta_msa_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["disorderb_out"]
+    params:
+         snakefile="nodes/encodings/disorderb/Snakefile",
+         configfile="nodes/encodings/disorderb/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_disorderc:
+    input:
+         fasta_in=config["fasta_anno"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["disorderc_out"]
+    params:
+         snakefile="nodes/encodings/disorderc/Snakefile",
+         configfile="nodes/encodings/disorderc/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_qsar:
+    input:
+         fasta_in=config["fasta_pdbs_anno"],
+         classes_in=config["classes_pdbs_anno"],
+         pdb_dir=config["pdb_dir"]
+    output:
+         csv_out=config["qsar_out"]
+    params:
+         snakefile="nodes/encodings/qsar/Snakefile",
+         configfile="nodes/encodings/qsar/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_electrostatic_hull:
+    input:
+         fasta_in=config["fasta_pdbs_anno"],
+         classes_in=config["classes_pdbs_anno"],
+         pdb_dir=config["pdb_dir"]
+    output:
+         csv_out=config["electrostatic_hull_out"]
+    params:
+         snakefile="nodes/encodings/electrostatic_hull/Snakefile",
+         configfile="nodes/encodings/electrostatic_hull/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_distance_distribution:
+    input:
+         fasta_in=config["fasta_pdbs_anno"],
+         classes_in=config["classes_pdbs_anno"],
+         pdb_dir=config["pdb_dir"]
+    output:
+         csv_out=config["distance_distribution_out"]
+    params:
+         snakefile="nodes/encodings/distance_distribution/Snakefile",
+         configfile="nodes/encodings/distance_distribution/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule encoding_delaunay:
+    input:
+         fasta_in=config["fasta_pdbs_anno"],
+         classes_in=config["classes_pdbs_anno"],
+         pdb_dir=config["pdb_dir"]
+    output:
+         csv_out=config["delaunay_out"]
+    params:
+         snakefile="nodes/encodings/delaunay/Snakefile",
+         configfile="nodes/encodings/delaunay/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
