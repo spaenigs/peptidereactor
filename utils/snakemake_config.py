@@ -40,12 +40,15 @@ class WorkflowExecuter:
         self.remove_configfile()
         self.remove_temp_dir()
 
-    def __init__(self, input_files, output_files, path_to_configfile):
+    def __init__(self, input_files, output_files, path_to_configfile, **kwargs):
         self.token = secrets.token_hex(4)
         self.input_files = input_files
         self.output_files = output_files
         self.config = self._set_config()
         self.path_to_configfile = path_to_configfile
+        if len(kwargs) > 0:
+            for key, value in kwargs.items():
+                self.config[key] = value
 
 
 class MetaWorkflow(list):
