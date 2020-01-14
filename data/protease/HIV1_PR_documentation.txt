@@ -1,0 +1,84 @@
+1. Title: HIV-1 protease cleavage data
+
+2. Source Information
+   -- Creators: Thorsteinn Rögnvaldsson and Liwen You
+     -- Rögnvaldsson: Halmstad University, Box 823, 301 18, Halmstad, Sweden
+   -- Donor: Thorsteinn Rögnvaldsson (denni@hh.se, denni63@gmail.com)  
+   -- Date: November 28, 2014
+
+   -- Acknowledgements: Aleksejs Kontijevskis (the raw 1625 data set)
+   
+   -- The data consists of four (4) different data sets: the 746 data;
+      the 1625 data; the Schilling data; and the Impens data. 
+   
+3. Past Usage:
+
+   (a) Rögnvaldsson, You and Garwicz (2015) "State of the art prediction of HIV-1 protease 
+       cleavage sites", Bioinformatics, vol 31 (8), pp. 1204-1210.
+       - Discusses the characteristics of the four data sets.
+       - It is shown that a linear SVM with standard orthogonal encoding is the best
+         predictor when tested across data sets. The AUC (Area Under the ROC Curve)
+         values are listed below:
+       
+              Test data  746         1625        Schilling   Impens
+   Train data
+   746                   -           0.982       0.870       0.833
+   1625                  0.981       -           0.855       0.811
+   Schilling             0.933       0.935       -           0.911
+   Impens                0.902       0.894       0.929       -
+
+   The 746 and 1625 data sets share many patterns.
+   
+   (b) Kontijevskis, Wikberg and Komorowski (2007) "Computational Proteomics Analysis of HIV-1 Protease 
+       Interactome". Proteins: Structure, Function, and Bioinformatics, 68, 305–312. 
+       Introduced the 1625 data set and used rough set theory on it.
+       Note: the 1625 data set used by Kontijevskis et al. is not identical to the 1625 data
+       set here, there is one octamer that has a different label (same octamer as for the
+       746 data set).
+
+   (c) You, Garwicz and Rögnvaldsson (2005) "Comprehensive Bioinformatic Analysis of the Specificity 
+       of Human Immunodeficiency Virus Type 1 Protease". Journal of Virology, 79, 12477–12486. 
+       Introduced the 746 data set and explored linear classifiers plus representations
+       based on amino acid properties.
+       Note: the 746 data set used by You et al. is not identical to the 746 data
+       set here, there is one octamer that has a different label (same octamer as for the
+       1625 data set).
+
+4. Other relevant information
+
+   The data sets have appeared in earlier publications (see references in Rögnvaldsson et al. 2015). 
+   However, corrections have been made to them here.
+   
+   Details on references where data has been collected are provided for the 746 and the 1625 data set. 
+   The origins of the Schilling data and the Impens data are described in the paper Rögnvaldsson et al., 2015.
+
+5. Number of instances
+   - 746 data: 746 
+   - 1625 data: 1625 
+   - Schilling data: 3272 
+   - Impens data: 947 
+
+6. Number of attributes
+
+   There are only two attributes: a 8 letter string (octamer) and a label that tells whether this
+   string represents a site in a peptide (or protein) where the HIV-1 protease cleaves it (+1 if yes, -1 if no). 
+   The 8 letter string can also be viewed as 8 independent attributes. It is common to map the 8 letters
+   to an orthogonal binary representation; a matrix with 160 elements.
+   
+7. Attributes
+
+   There are 20 allowed letters in the 8 character string (the allowed alphabet): 'ARNDCQEGHILKMFPSTWYV'
+   These represent amino acids.
+   The cleavage label has only two possible values: -1 and +1.
+
+8. Missing values
+
+   There are no missing values
+   
+9. Class distributions
+
+   - 746 data: 401 cleaved, 345 non-cleaved
+   - 1625 data: 374 cleaved, 1251 non-cleaved
+   - Schilling data: 434 cleaved, 2838 non-cleaved
+   - Impens data: 149 cleaved, 798 non-cleaved
+
