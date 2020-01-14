@@ -1,9 +1,8 @@
-import matplotlib
 import matplotlib.pyplot as plt
-import numpy as np
 import os
 import yaml
 import numpy as np
+import re
 
 TOKEN = config["token"]
 
@@ -28,7 +27,10 @@ rule count_non_empty_datasets:
                  {"seq_based": count_non_empty_files(ds, list(input.seq_based)),
                   "struc_based": count_non_empty_files(ds, list(input.struc_based))}
 
-         with open(str(output), mode="w") as f:
+         count_data["max_seq_based"] = len(list(input.seq_based))
+         count_data["max_struc_based"] = len(list(input.struc_based))
+
+         with open(str(output[0]), mode="w") as f:
              yaml.safe_dump(count_data, f)
 
 rule plot:
@@ -40,9 +42,12 @@ rule plot:
          with open(str(input)) as f:
              count_data = yaml.safe_load(f)
 
-         labels = count_data.keys()
-         count_seq_based_datasets = [count_data[ds]["seq_based"] for ds in count_data.keys()]
-         count_struc_based_datasets = [count_data[ds]["struc_based"] for ds in count_data.keys()]
+         max_seq_based = count_data.pop("max_seq_based")
+         max_struc_based = count_data.pop("max_struc_based")
+
+         labels = sorted(count_data.keys(), key=lambda s: int(re.findall("\d+", s)[0]))
+         count_seq_based_datasets = [count_data[ds]["seq_based"] for ds in labels]
+         count_struc_based_datasets = [count_data[ds]["struc_based"] for ds in labels]
 
          x = np.arange(len(labels))  # the label locations
          width = 0.35  # the width of the bars
@@ -50,6 +55,9 @@ rule plot:
          fig, ax = plt.subplots()
          rects1 = ax.bar(x - width/2, count_seq_based_datasets, width, label="Sequence based")
          rects2 = ax.bar(x + width/2, count_struc_based_datasets, width, label="Structure based")
+
+         plt.axhline(y=max_seq_based, color=rects1[0].get_facecolor(), linewidth=0.5, ls="dotted")
+         plt.axhline(y=max_struc_based, color=rects2[0].get_facecolor(), linewidth=0.5, ls="dotted")
 
          ax.set_ylabel('Non-empty datasets')
          ax.set_title('Non-empty datasets by dataset and encoding type')
