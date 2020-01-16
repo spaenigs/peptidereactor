@@ -1,6 +1,0 @@
-node_group: "utils"
-node_name: "validate_sequence_names"
-input:
-  fasta: "<dataset>.fasta"
-output:
-  fasta_out: "<dataset>_validated.fasta"
