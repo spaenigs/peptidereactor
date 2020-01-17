@@ -58,7 +58,3 @@ rule dump:
              df.loc[name, "y"] = class_
 
          df.to_csv(str(output))
-
-
-
-
