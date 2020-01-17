@@ -36,7 +36,7 @@ rule encode:
             orig_seq = tup[1].replace("-", "")
             _, encoded_seq = DisorderB.DisorderB(fastas=[[seq_name, orig_seq]],
                                                  path=str(input[1]))
-            enco[tup[0]] = update_binary_encoded(aligned_seq, encoded_seq[1:])
+            enco[seq_name] = update_binary_encoded(aligned_seq, encoded_seq[1:])
 
         pd.DataFrame(enco).transpose().to_csv(str(output))
 
