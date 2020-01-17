@@ -23,8 +23,7 @@ rule encode:
          enco = {"enco_seqs": {}}
          for tup in fastas:
              _, encoded_seq = TA.TA([tup], path=str(input[1]))
-             enco["enco_seqs"][tup[0]] = \
-                 {"encoded_seq": encoded_seq[1:], "aa_seq": list(tup[1])}
+             enco["enco_seqs"][tup[0]] = {"encoded_seq": encoded_seq[1:]}
 
          with open(str(output), mode="w") as f:
             yaml.safe_dump(enco, f)
@@ -53,8 +52,6 @@ rule make_sliding_windows:
              for i, v in enumerate(values, start=1):
                  start, end = v["range"]
                  classes_res += [v["class"]]
-                 aa_seq_window = \
-                     encoded_seqs["enco_seqs"][name]["aa_seq"][start:end]
                  encoded_seq_window = \
                      encoded_seqs["enco_seqs"][name]["encoded_seq"][start:end]
                  df_tmp = pd.DataFrame({f"{name}_part_{str(i)}": encoded_seq_window})\
