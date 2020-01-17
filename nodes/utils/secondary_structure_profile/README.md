@@ -9,8 +9,9 @@
 
 ### spineXpublic
 
-1) Register under http://sparks-lab.org/pmwiki/download/index.php?Download=spineXpublic.tgz.  
-2) Paste download link (http://sparks-lab.org/pmwiki/download/lib/spineXpublic.tgz) into file, e.g., 
+1) Visit https://sparks-lab.org/downloads/.   
+2) Paste download link 
+(https://servers.sparks-lab.org/downloads/spineXpublic.tgz) into file, e.g., 
 `download_links/spineXpublic_download_link.txt`.
 3) Access it via `config["spineXpublic_download_link_in"]`.
 
