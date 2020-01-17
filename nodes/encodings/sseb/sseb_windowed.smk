@@ -26,10 +26,9 @@ rule encode:
              with open(str(input[1]) + f"{name}.ss2") as f:
                  records = f.readlines()[2:]
 
-             proteinSeq, SSE = '', []
+             SSE = []
              for line in records:
                  array = line.strip().split() if line.rstrip() != '' else None
-                 proteinSeq = proteinSeq + array[1]
                  SSE.append(array[2])
 
              enco["enco_seqs"][name] = {"encoded_seq": SSE}
