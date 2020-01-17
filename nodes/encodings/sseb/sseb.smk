@@ -14,7 +14,7 @@ rule encode:
          config["fasta_in"],
          config["profile"]
     output:
-         temp(f"data/temp/{TOKEN}/out.csv")
+         f"data/temp/{TOKEN}/out.csv"
     run:
          def update_binary_encoded(_aligned_seq, _enco_seq):
              aligned_seq_len, binary_length = len(_aligned_seq), 3
@@ -37,7 +37,7 @@ rule encode:
              orig_seq = tup[1].replace("-", "")
              _, encoded_seq = SSEB.SSEB(fastas=[[seq_name, orig_seq]],
                                         path=str(input[1]))
-             enco[tup[0]] = update_binary_encoded(aligned_seq, encoded_seq[1:])
+             enco[seq_name] = update_binary_encoded(aligned_seq, encoded_seq[1:])
 
          pd.DataFrame(enco).transpose().to_csv(str(output))
 
