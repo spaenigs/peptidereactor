@@ -1,29 +1,16 @@
 from modlamp.core import read_fasta, save_fasta
 import re
 
-
 rule all:
     input:
-        config["fasta_val"]
-
-
-rule init:
-    input:
-        config["fasta"]
-    output:
-        temp("data/interim.fasta"),
-    shell:
-        """
-        cp {input[0]} {output[0]}
-        """
-
+        config["fasta_out"]
 
 rule validate:
     input:
-        "data/interim.fasta",
+         config["fasta_in"]
     output:
-        config["fasta_val"]
+         config["fasta_out"]
     run:
-        seqs, names = read_fasta(str(input[0]))
-        names_new = [re.sub("[\W\s]", "", n) for n in names]
-        save_fasta(str(output[0]), seqs, names_new)
+         seqs, names = read_fasta(str(input))
+         names_new = [re.sub("[\W\s]", "", n) for n in names]
+         save_fasta(str(output), seqs, names_new)
