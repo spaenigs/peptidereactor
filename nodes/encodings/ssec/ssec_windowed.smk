@@ -15,7 +15,7 @@ rule encode:
          config["fasta_in"],
          config["profile"]
     output:
-         f"data/temp/{TOKEN}/enco_seqs.yaml"
+         temp(f"data/temp/{TOKEN}/enco_seqs.yaml")
     run:
          seqs, names = read_fasta(str(input[0]))
          fastas = [[n, s] for s, n in zip(seqs, names)]
