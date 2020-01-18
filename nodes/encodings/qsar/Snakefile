@@ -1,11 +1,15 @@
 from modlamp.core import read_fasta
+from more_itertools import windowed
 import joblib as jl
 import pandas as pd
 import numpy as np
-
 from simtk.openmm.app import *
 from simtk.openmm import *
 from simtk.unit import *
+from rdkit import Chem
+from mordred import Calculator, descriptors
+from mordred import DetourMatrix, get_descriptors_in_module
+from Bio.PDB import PDBParser, Dice
 
 # pipeline adapted from https://www.nature.com/articles/s41598-018-19669-4.pdf
 
@@ -64,24 +68,28 @@ rule compute_molecular_descriptors:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv")
     run:
-         from rdkit import Chem
-         from mordred import Calculator, descriptors
-         from mordred import DetourMatrix, get_descriptors_in_module
-
-         pdb = Chem.MolFromPDBFile(str(input[0]))
+         structure = PDBParser()\
+             .get_structure(wildcards.seq_name, str(input[0]))
          seqs, classes = jl.load(str(input[1]))
 
-         # see https://github.com/mordred-descriptor/mordred/issues/65
-         descs = get_descriptors_in_module(descriptors, submodule=True)
-         descs = filter(lambda d: d.__module__ != DetourMatrix.__name__, descs)
-         calc = Calculator(descs)
+         window_size = 20
+         len_residues = len(list(structure.get_residues()))
+         df_res = pd.DataFrame()
 
-         ## this part will compute forever, if the input peptide/protein is to large!!!
-         res = calc.pandas([pdb], quiet=True)
+         for start, end in [[0, len_residues]] \
+                 if len_residues <= window_size \
+                 else enumerate(range(window_size, len_residues)):
+             filename = f"data/temp/{TOKEN}/{structure.get_id()}_{start}_{end}.pdb"
+             Dice.extract(structure, "A", start, end, filename)
+             pdb = Chem.MolFromPDBFile(filename)
+             calc = Calculator(descriptors)
+             res = pd.DataFrame(calc.pandas([pdb], quiet=True))
+             df_res = pd.concat([df_res, res])
 
-         res.index = [wildcards.seq_name]
-         res["y"] = [classes]
-         res.to_csv(str(output))
+         df_res.index = [wildcards.seq_name]
+         # TODO check if classes is correctly assigned
+         df_res["y"] = [classes]
+         df_res.to_csv(str(output))
 
 rule combine:
      input:
