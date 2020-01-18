@@ -75,7 +75,6 @@ rule compute_molecular_descriptors:
          window_size = 20
          len_residues = len(list(structure.get_residues()))
          df_res = pd.DataFrame()
-
          for start, end in [[0, len_residues]] \
                  if len_residues <= window_size \
                  else enumerate(range(window_size, len_residues)):
@@ -86,6 +85,8 @@ rule compute_molecular_descriptors:
              res = pd.DataFrame(calc.pandas([pdb], quiet=True))
              df_res = pd.concat([df_res, res])
 
+         # compute mean descriptor values over all windows
+         df_res = pd.DataFrame(df_res.apply(np.mean)).transpose()
          df_res.index = [wildcards.seq_name]
          # TODO check if classes is correctly assigned
          df_res["y"] = [classes]
