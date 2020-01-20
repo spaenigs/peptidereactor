@@ -1,15 +1,11 @@
 from modlamp.core import read_fasta
-from more_itertools import windowed
+from functools import reduce
 import joblib as jl
 import pandas as pd
 import numpy as np
 from simtk.openmm.app import *
 from simtk.openmm import *
 from simtk.unit import *
-from rdkit import Chem
-from mordred import Calculator, descriptors
-from mordred import DetourMatrix, get_descriptors_in_module
-from Bio.PDB import PDBParser, Dice
 
 # pipeline adapted from https://www.nature.com/articles/s41598-018-19669-4.pdf
 
@@ -41,8 +37,6 @@ rule find_energy_minimized_conformation:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb")
     run:
-         from sys import stdout
-
          pdb = PDBFile(str(input))
          forcefield = ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
          modeller = Modeller(pdb.topology, pdb.positions)
@@ -55,8 +49,6 @@ rule find_energy_minimized_conformation:
          simulation = Simulation(modeller.topology, system, integrator)
          simulation.context.setPositions(modeller.positions)
          simulation.minimizeEnergy()
-         simulation.reporters.append(StateDataReporter(
-             stdout, 1000, step=True, potentialEnergy=True, temperature=True))
          simulation.step(10000)
          positions = simulation.context.getState(getPositions=True).getPositions()
          PDBFile.writeFile(simulation.topology, positions, open(str(output), 'w'))
@@ -67,61 +59,34 @@ rule compute_molecular_descriptors:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv")
-    run:
-         structure = PDBParser()\
-             .get_structure(wildcards.seq_name, str(input[0]))
-         seqs, classes = jl.load(str(input[1]))
-
-         window_size = 20
-         len_residues = len(list(structure.get_residues()))
-         df_res = pd.DataFrame()
-         for start, end in [[0, len_residues]] \
-                 if len_residues <= window_size \
-                 else enumerate(range(window_size, len_residues)):
-             filename = f"data/temp/{TOKEN}/{structure.get_id()}_{start}_{end}.pdb"
-             Dice.extract(structure, "A", start, end, filename)
-             pdb = Chem.MolFromPDBFile(filename)
-             calc = Calculator(descriptors)
-             res = pd.DataFrame(calc.pandas([pdb], quiet=True))
-             df_res = pd.concat([df_res, res])
-
-         # compute mean descriptor values over all windows
-         df_res = pd.DataFrame(df_res.apply(np.mean)).transpose()
-         df_res.index = [wildcards.seq_name]
-         # TODO check if classes is correctly assigned
-         df_res["y"] = [classes]
-         df_res.to_csv(str(output))
+    script:
+         "scripts/compute_qsar.py"
 
 rule combine:
      input:
-         expand(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv",
+          expand(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv",
                 seq_name=read_fasta(config["fasta_in"])[1])
      output:
-         temp(f"data/temp/{TOKEN}/qsar_raw.csv")
+          temp(f"data/temp/{TOKEN}/qsar_raw_combined.csv")
      run:
-         df_res = pd.DataFrame()
+          # remove class from columns
+          unique_colnames = \
+              reduce(lambda l1, l2: l1 & l2,
+                     [pd.read_csv(path, index_col=0).columns[:-1] for path in list(input)])
 
-         for csv_path in list(input):
-             df_tmp = pd.read_csv(csv_path, index_col=0)
-             df_res = pd.concat([df_res, df_tmp])
+          unique_colnames = unique_colnames.append(pd.Index(["y"]))
 
-         df_res.to_csv(str(output))
+          df_res = pd.DataFrame()
+          for csv_path in list(input):
+              df_tmp = pd.read_csv(csv_path, index_col=0)
+              df_tmp = df_tmp.loc[:, unique_colnames]
+              df_res = pd.concat([df_res, df_tmp])
 
-rule remove_invalid:
-    input:
-         f"data/temp/{TOKEN}/qsar_raw.csv"
-    output:
-         temp(f"data/temp/{TOKEN}/qsar_raw_removed_invalid.csv")
-    run:
-         df = pd.read_csv(str(input), index_col=0)
-         # watch out for missing values in not all rows, i.e., peptides/proteins
-         df = df.loc[:, [s.dtype in [np.float, np.int] for n,s in df.items()]]
-         df.dropna(axis="columns", inplace=True)
-         df.to_csv(str(output))
+          df_res.to_csv(str(output))
 
 rule remove_zero_variance:
     input:
-         f"data/temp/{TOKEN}/qsar_raw_removed_invalid.csv"
+         f"data/temp/{TOKEN}/qsar_raw_combined.csv"
     output:
          temp(f"data/temp/{TOKEN}/qsar_raw_removed_zero_variance.csv")
     run:
@@ -146,7 +111,8 @@ rule remove_highly_correlated:
                       cmcolumns.remove(col)
                       cm = cm.loc[cmindex, cmcolumns]
 
-         df.loc[:, cm.columns.append(pd.Index(["y"]))].to_csv(str(output))
+         df = df.loc[:, cm.columns.append(pd.Index(["y"]))]
+         df.to_csv(str(output))
 
 rule run_pca:
     input:
@@ -159,23 +125,9 @@ rule run_pca:
          df = pd.read_csv(str(input), index_col=0)
          X, y = df.iloc[:, :-1].values, df["y"]
 
-         pca = PCA(n_components=np.min([7,
-                                        np.min([X.shape[0], X.shape[1]])]
-                                       ))
+         pca = PCA(n_components=np.min([7, np.min([X.shape[0], X.shape[1]])]))
          X_new = pca.fit_transform(X, y)
 
          df_res = pd.DataFrame(X_new, index=df.index)
          df_res["y"] = df["y"]
          df_res.to_csv(str(output))
-
-
-
-
-
-
-
-
-
-
-
-
