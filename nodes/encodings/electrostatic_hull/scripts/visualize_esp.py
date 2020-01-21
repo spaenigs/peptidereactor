@@ -1,5 +1,14 @@
-"""visualize_esp.py
+"""
 To visualize the electrostatic potential by PyMol.
+
+# open e.g. UniRef100_A6P3B2.pqr
+# open e.g. UniRef100_A6P3B2.esp.dx
+# run Plugin -> APBS Electrostatics -> Run (requires PyMol license)
+
+PyMol> run visualize_esp.py
+PyMol> set seq_view, on
+PyMol> cmd.delete("segment*")
+PyMol> png test, dpi=300
 """
 
 import pandas as pd
