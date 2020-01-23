@@ -208,13 +208,28 @@ rule set_pymol_script:
          "nodes/encodings/electrostatic_hull/scripts/visualize_esp.py",
          f"data/temp/{TOKEN}/{{seq_name}}.pqr",
          f"data/temp/{TOKEN}/{{seq_name}}.esp.dx",
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv"
+         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv",
+         PDB_DIR + "{seq_name}.pdb",
+         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_window_size.yaml"
     output:
          PDB_DIR.replace("pdb", "misc/pymol") + f"{{seq_name}}_{{distance}}.py"
     run:
+         with open(str(input[5])) as f:
+             tmp = yaml.safe_load(f)
+
+         # TODO read and set python lib path
          with open(str(input[0])) as f:
-             script_text = f.read().replace("FULL_PATH_TO_PQR", str(input[1]))
-             script_text = f.read().replace("FULL_PATH_TO_ESP_DX", str(input[2]))
-             script_text = f.read().replace("FULL_PATH_TO_POINTS", str(input[3]))
+             script_text = f.read()\
+                 .replace("FULL_PATH_TO_PQR", str(input[1]))\
+                 .replace("FULL_PATH_TO_ESP_DX", str(input[2]))\
+                 .replace("FULL_PATH_TO_POINTS", str(input[3]))\
+                 .replace("FULL_PATH_TO_PDB", str(input[4]))\
+                 .replace("ORIGINAL_WINDOW_SIZE", tmp["values"][0]["range"][-1])\
+                 .replace("WINDOW_SIZE", tmp["window_size"][0])\
+                 .replace("STEP", tmp["window_size"][0])
+
+         with open(str(output), "w") as f:
+            f.write(script_text)
+
 
 
