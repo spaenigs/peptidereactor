@@ -2,7 +2,8 @@ from utils.snakemake_config import WorkflowExecuter
 import pandas as pd
 
 DATASET = "bachem"
-DATASETS = expand("bachem_window_length_{window_length}", window_length=[8,11,15,20]) + ["protease"]
+# DATASETS = expand("bachem_window_length_{window_length}", window_length=[8,11,15,20]) + ["protease"]
+DATASETS = ["bachem", "bachem_window_length_8"]
 CORES = int(config["cores"])
 
 def get_aaindex():
@@ -13,8 +14,12 @@ def get_aaindex():
 
 rule all:
     input:
-         f"data/{DATASET}/plots/filtered_datasets.png",
-         f"data/{DATASET}/machine_learning/top_encodings.csv"
+         # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,11,15,20]),
+         f"data/{DATASET}_window_length_7_complete/seqs.fasta",
+         f"data/{DATASET}_window_length_7_complete/classes.yaml"
+         # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
+         # f"data/{DATASET}/plots/filtered_datasets.png",
+         # f"data/{DATASET}/machine_learning/top_encodings.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -24,14 +29,31 @@ rule utils_sliding_windows:
     input:
          series_in=f"data/{DATASET}/series.yaml"
     output:
-         fastas_out=expand("data/bachem_window_length_{window_length}/seqs.fasta", window_length=[8,11,15,20]),
-         classes_out=expand("data/bachem_window_length_{window_length}/classes.txt", window_length=[8,11,15,20])
+         fastas_out=expand(f"data/{DATASET}_window_length_{{window_length}}/seqs.fasta", window_length=[0,8,11,15,20]),
+         classes_out=expand(f"data/{DATASET}_window_length_{{window_length}}/classes.txt", window_length=[0,8,11,15,20])
     params:
          snakefile="nodes/utils/sliding_windows/Snakefile",
          configfile="nodes/utils/sliding_windows/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+rule utils_sliding_windows_complete:
+    input:
+         series_in=f"data/{DATASET}/series.yaml"
+    output:
+         fastas_out=f"data/{DATASET}_window_length_7_complete/seqs.fasta",
+         classes_out=f"data/{DATASET}_window_length_7_complete/classes.yaml"
+         # fastas_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,11,15,20]),
+         # classes_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
+    params:
+         snakefile="nodes/utils/sliding_windows_complete/Snakefile",
+         configfile="nodes/utils/sliding_windows_complete/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+
+
 
 ########################################################################################################################
 ############################################## PROFILE CREATION ########################################################
@@ -1102,6 +1124,52 @@ rule meta_workflow_structure_based_encodings:
                  with WorkflowExecuter(dict(input), dict(output), params.configfile):
                      shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
 
+rule meta_workflow_structure_based_encodings_peptide:
+    input:
+         fasta_anno=f"data/{DATASET}/annotated_seqs.fasta",
+         classes_anno=f"data/{DATASET}/annotated_classes.txt",
+         fasta_msa_anno=f"data/{DATASET}/annotated_seqs_msa.fasta",
+         profile_dir=f"data/{DATASET}/profile/",
+         fasta_pdbs_anno=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
+         classes_pdbs_anno=f"data/{DATASET}/annotated_pdbs_classes.txt",
+         pdb_dir=f"data/{DATASET}/pdb/"
+    output:
+         asa_out=f"data/{DATASET}/csv/asa.csv",
+         ta_out=f"data/{DATASET}/csv/ta.csv",
+         ssec_out=f"data/{DATASET}/csv/ssec.csv",
+         sseb_out=f"data/{DATASET}/csv/sseb.csv",
+         disorder_out=f"data/{DATASET}/csv/disorder.csv",
+         disorderb_out=f"data/{DATASET}/csv/disorderb.csv",
+         disorderc_out=f"data/{DATASET}/csv/disorderc.csv",
+         qsar_out=f"data/{DATASET}/csv/qsar.csv",
+         electrostatic_hull_out=\
+              expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+                     distance=[0,3,6,9,12]),
+         distance_distribution_out=f"data/{DATASET}/csv/distance_distribution.csv",
+         delaunay_out=\
+              expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+                     algorithm=["average_distance", "total_distance", "cartesian_product",
+                                "number_instances", "frequency_instances"])
+    params:
+         snakefile="nodes/meta_workflows/structure_based_encodings/Snakefile",
+         configfile="nodes/meta_workflows/structure_based_encodings/config.yaml"
+    run:
+         import os
+
+         for name in ["asa_out", "ta_out", "ssec_out", "sseb_out", "disorder_out", "disorderb_out", "disorderc_out"]:
+             if os.path.getsize(input.fasta_anno) == 0:
+                 shell(f"touch {output[name]}")
+             else:
+                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
+                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
+
+         for name in ["qsar_out", "electrostatic_hull_out", "delaunay_out", "distance_distribution_out"]:
+             if os.path.getsize(input.fasta_pdbs_anno) == 0:
+                 shell(f"touch {output[name]}")
+             else:
+                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
+                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
+
 ########################################################################################################################
 ################################################ MACHINE LEARNING ######################################################
 ########################################################################################################################
@@ -1111,421 +1179,459 @@ rule collect_encodings:
          sequence_based_encodings=\
              expand("data/{normalized_dataset}/csv/aaindex/aaindex_{aaindex}.csv",
                     normalized_dataset=DATASETS, aaindex=get_aaindex()) +
-             expand("data/{normalized_dataset}/csv/apaac/apaac_lambda_{lambda_val}.csv",
-                    normalized_dataset=DATASETS, lambda_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/moran/moran_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/geary/geary_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/eaac/eaac_window_{window_val}.csv",
-                    normalized_dataset=DATASETS, window_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/cksaap/cksaap_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
-             expand("data/{normalized_dataset}/csv/paac/paac_lambda_{lambda_val}.csv",
-                    normalized_dataset=DATASETS, lambda_val=list(range(1, 31))) +
-
-             expand("data/{normalized_dataset}/csv/psekraac_type1/psekraac_type1_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type2/psekraac_type2_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type3A/psekraac_type3A_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type3B/psekraac_type3B_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type4/psekraac_type4_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type5/psekraac_type5_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type6A/psekraac_type6A_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type6B/psekraac_type6B_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type6C/psekraac_type6C_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type7/psekraac_type7_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type8/psekraac_type8_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type9/psekraac_type9_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type10/psekraac_type10_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type11/psekraac_type11_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type12/psekraac_type12_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type13/psekraac_type13_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type14/psekraac_type14_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type15/psekraac_type15_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-             expand("data/{normalized_dataset}/csv/psekraac_type16/psekraac_type16_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
-
-             expand("data/{normalized_dataset}/csv/fft/fft_{aaindex}.csv",
-                    normalized_dataset=DATASETS, aaindex=get_aaindex()) +
-
-             expand("data/{normalized_dataset}/csv/cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
-                    normalized_dataset=DATASETS,
-                    resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713]) +
-             expand("data/{normalized_dataset}/csv/waac/waac_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex()) +
-             expand("data/{normalized_dataset}/csv/flgc/flgc_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex()) +
-             expand("data/{normalized_dataset}/csv/fldpc/fldpc_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex()) +
-
-             expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
-             expand("data/{normalized_dataset}/csv/aac.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/binary.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/blosum62.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ctdc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ctdd.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ctdt.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ctriad.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/dde.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/dpc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/gaac.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/gdpc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/gtpc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/apaac/apaac_lambda_{lambda_val}.csv",
+             #        normalized_dataset=DATASETS, lambda_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/moran/moran_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/geary/geary_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/eaac/eaac_window_{window_val}.csv",
+             #        normalized_dataset=DATASETS, window_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/cksaap/cksaap_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31))) +
+             # expand("data/{normalized_dataset}/csv/paac/paac_lambda_{lambda_val}.csv",
+             #        normalized_dataset=DATASETS, lambda_val=list(range(1, 31))) +
+             #
+             # expand("data/{normalized_dataset}/csv/psekraac_type1/psekraac_type1_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type2/psekraac_type2_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type3A/psekraac_type3A_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type3B/psekraac_type3B_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type4/psekraac_type4_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type5/psekraac_type5_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type6A/psekraac_type6A_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type6B/psekraac_type6B_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type6C/psekraac_type6C_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type7/psekraac_type7_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type8/psekraac_type8_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type9/psekraac_type9_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type10/psekraac_type10_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type11/psekraac_type11_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type12/psekraac_type12_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type13/psekraac_type13_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type14/psekraac_type14_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type15/psekraac_type15_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             # expand("data/{normalized_dataset}/csv/psekraac_type16/psekraac_type16_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4))) +
+             #
+             # expand("data/{normalized_dataset}/csv/fft/fft_{aaindex}.csv",
+             #        normalized_dataset=DATASETS, aaindex=get_aaindex()) +
+             #
+             # expand("data/{normalized_dataset}/csv/cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
+             #        normalized_dataset=DATASETS,
+             #        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713]) +
+             # expand("data/{normalized_dataset}/csv/waac/waac_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex()) +
+             # expand("data/{normalized_dataset}/csv/flgc/flgc_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex()) +
+             # expand("data/{normalized_dataset}/csv/fldpc/fldpc_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex()) +
+             #
+             # expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300]) +
+             # expand("data/{normalized_dataset}/csv/aac.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/binary.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/blosum62.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ctdc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ctdd.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ctdt.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ctriad.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/dde.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/dpc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/gaac.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/gdpc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/gtpc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS) +
              expand("data/{normalized_dataset}/csv/blomap.csv",
                     normalized_dataset=DATASETS),
          structure_based_encodings=\
              expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
                     normalized_dataset=DATASETS, distance=[0,3,6,9,12]) +
-             expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
-                    normalized_dataset=DATASETS,
-                    algorithm=["average_distance", "total_distance", "cartesian_product",
-                               "number_instances", "frequency_instances"]) +
-             expand("data/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/pssm.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
+             #        normalized_dataset=DATASETS,
+             #        algorithm=["average_distance", "total_distance", "cartesian_product",
+             #                   "number_instances", "frequency_instances"]) +
+             # expand("data/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/pssm.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS) +
+             # expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS) +
              expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS)
     output:
          sequence_based_encodings=\
              temp(expand("data/temp/{normalized_dataset}/csv/aaindex/aaindex_{aaindex}.csv",
                     normalized_dataset=DATASETS, aaindex=get_aaindex())) +
-             temp(expand("data/temp/{normalized_dataset}/csv/apaac/apaac_lambda_{lambda_val}.csv",
-                    normalized_dataset=DATASETS, lambda_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/moran/moran_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/geary/geary_nlag_{nlag_val}.csv",
-                    normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/eaac/eaac_window_{window_val}.csv",
-                    normalized_dataset=DATASETS, window_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/cksaap/cksaap_gap_{gap_val}.csv",
-                    normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/paac/paac_lambda_{lambda_val}.csv",
-                    normalized_dataset=DATASETS, lambda_val=list(range(1, 31)))) +
-
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type1/psekraac_type1_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type2/psekraac_type2_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type3A/psekraac_type3A_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type3B/psekraac_type3B_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type4/psekraac_type4_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type5/psekraac_type5_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6A/psekraac_type6A_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6B/psekraac_type6B_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6C/psekraac_type6C_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type7/psekraac_type7_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type8/psekraac_type8_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type9/psekraac_type9_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type10/psekraac_type10_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type11/psekraac_type11_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type12/psekraac_type12_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type13/psekraac_type13_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type14/psekraac_type14_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type15/psekraac_type15_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-             temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type16/psekraac_type16_"
-                    "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
-                    normalized_dataset=DATASETS,
-                    sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
-                    ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
-
-             temp(expand("data/temp/{normalized_dataset}/csv/fft/fft_{aaindex}.csv",
-                    normalized_dataset=DATASETS, aaindex=get_aaindex())) +
-
-             temp(expand("data/temp/{normalized_dataset}/csv/cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
-                    normalized_dataset=DATASETS,
-                    resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/waac/waac_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex())) +
-             temp(expand("data/temp/{normalized_dataset}/csv/flgc/flgc_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex())) +
-             temp(expand("data/temp/{normalized_dataset}/csv/fldpc/fldpc_{aaindex}.csv",
-                    normalized_dataset=DATASETS,
-                    aaindex=get_aaindex())) +
-
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
-                    normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/aac.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/binary.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/blosum62.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ctdc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ctdd.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ctdt.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ctriad.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/dde.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/dpc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/gaac.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/gdpc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/gtpc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/apaac/apaac_lambda_{lambda_val}.csv",
+             #        normalized_dataset=DATASETS, lambda_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/socnumber/socnumber_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/qsorder/qsorder_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/nmbroto/nmbroto_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/moran/moran_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ksctriad/ksctriad_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/geary/geary_nlag_{nlag_val}.csv",
+             #        normalized_dataset=DATASETS, nlag_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/eaac/eaac_window_{window_val}.csv",
+             #        normalized_dataset=DATASETS, window_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/cksaap/cksaap_gap_{gap_val}.csv",
+             #        normalized_dataset=DATASETS, gap_val=list(range(1, 31)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/paac/paac_lambda_{lambda_val}.csv",
+             #        normalized_dataset=DATASETS, lambda_val=list(range(1, 31)))) +
+             #
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type1/psekraac_type1_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type2/psekraac_type2_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[2, 3, 4, 5, 6, 8, 15, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type3A/psekraac_type3A_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type3B/psekraac_type3B_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type4/psekraac_type4_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5, 8, 9, 11, 13, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type5/psekraac_type5_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[3, 4, 8, 10, 15, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6A/psekraac_type6A_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 5, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6B/psekraac_type6B_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type6C/psekraac_type6C_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[5],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type7/psekraac_type7_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type8/psekraac_type8_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type9/psekraac_type9_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type10/psekraac_type10_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type11/psekraac_type11_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type12/psekraac_type12_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,19)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type13/psekraac_type13_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=[4, 12, 17, 20],
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type14/psekraac_type14_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=list(range(2,21)),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type15/psekraac_type15_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/psekraac_type16/psekraac_type16_"
+             #        "subtype-{sub_val}_raactype-{raac_val}_ktuple-{ktuple_val}_lambda-{lambda_val}.csv",
+             #        normalized_dataset=DATASETS,
+             #        sub_val=["g-gap", "lambda-correlation"], raac_val=(list(range(2,17)) + [20]),
+             #        ktuple_val=list(range(1,4)), lambda_val=list(range(1,4)))) +
+             #
+             # temp(expand("data/temp/{normalized_dataset}/csv/fft/fft_{aaindex}.csv",
+             #        normalized_dataset=DATASETS, aaindex=get_aaindex())) +
+             #
+             # temp(expand("data/temp/{normalized_dataset}/csv/cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
+             #        normalized_dataset=DATASETS,
+             #        resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/waac/waac_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex())) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/flgc/flgc_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex())) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/fldpc/fldpc_{aaindex}.csv",
+             #        normalized_dataset=DATASETS,
+             #        aaindex=get_aaindex())) +
+             #
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
+             #        normalized_dataset=DATASETS, dim=[1, 5, 20, 50, 100, 200, 300])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/aac.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/binary.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/blosum62.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ctdc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ctdd.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ctdt.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ctriad.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/dde.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/dpc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/gaac.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/gdpc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/gtpc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS)) +
              temp(expand("data/temp/{normalized_dataset}/csv/blomap.csv", normalized_dataset=DATASETS)),
          structure_based_encodings=\
              temp(expand("data/temp/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
                     normalized_dataset=DATASETS, distance=[0,3,6,9,12])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
-                    normalized_dataset=DATASETS,
-                    algorithm=["average_distance", "total_distance", "cartesian_product",
-                               "number_instances", "frequency_instances"])) +
-             temp(expand("data/temp/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/pssm.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS)) +
-             temp(expand("data/temp/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
+             #        normalized_dataset=DATASETS,
+             #        algorithm=["average_distance", "total_distance", "cartesian_product",
+             #                   "number_instances", "frequency_instances"])) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/pssm.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS)) +
+             # temp(expand("data/temp/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS)) +
              temp(expand("data/temp/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS))
     run:
          for i in list(input):
              target = i.replace("data", "data/temp")
              shell("cp {i} {target}")
+
+# rule collect_structure_based_encodings_peptide:
+#     input:
+#          expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+#                 distance=[0,3,6,9,12]) +
+#          f"data/{DATASET}/csv/distance_distribution.csv" +
+#          f"data/{DATASET}/csv/qsar.csv" +
+#          expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+#                 algorithm=["average_distance", "total_distance", "cartesian_product",
+#                            "number_instances", "frequency_instances"]) +
+#          f"data/{DATASET}/csv/asa.csv" +
+#          f"data/{DATASET}/csv/disorder.csv" +
+#          f"data/{DATASET}/csv/disorderb.csv" +
+#          f"data/{DATASET}/csv/disorderc.csv" +
+#          f"data/{DATASET}/csv/pssm.csv" +
+#          f"data/{DATASET}/csv/sseb.csv" +
+#          f"data/{DATASET}/csv/ssec.csv" +
+#          f"data/{DATASET}/csv/ta.csv"
+#     output:
+#          expand(f"data/temp/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+#                 distance=[0,3,6,9,12]) +
+#          f"data/temp/{DATASET}/csv/distance_distribution.csv" +
+#          f"data/temp/{DATASET}/csv/qsar.csv" +
+#          expand(f"data/temp/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+#                 algorithm=["average_distance", "total_distance", "cartesian_product",
+#                            "number_instances", "frequency_instances"]) +
+#          f"data/temp/{DATASET}/csv/asa.csv" +
+#          f"data/temp/{DATASET}/csv/disorder.csv" +
+#          f"data/temp/{DATASET}/csv/disorderb.csv" +
+#          f"data/temp/{DATASET}/csv/disorderc.csv" +
+#          f"data/temp/{DATASET}/csv/pssm.csv" +
+#          f"data/temp/{DATASET}/csv/sseb.csv" +
+#          f"data/temp/{DATASET}/csv/ssec.csv" +
+#          f"data/temp/{DATASET}/csv/ta.csv"
+#     run:
+#          for i in list(input):
+#              target = i.replace("data", "data/temp")
+#              shell("cp {i} {target}")
 
 rule plot_empty_datasets:
     input:
