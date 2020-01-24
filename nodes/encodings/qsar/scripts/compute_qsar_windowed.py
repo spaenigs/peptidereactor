@@ -9,11 +9,12 @@ from snakemake.shell import shell
 
 def get_pdb_chunks(full_pdb, windowed_classes, token):
     values = list(windowed_classes[class_idx].values())[0]
+    chain_id = [c.get_id() for c in full_pdb.get_chains()][0]
     for i, v in enumerate(values, start=1):
         start, end = v["range"]
         name, class_ = f"{full_pdb.get_id()}_part_{str(i)}", v["class"]
         filename = f"data/temp/{token}/{full_pdb.get_id()}_{start}_{end}.pdb"
-        Dice.extract(full_pdb, "A", start, end, filename)
+        Dice.extract(full_pdb, chain_id, start, end, filename)
         yield name, class_, filename, Chem.MolFromPDBFile(filename)
 
 
