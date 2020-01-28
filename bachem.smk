@@ -3,7 +3,7 @@ import pandas as pd
 
 DATASET = "bachem"
 # DATASETS = expand("bachem_window_length_{window_length}", window_length=[8,11,15,20]) + ["protease"]
-DATASETS = ["bachem", "bachem_window_length_8"]
+DATASETS = ["bachem_window_length_8", "bachem_window_length_7_complete"]
 CORES = int(config["cores"])
 
 def get_aaindex():
@@ -15,11 +15,11 @@ def get_aaindex():
 rule all:
     input:
          # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,11,15,20]),
-         f"data/{DATASET}_window_length_7_complete/seqs.fasta",
-         f"data/{DATASET}_window_length_7_complete/classes.yaml"
+         # f"data/{DATASET}_window_length_7_complete/seqs.fasta",
+         # f"data/{DATASET}_window_length_7_complete/classes.yaml"
          # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
          # f"data/{DATASET}/plots/filtered_datasets.png",
-         # f"data/{DATASET}/machine_learning/top_encodings.csv"
+         f"data/{DATASET}/machine_learning/top_encodings.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -43,7 +43,8 @@ rule utils_sliding_windows_complete:
          series_in=f"data/{DATASET}/series.yaml"
     output:
          fastas_out=f"data/{DATASET}_window_length_7_complete/seqs.fasta",
-         classes_out=f"data/{DATASET}_window_length_7_complete/classes.yaml"
+         classes_out=f"data/{DATASET}_window_length_7_complete/classes.yaml",
+         classes_idx_out=f"data/{DATASET}_window_length_7_complete/classes.txt"
          # fastas_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,11,15,20]),
          # classes_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
     params:
@@ -52,7 +53,6 @@ rule utils_sliding_windows_complete:
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
 
 
 ########################################################################################################################
@@ -72,53 +72,53 @@ rule util_multiple_sequence_alignment:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
 
-rule util_secondary_structure_profile:
-    input:
-         fasta_in="data/{normalized_dataset}/seqs.fasta",
-         fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
-         classes_in="data/{normalized_dataset}/classes.txt",
-         uniprot90_download_link_in="nodes/utils/secondary_structure_profile/" + \
-                                    "download_links/uniprot90_download_link.txt",
-         psipred_download_link_in="nodes/utils/secondary_structure_profile/" + \
-                                  "download_links/psipred_download_link.txt",
-         spineXpublic_download_link_in="nodes/utils/secondary_structure_profile/" + \
-                                       "download_links/spineXpublic_download_link.txt",
-         VSL2_download_link_in="nodes/utils/secondary_structure_profile/" + \
-                               "download_links/VSL2_download_link.txt"
-    output:
-         fasta_anno_out="data/{normalized_dataset}/annotated_seqs.fasta",
-         fasta_anno_msa_out="data/{normalized_dataset}/annotated_seqs_msa.fasta",
-         classes_anno="data/{normalized_dataset}/annotated_classes.txt",
-         profiles_out=directory("data/{normalized_dataset}/profile/")
-    priority:
-         1000
-    params:
-         snakefile="nodes/utils/secondary_structure_profile/Snakefile",
-         configfile="nodes/utils/secondary_structure_profile/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule util_protein_structure_prediction:
-    input:
-         fasta_in="data/{normalized_dataset}/seqs.fasta",
-         classes_in="data/{normalized_dataset}/classes.txt",
-         download_link_in="nodes/utils/protein_structure_prediction/" + \
-                          "download_links/raptorx_download_link.txt",
-         license_key_in="nodes/utils/protein_structure_prediction/" + \
-                        "download_links/modeller_license_key.txt"
-    output:
-         fasta_out="data/{normalized_dataset}/annotated_pdbs_seqs.fasta",
-         classes_out="data/{normalized_dataset}/annotated_pdbs_classes.txt",
-         pdbs_out=directory("data/{normalized_dataset}/pdb/")
-    priority:
-         1000
-    params:
-         snakefile="nodes/utils/protein_structure_prediction/Snakefile",
-         configfile="nodes/utils/protein_structure_prediction/config.yaml",
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+# rule util_secondary_structure_profile:
+#     input:
+#          fasta_in="data/{normalized_dataset}/seqs.fasta",
+#          fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
+#          classes_in="data/{normalized_dataset}/classes.txt",
+#          uniprot90_download_link_in="nodes/utils/secondary_structure_profile/" + \
+#                                     "download_links/uniprot90_download_link.txt",
+#          psipred_download_link_in="nodes/utils/secondary_structure_profile/" + \
+#                                   "download_links/psipred_download_link.txt",
+#          spineXpublic_download_link_in="nodes/utils/secondary_structure_profile/" + \
+#                                        "download_links/spineXpublic_download_link.txt",
+#          VSL2_download_link_in="nodes/utils/secondary_structure_profile/" + \
+#                                "download_links/VSL2_download_link.txt"
+#     output:
+#          fasta_anno_out="data/{normalized_dataset}/annotated_seqs.fasta",
+#          fasta_anno_msa_out="data/{normalized_dataset}/annotated_seqs_msa.fasta",
+#          classes_anno="data/{normalized_dataset}/annotated_classes.txt",
+#          profiles_out=directory("data/{normalized_dataset}/profile/")
+#     priority:
+#          1000
+#     params:
+#          snakefile="nodes/utils/secondary_structure_profile/Snakefile",
+#          configfile="nodes/utils/secondary_structure_profile/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule util_protein_structure_prediction:
+#     input:
+#          fasta_in="data/{normalized_dataset}/seqs.fasta",
+#          classes_in="data/{normalized_dataset}/classes.txt",
+#          download_link_in="nodes/utils/protein_structure_prediction/" + \
+#                           "download_links/raptorx_download_link.txt",
+#          license_key_in="nodes/utils/protein_structure_prediction/" + \
+#                         "download_links/modeller_license_key.txt"
+#     output:
+#          fasta_out="data/{normalized_dataset}/annotated_pdbs_seqs.fasta",
+#          classes_out="data/{normalized_dataset}/annotated_pdbs_classes.txt",
+#          pdbs_out=directory("data/{normalized_dataset}/pdb/")
+#     priority:
+#          1000
+#     params:
+#          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
+#          configfile="nodes/utils/protein_structure_prediction/config.yaml",
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
 
 ########################################################################################################################
 ############################################## PARAMETER COMPUTATION ###################################################
@@ -1080,28 +1080,31 @@ rule encoding_psekraac_type1:
 
 rule meta_workflow_structure_based_encodings:
     input:
-         fasta_anno="data/{normalized_dataset}/annotated_seqs.fasta",
-         classes_anno="data/{normalized_dataset}/annotated_classes.txt",
-         fasta_msa_anno="data/{normalized_dataset}/annotated_seqs_msa.fasta",
-         profile_dir="data/{normalized_dataset}/profile/",
-         fasta_pdbs_anno="data/{normalized_dataset}/annotated_pdbs_seqs.fasta",
-         classes_pdbs_anno="data/{normalized_dataset}/annotated_pdbs_classes.txt",
-         pdb_dir="data/{normalized_dataset}/pdb/"
+         fasta_in="data/{normalized_dataset}/seqs.fasta",
+         fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
+         classes_in="data/{normalized_dataset}/classes.txt",
     output:
-         asa_out="data/{normalized_dataset}/csv/asa.csv",
-         ta_out="data/{normalized_dataset}/csv/ta.csv",
-         ssec_out="data/{normalized_dataset}/csv/ssec.csv",
-         sseb_out="data/{normalized_dataset}/csv/sseb.csv",
-         disorder_out="data/{normalized_dataset}/csv/disorder.csv",
-         disorderb_out="data/{normalized_dataset}/csv/disorderb.csv",
-         disorderc_out="data/{normalized_dataset}/csv/disorderc.csv",
-         qsar_out="data/{normalized_dataset}/csv/qsar.csv",
+         fasta_anno_out="data/{normalized_dataset,.*?\d}/annotated_seqs.fasta",
+         classes_anno="data/{normalized_dataset,.*?\d}/annotated_classes.txt",
+         fasta_anno_msa_out="data/{normalized_dataset,.*?\d}/annotated_seqs_msa.fasta",
+         profile_dir="data/{normalized_dataset,.*?\d}/profile/",
+         fasta_anno_pdbs_out="data/{normalized_dataset,.*?\d}/annotated_pdbs_seqs.fasta",
+         classes_anno_pdbs_out="data/{normalized_dataset,.*?\d}/annotated_pdbs_classes.txt",
+         pdb_out="data/{normalized_dataset,.*?\d}/pdb/",
+         asa_out="data/{normalized_dataset,.*?\d}/csv/asa.csv",
+         ta_out="data/{normalized_dataset,.*?\d}/csv/ta.csv",
+         ssec_out="data/{normalized_dataset,.*?\d}/csv/ssec.csv",
+         sseb_out="data/{normalized_dataset,.*?\d}/csv/sseb.csv",
+         disorder_out="data/{normalized_dataset,.*?\d}/csv/disorder.csv",
+         disorderb_out="data/{normalized_dataset,.*?\d}/csv/disorderb.csv",
+         disorderc_out="data/{normalized_dataset,.*?\d}/csv/disorderc.csv",
+         qsar_out="data/{normalized_dataset,.*?\d}/csv/qsar.csv",
          electrostatic_hull_out=\
-              expand("data/{{normalized_dataset}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
+              expand("data/{{normalized_dataset,.*?\d}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
                      distance=[0,3,6,9,12]),
-         distance_distribution_out="data/{normalized_dataset}/csv/distance_distribution.csv",
+         distance_distribution_out="data/{normalized_dataset,.*?\d}/csv/distance_distribution.csv",
          delaunay_out=\
-              expand("data/{{normalized_dataset}}/csv/delaunay/delaunay_{algorithm}.csv",
+              expand("data/{{normalized_dataset,.*?\d}}/csv/delaunay/delaunay_{algorithm}.csv",
                      algorithm=["average_distance", "total_distance", "cartesian_product",
                                 "number_instances", "frequency_instances"])
     params:
@@ -1124,35 +1127,39 @@ rule meta_workflow_structure_based_encodings:
                  with WorkflowExecuter(dict(input), dict(output), params.configfile):
                      shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
 
-rule meta_workflow_structure_based_encodings_peptide:
+rule meta_workflow_structure_based_encodings_windowed:
     input:
-         fasta_anno=f"data/{DATASET}/annotated_seqs.fasta",
-         classes_anno=f"data/{DATASET}/annotated_classes.txt",
-         fasta_msa_anno=f"data/{DATASET}/annotated_seqs_msa.fasta",
-         profile_dir=f"data/{DATASET}/profile/",
-         fasta_pdbs_anno=f"data/{DATASET}/annotated_pdbs_seqs.fasta",
-         classes_pdbs_anno=f"data/{DATASET}/annotated_pdbs_classes.txt",
-         pdb_dir=f"data/{DATASET}/pdb/"
+         fasta_in="data/{normalized_dataset}/seqs.fasta",
+         fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
+         classes_idx_in="data/{normalized_dataset}/classes.txt",
+         classes_in="data/{normalized_dataset}/classes.yaml"
     output:
-         asa_out=f"data/{DATASET}/csv/asa.csv",
-         ta_out=f"data/{DATASET}/csv/ta.csv",
-         ssec_out=f"data/{DATASET}/csv/ssec.csv",
-         sseb_out=f"data/{DATASET}/csv/sseb.csv",
-         disorder_out=f"data/{DATASET}/csv/disorder.csv",
-         disorderb_out=f"data/{DATASET}/csv/disorderb.csv",
-         disorderc_out=f"data/{DATASET}/csv/disorderc.csv",
-         qsar_out=f"data/{DATASET}/csv/qsar.csv",
+         fasta_anno_out="data/{normalized_dataset,.*?[a-z]}/annotated_seqs.fasta",
+         classes_anno_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_classes.txt",
+         fasta_anno_msa_out="data/{normalized_dataset,.*?[a-z]}/annotated_seqs_msa.fasta",
+         profile_dir="data/{normalized_dataset,.*?[a-z]}/profile/",
+         fasta_anno_pdbs_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_seqs.fasta",
+         classes_anno_pdbs_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_classes.txt",
+         pdb_out="data/{normalized_dataset,.*?[a-z]}/pdb/",
+         asa_out="data/{normalized_dataset,.*?[a-z]}/csv/asa.csv",
+         ta_out="data/{normalized_dataset,.*?[a-z]}/csv/ta.csv",
+         ssec_out="data/{normalized_dataset,.*?[a-z]}/csv/ssec.csv",
+         sseb_out="data/{normalized_dataset,.*?[a-z]}/csv/sseb.csv",
+         disorder_out="data/{normalized_dataset,.*?[a-z]}/csv/disorder.csv",
+         disorderb_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderb.csv",
+         disorderc_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderc.csv",
+         qsar_out="data/{normalized_dataset,.*?[a-z]}/csv/qsar.csv",
          electrostatic_hull_out=\
-              expand(f"data/{DATASET}/csv/electrostatic_hull/electrostatic_hull_{{distance}}.csv",
+              expand("data/{{normalized_dataset,.*?[a-z]$}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
                      distance=[0,3,6,9,12]),
-         distance_distribution_out=f"data/{DATASET}/csv/distance_distribution.csv",
+         distance_distribution_out="data/{normalized_dataset,.*?[a-z]}/csv/distance_distribution.csv",
          delaunay_out=\
-              expand(f"data/{DATASET}/csv/delaunay/delaunay_{{algorithm}}.csv",
+              expand("data/{{normalized_dataset,.*?[a-z]}}/csv/delaunay/delaunay_{algorithm}.csv",
                      algorithm=["average_distance", "total_distance", "cartesian_product",
                                 "number_instances", "frequency_instances"])
     params:
-         snakefile="nodes/meta_workflows/structure_based_encodings/Snakefile",
-         configfile="nodes/meta_workflows/structure_based_encodings/config.yaml"
+         snakefile="nodes/meta_workflows/structure_based_encodings_windowed/Snakefile",
+         configfile="nodes/meta_workflows/structure_based_encodings_windowed/config.yaml"
     run:
          import os
 
@@ -1178,7 +1185,7 @@ rule collect_encodings:
     input:
          sequence_based_encodings=\
              expand("data/{normalized_dataset}/csv/aaindex/aaindex_{aaindex}.csv",
-                    normalized_dataset=DATASETS, aaindex=get_aaindex()) +
+                    normalized_dataset=filter(lambda ds: "complete" not in ds, DATASETS), aaindex=get_aaindex()) +
              # expand("data/{normalized_dataset}/csv/apaac/apaac_lambda_{lambda_val}.csv",
              #        normalized_dataset=DATASETS, lambda_val=list(range(1, 31))) +
              # expand("data/{normalized_dataset}/csv/cksaagp/cksaagp_gap_{gap_val}.csv",
@@ -1365,10 +1372,10 @@ rule collect_encodings:
              # expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS) +
              # expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS) +
              expand("data/{normalized_dataset}/csv/blomap.csv",
-                    normalized_dataset=DATASETS),
+                    normalized_dataset=filter(lambda ds: "complete" not in ds, DATASETS)),
          structure_based_encodings=\
-             expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
-                    normalized_dataset=DATASETS, distance=[0,3,6,9,12]) +
+             # expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
+             #        normalized_dataset=DATASETS, distance=[0,3,6,9,12]) +
              # expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS) +
              # expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
              #        normalized_dataset=DATASETS,
@@ -1382,7 +1389,8 @@ rule collect_encodings:
              # expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS) +
              # expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS) +
              # expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS) +
-             expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS)
+             expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS) +
+             expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS)
     output:
          sequence_based_encodings=\
              temp(expand("data/temp/{normalized_dataset}/csv/aaindex/aaindex_{aaindex}.csv",
@@ -1588,7 +1596,7 @@ rule collect_encodings:
              # temp(expand("data/temp/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS)) +
              # temp(expand("data/temp/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS)) +
              # temp(expand("data/temp/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS)) +
-             # temp(expand("data/temp/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS)) +
+             temp(expand("data/temp/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS)) +
              temp(expand("data/temp/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS))
     run:
          for i in list(input):
