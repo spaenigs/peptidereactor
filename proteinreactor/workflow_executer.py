@@ -32,16 +32,20 @@ class WorkflowExecuter:
         if os.path.exists(path):
             rmtree(path)
 
+    def snakemake(self):
+        return
+
     def __enter__(self):
         self.write_configfile()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.remove_configfile()
-        self.remove_temp_dir()
+        # self.remove_temp_dir()
 
-    def __init__(self, input_files, output_files, path_to_configfile, **kwargs):
-        self.token = secrets.token_hex(4)
+    def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
+        self.snakemake = f"snakemake --nolock -d $PWD --cores {cores}"
+        self.token = secrets.token_hex(6)
         self.input_files = input_files
         self.output_files = output_files
         self.config = self._set_config()
@@ -51,12 +55,8 @@ class WorkflowExecuter:
                 self.config[key] = value
 
 
-class MetaWorkflow(list):
+class MetaWorkflowExecuter(WorkflowExecuter):
 
-    def register(self, wf):
-        self.append(wf)
-
-    def dryrun(self):
-        for wf in self:
-            shell(wf + " -nr")
-
+    def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
+        super().__init__(input_files, output_files, path_to_configfile, cores, **kwargs)
+        self.snakemake = f"snakemake --nolock -d $PWD --config cores={cores}"
