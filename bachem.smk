@@ -1108,24 +1108,11 @@ rule meta_workflow_structure_based_encodings:
                      algorithm=["average_distance", "total_distance", "cartesian_product",
                                 "number_instances", "frequency_instances"])
     params:
-         snakefile="nodes/meta_workflows/structure_based_encodings/Snakefile",
+         snakefile="nodes/meta_workflows/structure_based_encodings/structure_based_encodings.smk",
          configfile="nodes/meta_workflows/structure_based_encodings/config.yaml"
     run:
-         import os
-
-         for name in ["asa_out", "ta_out", "ssec_out", "sseb_out", "disorder_out", "disorderb_out", "disorderc_out"]:
-             if os.path.getsize(input.fasta_anno) == 0:
-                 shell(f"touch {output[name]}")
-             else:
-                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
-                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
-
-         for name in ["qsar_out", "electrostatic_hull_out", "delaunay_out", "distance_distribution_out"]:
-             if os.path.getsize(input.fasta_pdbs_anno) == 0:
-                 shell(f"touch {output[name]}")
-             else:
-                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
-                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
 
 rule meta_workflow_structure_based_encodings_windowed:
     input:
@@ -1161,21 +1148,8 @@ rule meta_workflow_structure_based_encodings_windowed:
          snakefile="nodes/meta_workflows/structure_based_encodings_windowed/Snakefile",
          configfile="nodes/meta_workflows/structure_based_encodings_windowed/config.yaml"
     run:
-         import os
-
-         for name in ["asa_out", "ta_out", "ssec_out", "sseb_out", "disorder_out", "disorderb_out", "disorderc_out"]:
-             if os.path.getsize(input.fasta_anno) == 0:
-                 shell(f"touch {output[name]}")
-             else:
-                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
-                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
-
-         for name in ["qsar_out", "electrostatic_hull_out", "delaunay_out", "distance_distribution_out"]:
-             if os.path.getsize(input.fasta_pdbs_anno) == 0:
-                 shell(f"touch {output[name]}")
-             else:
-                 with WorkflowExecuter(dict(input), dict(output), params.configfile):
-                     shell(f"""snakemake -s {{params.snakefile}} {output[name]} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} -d $PWD --configfile {{params.configfile}} --config cores={CORES}""")
 
 ########################################################################################################################
 ################################################ MACHINE LEARNING ######################################################

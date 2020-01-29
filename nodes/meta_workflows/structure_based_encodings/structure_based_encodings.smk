@@ -7,6 +7,19 @@ from utils.snakemake_config import WorkflowExecuter
 TOKEN = config["token"]
 CORES = config["cores"]
 
+def check_empty(path_to_fasta, path_to_csv_out,
+                dict_input, dict_output,
+                params_configfile, params_snakefile):
+    if os.path.getsize(path_to_fasta) == 0:
+        if type(path_to_csv_out) == list:
+            for p in path_to_csv_out:
+                shell(f"touch {p}")
+        else:
+            shell(f"touch {path_to_csv_out}")
+    else:
+        with WorkflowExecuter(dict_input, dict_output, params_configfile):
+            shell(f"""snakemake -s {params_snakefile} -d $PWD --configfile {params_configfile} --config cores={CORES}""")
+
 # rule all:
 #     input:
 #          config["asa_out"],
@@ -82,8 +95,12 @@ rule encoding_asa:
          snakefile="nodes/encodings/asa/Snakefile",
          configfile="nodes/encodings/asa/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_ta:
     input:
@@ -96,8 +113,12 @@ rule encoding_ta:
          snakefile="nodes/encodings/ta/Snakefile",
          configfile="nodes/encodings/ta/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_ssec:
     input:
@@ -110,8 +131,12 @@ rule encoding_ssec:
          snakefile="nodes/encodings/ssec/Snakefile",
          configfile="nodes/encodings/ssec/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_sseb:
     input:
@@ -124,8 +149,12 @@ rule encoding_sseb:
          snakefile="nodes/encodings/sseb/Snakefile",
          configfile="nodes/encodings/sseb/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_disorder:
     input:
@@ -138,8 +167,12 @@ rule encoding_disorder:
          snakefile="nodes/encodings/disorder/Snakefile",
          configfile="nodes/encodings/disorder/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_disorderb:
     input:
@@ -152,8 +185,12 @@ rule encoding_disorderb:
          snakefile="nodes/encodings/disorderb/Snakefile",
          configfile="nodes/encodings/disorderb/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_disorderc:
     input:
@@ -166,8 +203,12 @@ rule encoding_disorderc:
          snakefile="nodes/encodings/disorderc/Snakefile",
          configfile="nodes/encodings/disorderc/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_qsar:
     input:
@@ -180,8 +221,12 @@ rule encoding_qsar:
          snakefile="nodes/encodings/qsar/Snakefile",
          configfile="nodes/encodings/qsar/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_electrostatic_hull:
     input:
@@ -194,8 +239,12 @@ rule encoding_electrostatic_hull:
          snakefile="nodes/encodings/electrostatic_hull/Snakefile",
          configfile="nodes/encodings/electrostatic_hull/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_distance_distribution:
     input:
@@ -208,8 +257,12 @@ rule encoding_distance_distribution:
          snakefile="nodes/encodings/distance_distribution/Snakefile",
          configfile="nodes/encodings/distance_distribution/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
 
 rule encoding_delaunay:
     input:
@@ -222,5 +275,9 @@ rule encoding_delaunay:
          snakefile="nodes/encodings/delaunay/Snakefile",
          configfile="nodes/encodings/delaunay/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         check_empty(path_to_fasta=input.fasta_in,
+                     path_to_csv_out=output.csv_out,
+                     dict_input=dict(input),
+                     dict_output=dict(output),
+                     params_snakefile=params.snakefile,
+                     params_configfile= params.configfile)
