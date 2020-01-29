@@ -10,21 +10,26 @@ DATASETS_COMPLETE = [n + "_complete" for n in DATASETS]
 CORES = int(config["cores"])
 TOKEN = config["token"]
 
-# rule all:
-#     input:
-#          config["asa_out"],
-#          config["ta_out"],
-#          config["ssec_out"],
-#          config["sseb_out"],
-#          config["disorder_out"],
-#          config["disorderb_out"],
-#          config["disorderc_out"],
-#          config["qsar_out"],
-#          config["electrostatic_hull_out"],
-#          config["distance_distribution_out"],
-#          config["delaunay_out"]
-
-# ./apps/run_pipeline -s nodes/meta_workflows/structure_based_encodings_windowed/Snakefile data/bachem_window_length_8_complete/csv/asa.csv --config token=asd fasta_in=data/bachem_window_length_8_complete/seqs.fasta fasta_msa_in=data/bachem_window_length_8_complete/seqs_msa.fasta classes_in=data/bachem_window_length_8_complete/classes.yaml fasta_anno_out=data/bachem_window_length_8_complete/annotated_seqs.fasta classes_anno_idx_out=data/bachem_window_length_8_complete/annotated_classes.txt fasta_anno_msa_out=data/bachem_window_length_8_complete/annotated_seqs_msa.fasta profile_dir=data/bachem_window_length_8_complete/profile/ fasta_anno_pdbs_out=data/bachem_window_length_8_complete/annotated_pdbs_seqs.fasta classes_anno_pdbs_idx_out=data/bachem_window_length_8_complete/annotated_pdbs_classes.txt pdb_out=data/bachem_window_length_8_complete/pdb asa_out=data/bachem_window_length_8_complete/csv/asa.csv  cores=1 classes_idx_in=data/bachem_window_length_8_complete/classes.txt --quiet -n
+rule all:
+    input:
+         config["fasta_anno_out"],
+         config["fasta_anno_msa_out"],
+         config["classes_anno_idx_out"],
+         config["profile_dir"],
+         config["fasta_anno_pdbs_out"],
+         config["classes_anno_pdbs_idx_out"],
+         config["pdb_out"],
+         config["asa_out"],
+         config["ta_out"],
+         config["ssec_out"],
+         config["sseb_out"],
+         config["disorder_out"],
+         config["disorderb_out"],
+         config["disorderc_out"],
+         config["qsar_out"],
+         config["electrostatic_hull_out"],
+         config["distance_distribution_out"],
+         config["delaunay_out"]
 
 rule utils_validate_sequence_names:
     input:

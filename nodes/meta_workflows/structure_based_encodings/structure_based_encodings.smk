@@ -20,21 +20,26 @@ def check_empty(path_to_fasta, path_to_csv_out,
         with WorkflowExecuter(dict_input, dict_output, params_configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {params_snakefile} --configfile {params_configfile}""")
 
-# rule all:
-#     input:
-#          config["asa_out"],
-#          config["ta_out"],
-#          config["ssec_out"],
-#          config["sseb_out"],
-#          config["disorder_out"],
-#          config["disorderb_out"],
-#          config["disorderc_out"],
-#          config["qsar_out"],
-#          config["electrostatic_hull_out"],
-#          config["distance_distribution_out"],
-#          config["delaunay_out"]
-
-# ./apps/run_pipeline -s nodes/meta_workflows/structure_based_encodings/Snakefile data/bachem_window_length_8/csv/asa.csv --config token=asd fasta_in=data/bachem_window_length_8/seqs.fasta fasta_msa_in=data/bachem_window_length_8/seqs_msa.fasta classes_in=data/bachem_window_length_8/classes.txt fasta_anno_out=data/bachem_window_length_8/annotated_seqs.fasta classes_anno=data/bachem_window_length_8/annotated_classes.txt fasta_anno_msa_out=data/bachem_window_length_8/annotated_seqs_msa.fasta profile_dir=data/bachem_window_length_8/profile/ fasta_anno_pdbs_out=data/bachem_window_length_8/annotated_pdbs_seqs.fasta classes_anno_pdbs_out=data/bachem_window_length_8/annotated_pdbs_classes.txt pdb_out=data/bachem_window_length_8/pdb/ asa_out=data/bachem_window_length_8/csv/asa.csv cores=1 --quiet -n
+rule all:
+    input:
+         config["fasta_anno_out"],
+         config["fasta_anno_msa_out"],
+         config["classes_anno"],
+         config["profile_dir"],
+         config["fasta_anno_pdbs_out"],
+         config["classes_anno_pdbs_out"],
+         config["pdb_out"],
+         config["asa_out"],
+         config["ta_out"],
+         config["ssec_out"],
+         config["sseb_out"],
+         config["disorder_out"],
+         config["disorderb_out"],
+         config["disorderc_out"],
+         config["qsar_out"],
+         config["electrostatic_hull_out"],
+         config["distance_distribution_out"],
+         config["delaunay_out"]
 
 rule util_secondary_structure_profile:
     input:
@@ -53,7 +58,7 @@ rule util_secondary_structure_profile:
          fasta_anno_out=config["fasta_anno_out"],
          fasta_anno_msa_out=config["fasta_anno_msa_out"],
          classes_anno=config["classes_anno"],
-         profiles_out=config["profile_dir"]
+         profiles_out=directory(config["profile_dir"])
     priority:
          1000
     params:
@@ -74,7 +79,7 @@ rule util_protein_structure_prediction:
     output:
          fasta_out=config["fasta_anno_pdbs_out"],
          classes_out=config["classes_anno_pdbs_out"],
-         pdbs_out=config["pdb_out"]
+         pdbs_out=directory(config["pdb_out"])
     priority:
          1000
     params:
