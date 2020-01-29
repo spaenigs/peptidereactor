@@ -2,7 +2,7 @@ import os, sys
 
 sys.path.append(os.getcwd())
 
-from utils.snakemake_config import WorkflowExecuter
+from proteinreactor.workflow_executer import WorkflowExecuter
 
 DATASET = "bachem"
 DATASETS = ["bachem_window_length_8"]
@@ -35,8 +35,8 @@ rule utils_validate_sequence_names:
          snakefile="nodes/utils/validate_sequence_names/Snakefile",
          configfile="nodes/utils/validate_sequence_names/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule util_secondary_structure_profile:
     input:
@@ -62,8 +62,8 @@ rule util_secondary_structure_profile:
          snakefile="nodes/utils/secondary_structure_profile/Snakefile",
          configfile="nodes/utils/secondary_structure_profile/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule util_protein_structure_prediction:
     input:
@@ -83,8 +83,8 @@ rule util_protein_structure_prediction:
          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
          configfile="nodes/utils/protein_structure_prediction/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_asa_windowed:
     input:
@@ -98,8 +98,8 @@ rule encoding_asa_windowed:
          snakefile="nodes/encodings/asa/asa_windowed.smk",
          configfile="nodes/encodings/asa/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_ta_windowed:
     input:
@@ -113,8 +113,8 @@ rule encoding_ta_windowed:
          snakefile="nodes/encodings/ta/ta_windowed.smk",
          configfile="nodes/encodings/ta/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_ssec_windowed:
     input:
@@ -128,8 +128,8 @@ rule encoding_ssec_windowed:
          snakefile="nodes/encodings/ssec/ssec_windowed.smk",
          configfile="nodes/encodings/ssec/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_sseb_windowed:
     input:
@@ -143,8 +143,8 @@ rule encoding_sseb_windowed:
          snakefile="nodes/encodings/sseb/sseb_windowed.smk",
          configfile="nodes/encodings/sseb/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_disorder_windowed:
     input:
@@ -158,8 +158,8 @@ rule encoding_disorder_windowed:
          snakefile="nodes/encodings/disorder/disorder_windowed.smk",
          configfile="nodes/encodings/disorder/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_disorderb_windowed:
     input:
@@ -173,8 +173,8 @@ rule encoding_disorderb_windowed:
          snakefile="nodes/encodings/disorderb/disorderb_windowed.smk",
          configfile="nodes/encodings/disorderb/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_disorderc_windowed:
     input:
@@ -188,8 +188,8 @@ rule encoding_disorderc_windowed:
          snakefile="nodes/encodings/disorderc/disorderc_windowed.smk",
          configfile="nodes/encodings/disorderc/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_qsar_windowed:
     input:
@@ -203,8 +203,8 @@ rule encoding_qsar_windowed:
          snakefile="nodes/encodings/qsar/qsar_windowed.smk",
          configfile="nodes/encodings/qsar/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_electrostatic_hull_windowed:
     input:
@@ -218,8 +218,8 @@ rule encoding_electrostatic_hull_windowed:
          snakefile="nodes/encodings/electrostatic_hull/electrostatic_hull_windowed.smk",
          configfile="nodes/encodings/electrostatic_hull/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_distance_distribution_windowed:
     input:
@@ -233,8 +233,8 @@ rule encoding_distance_distribution_windowed:
          snakefile="nodes/encodings/distance_distribution/distance_distribution_windowed.smk",
          configfile="nodes/encodings/distance_distribution/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_delaunay_windowed:
     input:
@@ -248,7 +248,7 @@ rule encoding_delaunay_windowed:
          snakefile="nodes/encodings/delaunay/delaunay_windowed.smk",
          configfile="nodes/encodings/delaunay/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 

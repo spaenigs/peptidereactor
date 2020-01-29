@@ -2,7 +2,7 @@ import os, sys
 
 sys.path.append(os.getcwd())
 
-from utils.snakemake_config import WorkflowExecuter
+from proteinreactor.workflow_executer import WorkflowExecuter
 
 TOKEN = config["token"]
 CORES = config["cores"]
@@ -17,8 +17,8 @@ def check_empty(path_to_fasta, path_to_csv_out,
         else:
             shell(f"touch {path_to_csv_out}")
     else:
-        with WorkflowExecuter(dict_input, dict_output, params_configfile):
-            shell(f"""snakemake -s {params_snakefile} -d $PWD --configfile {params_configfile} --config cores={CORES}""")
+        with WorkflowExecuter(dict_input, dict_output, params_configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {params_snakefile} --configfile {params_configfile}""")
 
 # rule all:
 #     input:
@@ -60,8 +60,8 @@ rule util_secondary_structure_profile:
          snakefile="nodes/utils/secondary_structure_profile/Snakefile",
          configfile="nodes/utils/secondary_structure_profile/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule util_protein_structure_prediction:
     input:
@@ -81,8 +81,8 @@ rule util_protein_structure_prediction:
          snakefile="nodes/utils/protein_structure_prediction/Snakefile",
          configfile="nodes/utils/protein_structure_prediction/config.yaml",
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_asa:
     input:
@@ -104,7 +104,7 @@ rule encoding_asa:
 
 rule encoding_ta:
     input:
-         fasta_in=config["fasta_anno"],
+         fasta_in=config["fasta_anno_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -122,7 +122,7 @@ rule encoding_ta:
 
 rule encoding_ssec:
     input:
-         fasta_in=config["fasta_anno"],
+         fasta_in=config["fasta_anno_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -140,7 +140,7 @@ rule encoding_ssec:
 
 rule encoding_sseb:
     input:
-         fasta_in=config["fasta_msa_anno"],
+         fasta_in=config["fasta_anno_msa_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -158,7 +158,7 @@ rule encoding_sseb:
 
 rule encoding_disorder:
     input:
-         fasta_in=config["fasta_anno"],
+         fasta_in=config["fasta_anno_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -176,7 +176,7 @@ rule encoding_disorder:
 
 rule encoding_disorderb:
     input:
-         fasta_in=config["fasta_msa_anno"],
+         fasta_in=config["fasta_anno_msa_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -194,7 +194,7 @@ rule encoding_disorderb:
 
 rule encoding_disorderc:
     input:
-         fasta_in=config["fasta_anno"],
+         fasta_in=config["fasta_anno_out"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -212,9 +212,9 @@ rule encoding_disorderc:
 
 rule encoding_qsar:
     input:
-         fasta_in=config["fasta_pdbs_anno"],
-         classes_in=config["classes_pdbs_anno"],
-         pdb_dir=config["pdb_dir"]
+         fasta_in=config["fasta_anno_pdbs_out"],
+         classes_in=config["classes_anno_pdbs_out"],
+         pdb_dir=config["pdb_out"]
     output:
          csv_out=config["qsar_out"]
     params:
@@ -230,9 +230,9 @@ rule encoding_qsar:
 
 rule encoding_electrostatic_hull:
     input:
-         fasta_in=config["fasta_pdbs_anno"],
-         classes_in=config["classes_pdbs_anno"],
-         pdb_dir=config["pdb_dir"]
+         fasta_in=config["fasta_anno_pdbs_out"],
+         classes_in=config["classes_anno_pdbs_out"],
+         pdb_dir=config["pdb_out"]
     output:
          csv_out=config["electrostatic_hull_out"]
     params:
@@ -248,9 +248,9 @@ rule encoding_electrostatic_hull:
 
 rule encoding_distance_distribution:
     input:
-         fasta_in=config["fasta_pdbs_anno"],
-         classes_in=config["classes_pdbs_anno"],
-         pdb_dir=config["pdb_dir"]
+         fasta_in=config["fasta_anno_pdbs_out"],
+         classes_in=config["classes_anno_pdbs_out"],
+         pdb_dir=config["pdb_out"]
     output:
          csv_out=config["distance_distribution_out"]
     params:
@@ -266,9 +266,9 @@ rule encoding_distance_distribution:
 
 rule encoding_delaunay:
     input:
-         fasta_in=config["fasta_pdbs_anno"],
-         classes_in=config["classes_pdbs_anno"],
-         pdb_dir=config["pdb_dir"]
+         fasta_in=config["fasta_anno_pdbs_out"],
+         classes_in=config["classes_anno_pdbs_out"],
+         pdb_dir=config["pdb_out"]
     output:
          csv_out=config["delaunay_out"]
     params:
