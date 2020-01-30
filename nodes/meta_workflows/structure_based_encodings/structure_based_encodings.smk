@@ -29,6 +29,7 @@ rule all:
          config["fasta_anno_pdbs_out"],
          config["classes_anno_pdbs_out"],
          config["pdb_out"],
+         config["pssm_out"],
          config["asa_out"],
          config["ta_out"],
          config["ssec_out"],
@@ -88,6 +89,20 @@ rule util_protein_structure_prediction:
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+
+rule encoding_pssm:
+    input:
+         fasta_in=config["fasta_anno_out"],
+         classes_in=config["classes_anno"],
+         profile=config["profile_dir"]
+    output:
+         csv_out=config["pssm_out"]
+    params:
+         snakefile="nodes/encodings/pssm/Snakefile",
+         configfile="nodes/encodings/pssm/config.yaml",
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile):
+             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
 
 rule encoding_asa:
     input:

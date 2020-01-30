@@ -16,7 +16,6 @@ def get_aaindex():
 
 rule all:
     input:
-         config["pssm_out"],
          config["zscale_out"],
          config["tpc_out"],
          config["gtpc_out"],
@@ -108,20 +107,6 @@ rule util_dim_size:
 ########################################################################################################################
 ############################################## MISC ENCODINGS ##########################################################
 ########################################################################################################################
-
-rule encoding_pssm:
-    input:
-         fasta_in=config["fasta_anno_in"],
-         classes_in=config["classes_anno_in"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["pssm_out"]
-    params:
-         snakefile="nodes/encodings/pssm/Snakefile",
-         configfile="nodes/encodings/pssm/config.yaml",
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
 
 rule encoding_zscale:
     input:
