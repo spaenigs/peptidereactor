@@ -43,10 +43,22 @@ rule utils_validate_sequence_names:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
+rule utils_validate_sequence_names_msa:
+    input:
+         fasta_in=config["fasta_msa_in"]
+    output:
+         fasta_out=temp(f"data/temp/{TOKEN}/seqs_msa_validated.fasta")
+    params:
+         snakefile="nodes/utils/validate_sequence_names/Snakefile",
+         configfile="nodes/utils/validate_sequence_names/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+
 rule util_secondary_structure_profile:
     input:
          fasta_in=f"data/temp/{TOKEN}/seqs_validated.fasta",
-         fasta_msa_in=config["fasta_msa_in"],
+         fasta_msa_in=f"data/temp/{TOKEN}/seqs_msa_validated.fasta",
          classes_in=config["classes_idx_in"],
          uniprot90_download_link_in=\
              "nodes/utils/secondary_structure_profile/download_links/uniprot90_download_link.txt",
