@@ -3,6 +3,7 @@ import os
 import yaml
 import numpy as np
 import re
+from glob import glob
 
 TOKEN = config["token"]
 
@@ -12,8 +13,8 @@ rule all:
 
 rule count_non_empty_datasets:
     input:
-         seq_based=config["sequence_based_encodings"],
-         struc_based=config["structure_based_encodings"]
+         seq_based=glob(config["sequence_based_encodings"] + "*.csv"),
+         struc_based=glob(config["structure_based_encodings"] + "*.csv")
     output:
          f"data/temp/{TOKEN}/empty_datasets.yaml"
     run:

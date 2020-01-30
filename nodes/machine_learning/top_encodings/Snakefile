@@ -1,10 +1,15 @@
 from sklearn.model_selection import RepeatedStratifiedKFold
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.metrics import f1_score
+from glob import glob
 import pandas as pd
 import os
 
 TOKEN = config["token"]
+
+SEQUENCE_BASED_ENCODINGS = glob(config["sequence_based_encodings"] + "*.csv")
+STRUCTURE_BASED_ENCODINGS = glob(config["structure_based_encodings"] + "*.csv")
+ENCODINGS = STRUCTURE_BASED_ENCODINGS + SEQUENCE_BASED_ENCODINGS
 
 rule all:
     input:
@@ -12,7 +17,7 @@ rule all:
 
 rule split_datasets:
     input:
-         config["csvs_in"]
+         ENCODINGS
     output:
          temp(f"data/temp/{TOKEN}/{{dataset}}/{{encoding}}.csv")
     run:
@@ -50,18 +55,12 @@ rule repeated_k_fold_cv:
              df_res = pd.DataFrame({encoding: [dataset] + f1_scores}).transpose()
              df_res.to_csv(str(output))
 
-def get_encoding_names():
-    if type(config["csvs_in"]) == list:
-        return [os.path.basename(path).replace(".csv", "")
-                for path in config["csvs_in"]]
-    else:
-        return os.path.basename(config["csvs_in"])\
-            .replace(".csv", "")
-
 rule collect:
     input:
          expand(f"data/temp/{TOKEN}/{{dataset}}/{{encoding}}.tmp",
-                dataset=config["datasets"], encoding=get_encoding_names())
+                dataset=config["datasets"],
+                encoding=[os.path.basename(path).replace(".csv", "")
+                          for path in ENCODINGS])
     output:
          config["csv_out"]
     run:
