@@ -1,11 +1,12 @@
 from proteinreactor.workflow_executer import WorkflowExecuter, MetaWorkflowExecuter
 import pandas as pd
 
-DATASET = "bachem"
-# DATASETS = expand("bachem_window_length_{window_length}", window_length=[8,11,15,20]) + ["protease"]
-DATASETS = ["bachem_window_length_8", "bachem_window_length_8_complete",
-            "bachem_window_length_12", "bachem_window_length_12_complete",
-            "protease_window_length_8", "protease_window_length_8_complete"]
+WINDOW_LENGTHS = [8,12]#[8,11,15,20]
+DATASETS = \
+    ["protease_window_length_8", "protease_window_length_8_complete"] + \
+    expand(["bachem_window_length_{window_length}", "bachem_window_length_{window_length}_complete"],
+           window_length=WINDOW_LENGTHS)
+
 CORES = int(config["cores"])
 
 def get_aaindex():
@@ -20,8 +21,8 @@ rule all:
          # f"data/{DATASET}_window_length_7_complete/seqs.fasta",
          # f"data/{DATASET}_window_length_7_complete/classes.yaml"
          # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
-         f"data/{DATASET}/plots/filtered_datasets.png",
-         f"data/{DATASET}/machine_learning/top_encodings.csv"
+         f"data/bachem/plots/filtered_datasets.png",
+         f"data/bachem/machine_learning/top_encodings.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -29,53 +30,59 @@ rule all:
 
 rule utils_sliding_windows:
     input:
-         series_in=f"data/{DATASET}/series.yaml"
+         series_in=f"data/bachem/series.yaml"
     output:
-         # fastas_out=f"data/{DATASET}_window_length_8/seqs.fasta",
-         # classes_out=f"data/{DATASET}_window_length_8/classes.txt",
-         fastas_out=expand(f"data/{DATASET}_window_length_{{window_length}}/seqs.fasta", window_length=[8,12]),#[0,8,11,15,20]),
-         classes_out=expand(f"data/{DATASET}_window_length_{{window_length}}/classes.txt", window_length=[8,12]),#[0,8,11,15,20])
+         fastas_out=expand(f"data/bachem_window_length_{{window_length}}/seqs.fasta", window_length=WINDOW_LENGTHS),
+         classes_out=expand(f"data/bachem_window_length_{{window_length}}/classes.txt", window_length=WINDOW_LENGTHS),
     params:
          snakefile="nodes/utils/sliding_windows/sliding_windows.smk",
          configfile="nodes/utils/sliding_windows/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset=DATASET) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule utils_sliding_windows_complete:
     input:
-         series_in=f"data/{DATASET}/series.yaml"
+         series_in=f"data/bachem/series.yaml"
     output:
-         # fastas_out=f"data/{DATASET}_window_length_8_complete/seqs.fasta",
-         # classes_out=f"data/{DATASET}_window_length_8_complete/classes.yaml",
-         # classes_idx_out=f"data/{DATASET}_window_length_8_complete/classes.txt"
-         fastas_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,12]),#[8,11,15,20]),
-         classes_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,12]),#[8,11,15,20]),
-         classes_idx_out=expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.txt", window_length=[8,12]),#[8,11,15,20])
+         fastas_out=expand(f"data/bachem_window_length_{{window_length}}_complete/seqs.fasta", window_length=WINDOW_LENGTHS),
+         classes_out=expand(f"data/bachem_window_length_{{window_length}}_complete/classes.yaml", window_length=WINDOW_LENGTHS),
+         classes_idx_out=expand(f"data/bachem_window_length_{{window_length}}_complete/classes.txt", window_length=WINDOW_LENGTHS),
     params:
          snakefile="nodes/utils/sliding_windows/sliding_windows_complete.smk",
          configfile="nodes/utils/sliding_windows/config.yaml"
     run:
-        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset=DATASET) as e:
+        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule utils_protein_dataset_ceation:
     input:
          dataset_in="data/protease/impensData.txt",
+    output:
+         fasta_out="data/protease_window_length_8/seqs.fasta",
+         classes_out="data/protease_window_length_8/classes.txt"
+    params:
+         snakefile="nodes/utils/protein_dataset_ceation/protein_dataset_ceation.smk",
+         configfile="nodes/utils/protein_dataset_ceation/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+
+rule utils_protein_dataset_ceation_complete:
+    input:
+         dataset_in="data/protease/impensData.txt",
          ids_file_in="data/protease/impens_ids.txt"
     output:
-         "data/protease_window_length_8_complete/classes.txt",
-         "data/protease_window_length_8_complete/seqs.fasta",
-         fastas_orig_out=f"data/protease_window_length_8/seqs.fasta",
-         classes_out=f"data/protease_window_length_8/classes.txt",
+         fasta_out="data/protease_window_length_8_complete/seqs.fasta",
+         classes_out="data/protease_window_length_8_complete/classes.txt",
          fasta_complete_out=f"data/protease_window_length_8_complete/seqs_complete.fasta",
          classes_yaml_out=f"data/protease_window_length_8_complete/classes.yaml",
          classes_idx_out=f"data/protease_window_length_8_complete/classes_idx.txt"
     params:
-         snakefile="nodes/utils/protein_dataset_ceation/Snakefile",
+         snakefile="nodes/utils/protein_dataset_ceation/protein_dataset_ceation_complete.smk",
          configfile="nodes/utils/protein_dataset_ceation/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset=DATASET) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 ########################################################################################################################
@@ -92,7 +99,7 @@ rule util_multiple_sequence_alignment:
          snakefile="nodes/utils/multiple_sequence_alignment/Snakefile",
          configfile="nodes/utils/multiple_sequence_alignment/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset=DATASET) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 ########################################################################################################################
@@ -356,38 +363,24 @@ rule meta_workflow_structure_based_encodings_windowed:
 ################################################ COLLECT ENCODINGS #####################################################
 ########################################################################################################################
 
-sequence_based_encodings = \
-    rules.meta_workflow_sequence_based_encodings.output
-structure_based_encodings = \
-    rules.meta_workflow_structure_based_encodings.output[7:] + \
-    rules.meta_workflow_structure_based_encodings_windowed.output[7:]
-
-def filter_func(datasets):
-    for ds in datasets:
-        last_ele = ds.split("_")[-1]
-        if last_ele == "complete":
-            yield ds
-        elif int(last_ele) >= 12:
-            yield ds
+# TODO get structure windows from protease_complet
 
 rule collect_encodings:
     input:
          sequence_based_encodings=\
-             expand(sequence_based_encodings, normalized_dataset=["bachem_window_length_8", "bachem_window_length_12", "protease_window_length_8"]),
-             # [expand(csv, normalized_dataset=filter(lambda ds: "_complete" not in ds, DATASETS))
-             #  for csv in sequence_based_encodings],
+             expand(rules.meta_workflow_sequence_based_encodings.output,
+                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] != "complete", DATASETS)),
          structure_based_encodings=\
              expand(rules.meta_workflow_structure_based_encodings.output[7:],
-                    normalized_dataset=["bachem_window_length_12"]) + \
+                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] != "complete" and \
+                                                         int(ds.split("_")[-1]) >= 12, DATASETS)) + \
              expand(rules.meta_workflow_structure_based_encodings_windowed.output[7:],
-                    normalized_dataset=["bachem_window_length_8_complete","bachem_window_length_12_complete","protease_window_length_8_complete"])
-             # [expand(csv, normalized_dataset=DATASETS)
-             #  for csv in structure_based_encodings]
+                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] == "complete", DATASETS))
     output:
          sequence_based_encodings=\
-             directory(f"data/temp/{DATASET}/csv/sequence_based/"),
+             directory(f"data/temp/bachem/csv/sequence_based/"),
          structure_based_encodings=\
-             directory(f"data/temp/{DATASET}/csv/structure_based/")
+             directory(f"data/temp/bachem/csv/structure_based/")
     run:
          import os
          def copy(from_files, target_dir):
@@ -398,10 +391,10 @@ rule collect_encodings:
 
 rule plot_empty_datasets:
     input:
-         sequence_based_encodings=f"data/temp/{DATASET}/csv/sequence_based/",
-         structure_based_encodings=f"data/temp/{DATASET}/csv/structure_based/"
+         sequence_based_encodings=f"data/temp/bachem/csv/sequence_based/",
+         structure_based_encodings=f"data/temp/bachem/csv/structure_based/"
     output:
-         png_out=f"data/{DATASET}/plots/filtered_datasets.png"
+         png_out=f"data/bachem/plots/filtered_datasets.png"
     params:
          snakefile="nodes/plots/empty_datasets/Snakefile",
          configfile="nodes/plots/empty_datasets/config.yaml"
@@ -415,19 +408,19 @@ rule plot_empty_datasets:
 ################################################ MACHINE LEARNING ######################################################
 ########################################################################################################################
 
+# TODO keep final test set
+
 rule machine_learning_top_encodings:
     input:
-         sequence_based_encodings=f"data/temp/{DATASET}/csv/sequence_based/",
-         structure_based_encodings=f"data/temp/{DATASET}/csv/structure_based/"
+         sequence_based_encodings=f"data/temp/bachem/csv/sequence_based/",
+         structure_based_encodings=f"data/temp/bachem/csv/structure_based/"
     output:
-         csv_out=f"data/{DATASET}/machine_learning/top_encodings.csv"
+         csv_out=f"data/bachem/machine_learning/top_encodings.csv"
     params:
          snakefile="nodes/machine_learning/top_encodings/Snakefile",
          configfile="nodes/machine_learning/top_encodings/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=DATASETS) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-# keep final test set
 
 # https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
