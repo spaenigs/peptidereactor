@@ -17,17 +17,18 @@ wildcard_constraints:
 
 rule all:
     input:
-         config["fastas_orig_out"],
+         config["fasta_out"],
+         config["classes_out"],
          config["fasta_complete_out"],
          config["classes_yaml_out"],
-         config["classes_out"]
+         config["classes_idx_out"]
 
 rule dump_fasta_orig:
     input:
          config["dataset_in"]
     output:
          temp(f"data/temp/{TOKEN}/dataset.jl"),
-         config["fastas_orig_out"],
+         config["fasta_out"],
          config["classes_out"],
          config["classes_idx_out"]
     run:
