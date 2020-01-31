@@ -1,0 +1,151 @@
+P62258,  LVYQAKLAEQAER                            7     19   804.952       2    0.0126    55/44      1                     14-3-3 protein epsilon    DRED↓LVYQ                  IN
+P43686,  VEKAQDEIPALSVSR                          8     22   866.440       2   -0.0260    64/48      1                     26S protease regulatory   IGIL↓VEKA
+P08708,  QVTQPTVGMNFKTPR                        117    131   905.582       2    0.1140    66/44                       5    40S ribosomal protein     LSNL↓QVTQ
+P39019,  LEGLKMVEKDQDGGR                        106    120   916.434       2   -0.0711    92/44              1             40S ribosomal protein     VLQA↓LEGL
+P62266,  IEENDEVLVAGFGR                          93    106   796.862       2   -0.0340    66/44      1                     40S ribosomal protein     CLNF↓IEEN
+P62847,  YEKKKTSR                                97    104   613.390       2   -0.0032    48/43              1             40S ribosomal protein     RHGL↓YEKK
+P61247,  EVSLADLQNDEVAFR                         67     81   875.916       2   -0.0146    59/44      1       1             40S ribosomal protein     GRVF↓EVSL
+P61247,  LADLQNDEVAFR                            70     81   718.237       2   -0.1221    84/43      1                     40S ribosomal protein     FEVS↓LADL
+P62081,  LELEMNSDLKAQLR                          28     41   883.338       2   -0.1219    47/44      1                     40S ribosomal protein     SQAL↓LELE
+P62081,  EMNSDLKAQLR                             31     41   705.897       2   0.0425     62/43      1       1             40S ribosomal protein     LLEL↓EMNS
+P10809,  VEEGIVLGGGCALLR                        432    446   794.352       2   -0.0744    61/48      1                     60 kDa heat shock         TRAA↓VEEG
+P27635,  DEYEQLSSEALEAAR                         54     68   881.441       2   -0.0041    47/44              1             60S ribosomal protein     HMVS↓DEYE       Q96L21
+P27635,  EQLSSEALEAAR                            57     68   677.921       2    0.0423    54/43              1             60S ribosomal protein     SDEY↓EQLS       Q96L21
+Q02543,  KVEEIAASKCR                            128    138   713.437       2   0.0548     56/43      1                     60S ribosomal protein     IQIM↓KVEE
+P62829,  ATVKKGKPELR                             63     73   706.929       2   -0.0484    60/43              1             60S ribosomal protein     DMVM↓ATVK
+P39023,  LKGCVVGTKKR                            332    342   713.447       2    0.0189    56/43      1                     60S ribosomal protein     DFVM↓LKGC
+P39023,  EEKKAFMGPLKKDR                         382    395   640.084       3    0.0674    72/44      1       1             60S ribosomal protein     FQTM↓EEKK
+P62888,  LAIIDPGDSDIIR                           93    105   721.957       2   0.0643     54/43      1                     60S ribosomal protein     RVCT↓LAII
+P42766,  TVINQTQKENLR                            58     69   767.483       2    0.0615    77/43      2       1        2    60S ribosomal protein     ARVL↓TVIN
+P46777,  GQPGAFTCYLDAGLAR                       136    151   871.533       2    0.1164    56/43                       1    60S ribosomal protein     ESID↓GQPG
+Q02878,  ATVTKPVGGDKNGGTR                        89    104   847.507       2    0.0574    63/44      1       1             60S ribosomal protein     EKVL↓ATVT
+P18124, VEEKKKEVPAVPETLKKKR        4     22   851.159   3   -0.0200   47/44       2                     60S ribosomal protein      xMEG↓VEEK
+P32969, VELSLLGKKKKR              43     54   812.506   2   -0.0216   47/44       1                     60S ribosomal protein      NHIN↓VELS
+P32969, SLLGKKKKR                 46     54   641.929   2   -0.0011   52/43       1                     60S ribosomal protein      NVEL↓SLLG
+Q9BTT0, VEEGEEEEEEEEGGLR         236    251   947.507   2    0.1151   49/44                        1    Acidic leucine-rich        DDDY↓VEEG
+P60709, LVVDNGSGMCKAGFAGDDAPR      8     28   748.723   3    0.0529   66/44       2       1        3    Actin, cytoplasmic 1       DIAA↓LVVD
+P60709, TEAPLNPKANR              106    116   650.971   2    0.1183   64/43       4       1        1    Actin,                     PVLL↓TEAP       P62736,
+P60709, TVLSGGTTMYPGIADR         297    312   850.374   2   -0.0423   88/44       1                     Actin, cytoplasmic 1       LYAN↓TVLS       P63261
+O43823, YEEPDTKLAR               311    320   656.308   2   -0.0232   44/43       1                     A-kinase anchor            QFQL↓YEEP
+P06733, AVCKAGAVEKGVPLYR         116    131   927.134   2    0.1227   51/44                        1    α-enolase                  GVSL↓AVCK
+Q01433, PEESPIEQLEER             148    159   753.780   2   -0.1223   68/43               1             AMP deaminase 2            PYEF↓PEES
+Q9BVC5, TLEQKNIAVETDVR            30     43   854.047   2    0.0968   60/48       1                     Ashwin                     FLLL↓TLEQ
+P25705, ILGADTSVDLEETGR           59     73   810.942   2    0.0380   65/32       1                     ATP synthase subunit       LEER↓ILGA
+Q9NVP1, SETQNGDVSEETMGSR          36     51   897.399   2   -0.0119   62/44               1             ATP-dependent RNA          NLTL↓SETQ
+Q8WYA6, TVVEEADDDKKR              47     58   770.372   2   -0.0167 72/43         1                     β-catenin-like protein 1   EEEM↓TVVE
+Q9P203, EILSSLLPFVR              511    521   659.927   2    0.0403 32/31         1                     BTB/POZ domain-            EELR↓EILS
+O43570, EMINNFR                  269    275   484.834   2    0.1028   35/30       1                     Carbonic anhydrase 12      PSPR↓EMIN
+P46092, GGSCPSGPQPR              327    337   576.289   2   -0.0048   49/31               1             C-C chemokine              RLLR↓GGSC
+Q99459, YQALDADFR                232    240   572.361   2    0.0892 68/43         1                     Cell division cycle        SEEN↓YQAL
+Q99459, PENAEKELEER              495    505   717.464   2    0.1164   46/43       1                     Cell division cycle        EIVL↓PENA
+Q6P1N0, LEVMVRIR                 784    791   530.940   2    0.1249   78/31                        2    Coiled-coil and C2         TGGR↓LEVM
+Q96MW1, SDKLLFR                  160    166   484.798   2    0.0176   52/42    1                        Coiled-coil domain-      MNIG↓SDKL
+P33316, EVQALDDTER               232    241   610.829   2    0.0410   90/43                     1       Deoxyuridine             PEIE↓EVQA
+P09622, LEYGASCEDIAR             471    482   717.786   2   -0.0788   74/43             1               Dihydrolipoyl            AALA↓LEYG
+P33992, YSDSFGGDAQADEGQAR         11     27   909.921   2    0.0445 120/44     1        2               DNA replication          PGIF↓YSDS
+P33992, SFGGDAQADEGQAR            14     27   727.377   2    0.0616   79/43    1                        DNA replication          FYSD↓SFGG
+Q99615, AATEPELLDDQEAKR           12     26   888.504   2    0.0612   56/44    1                        DnaJ homolog             DVVM↓AATE                  Vif
+Q99615, TILSDPKKKTR              436    446   733.910   2   -0.0347   50/43    1                        DnaJ homolog             GEAF↓TILS                  Vif
+O75937, QIDPEVTDEEIKKR            63     76   918.071   2    0.0875   62/44                     1       DnaJ homolog             FEVL↓QIDP
+Q7Z6Z7, AENVVIVASQKR            3687    3698 702.411    2    0.0085 64/48      1                        E3 ubiquitin-protein     RFDM↓AENV                  Vif
+P26641, AQYSGAQVR                 21     29   515.776   2   -0.0261   46/43             1               Elongation factor        ALIA↓AQYS
+P13639, YISKMVPTSDKGR            396    408   819.936   2   -0.0342 68/44      2        1               Elongation factor 2      PLMM↓YISK
+P49411, AEGGGAKFKKYEEIDNAPEER     82    102   840.103   3    0.0226 55/44      1                        Elongation factor Tu,    TKIL↓AEGG
+P49411, VVAANDGPMPQTR            150    162   708.941   2    0.0957   60/43    1        1               Elongation factor Tu,    GCIL↓VVAA
+Q14240, FVTEEDKR                 376    383   560.390   2    0.0657   45/42             1               Eukaryotic initiation    VAIN↓FVTE
+O43324, LEKSLGLSKGNKYSAQGER       10     28   749.024   3   -0.0473   86/44    1                        Eukaryotic translation   ELSL↓LEKS                  MA
+O15371, ILPKSAKQKER              121    131   742.516   2    0.0201   50/43             1               Eukaryotic translation   FNLQ↓ILPK                  POL;PR
+P63241, FETGDAGASATFPMQCSALR       6     25   726.566   3   -0.0872   73/44    1                        Eukaryotic translation   DDLD↓FETG       Q6IS14
+P63241, YLSLLQDSGEVR              97    108   712.950   2    0.0807 52/43                       1       Eukaryotic translation   IQDG↓YLSL
+P63241, LSLLQDSGEVR             98    108   631.399   2    0.0614   73/43                     1       Eukaryotic translation   QDGY↓LSLL
+P63241, LQDSGEVR               101    108   474.780   2    0.0424 72/43                       1       Eukaryotic translation   YLSL↓LQDS
+Q02790, VDISPKQDEGVLKVIKR       22     38   1052.661 2     0.0446 64/49      1                        FK506-binding protein    PMEG↓VDIS                  PR
+P04075, DESTGSIAKR              33     42   580.385   2    0.0471   58/43             1               Fructose-bisphosphate    ILAA↓DEST
+Q13630, VSSKDADLTDTAQTR         41     55   849.416   2   -0.0033   58/44    1                        GDP-L-fucose             DWVF↓VSSK
+P00390, LVIGGGSGGLASAR          68     81   633.383   2   -0.0138   89/43             2               Glutathione reductase,   SYDY↓LVIG
+Q9BVP2, EETGEALSEETTAGEQSTR    510    528   1038.532 2     0.0332   51/44             1               Guanine nucleotide-      MFAA↓EETG
+Q9NX24, LVNQNPIAQPLASR          28     41   783.446   2    0.0078 65/44      1                        H/ACA                    YQEL↓LVNQ
+P07900, VSLKDYCTR              474    482   616.353   2    0.0437   51/43    1                        Heat shock protein HSP   GDEM↓VSLK
+P07900, YITGETKDQVANSAFVER     492    509   706.685   3    0.0001 76/44      1                        Heat shock protein HSP   KHIY↓YITG
+P08238, YITGESKEQVANSAFVER     484    501   708.722   3    0.0083 82/44               1               Heat shock               KSIY↓YITG       Q58FF7
+Q99729, IELPMDPKLNKR           182    193   802.960   2    0.0124   59/43                     1       Heterogeneous nuclear    EIEA↓IELP
+P14866, VEMADGYAVDR            393    403   643.843   2    0.0586   61/43    1                        Heterogeneous nuclear    GAAM↓VEMA
+Q00839, FEYIEENKYSR            256    266   787.415   2   -0.0018   70/48    1        1               Heterogeneous nuclear    GRGY↓FEYI
+Q00839, IEENKYSR               259    266   564.845   2    0.0586   59/43    1                        Heterogeneous nuclear    YFEY↓IEEN
+P22626, GKIDTIEIITDR           136    147   735.431   2   -0.0197   71/43             1               Heterogeneous nuclear    FEEY↓GKID
+Q13601, FLKANQKKR              287    295   656.911   2    0.0084 52/43      1                        KRR1 small subunit       SGEY↓FLKA
+Q9HBX8, LLPSGMCQQLPR           203    214   722.904   2    0.0337   38/36    1                        Leucine-rich repeat-     AGIR↓LLPS
+P05455, FGDFNLPR                  25     32   505.867   2    0.1140   55/42                     1       Lupus La protein          IEYY↓FGDF
+P40926, VVVIPAGVPR                95    104   526.363   2    0.0316   66/42                     1       Malate dehydrogenase,     KGCD↓VVVI
+P62072, SMQDEELMKR                73     82   694.850   2    0.0385   48/43                     1       Mitochondrial import      LTEL↓SMQD
+Q9BYG3, ILQKTESISKTNR            189    201   826.964   2   -0.0087   46/44    1                        MKI67 FHA domain-         FPSL↓ILQK
+O15226, VLSKPSKGQKR               22     32   707.430   2   -0.0450   44/43             1               NF-κ-B-repressing         SYDL↓VLSK
+Q15233, LTIDLKNFR                 55     63   605.385   2    0.0332   62/43    2                        Non-POU domain-           QNEG↓LTID
+Q15233, IEMEKQQQDQVDR            275    287   879.969   2    0.0124   65/44             2               Non-POU domain-           WKAL↓IEME
+Q15233, EKQQQDQVDR               278    287   685.345   2   -0.0305   61/43    2        2               Non-POU domain-           LIEM↓EKQQ
+P49321, SSTSGFTPGGGGSSVSMIASR    677    697   996.021   2    0.0640 54/44                       1       Nuclear autoantigenic     TLVE↓SSTS
+P49321, EEEAENQAESR              760    770   668.973   2    0.1921   52/47                     1       Nuclear autoantigenic     SENM↓EEEA
+Q14980, NTPKKLGNSLLR            2054 2065     738.311   2   -0.1298   59/47    1                        Nuclear mitotic           FSIL↓NTPK
+P23511, MVPGAGSVPAIQR            239    251   672.381   2    0.0257   68/43                     1       Nuclear transcription     GMVM↓MVPG
+Q8N6M0, TEELDEEEQLLR               6     17   777.828   2   -0.0850   61/43             1               OTU domain-               EAVL↓TEEL
+P62937, FDIAVDGEPLGR               7     18   667.380   2    0.0424 91/43      2                2       Peptidyl-prolyl cis-      PTVF↓FDIA
+P62937, DIAVDGEPLGR                8     18   593.835   2    0.0316   75/42                     2       Peptidyl-prolyl cis-      TVFF↓DIAV
+P62937, IAVDGEPLGR                 9     18   536.326   2    0.0361   53/42                     1       Peptidyl-prolyl cis-      VFFD↓IAVD
+P62937, FADKVPKTAENFR             24     36   829.522   2    0.0810   64/43    1                1       Peptidyl-prolyl cis-      SFEL↓FADK
+O43447, VVPKTAENFR                70     79   625.875   2    0.0281   52/43                     1       Peptidyl-prolyl cis-      LFAD↓VVPK       P30405
+Q06830, FVCPTEIIAFSDR              50     62    800.354    2   -0.0381   61/43                     1       Peroxiredoxin-1            LDFT↓FVCP
+P32119, FVCPTEIIAFSNR              48     60    799.904    2    0.0040   60/48                     1       Peroxiredoxin-2            LDFT↓FVCP
+O15305, FDVDGTLTAPR                11     21    618.803    2   -0.0082   60/43    1                        Phosphomannomutase 2       ALCL↓FDVD
+P09874, LATEDKEALKKQLPGVKSEGKR    186    207    901.150    3   -0.0609   53/48             1               Poly [ADP-ribose]          GFSL↓LATE
+P26599, AASAAAVDAGMAMAGQSPVLR     165    185    674.760    3    0.1017   109/44   4        1               Polypyrimidine tract-      NLAL↓AASA
+Q9Y257, LRAQLLQR                   43     50    499.390    2    0.0804 46/42      1                        Potassium channel          ELET↓LRAQ
+A5A3E0, LVIDNGSGMCKAGFAGDDAPR       8     28    1131.935   2   -0.1293   96/44    2        3               POTE ankyrin domain        DTAV↓LVID       P63261,
+Q92841, QEYGAGTYGASSTTSTGR        574    591    922.770    2   -0.1811   59/44    2        1               Probable ATP-              SYTA↓QEYG
+P17844, YEANFPANVMDVIAR            97    111    885.927    2    0.0027 96/44      2        3               Probable ATP-              VLNF↓YEAN
+P51531, LEMNPGYEVAPR              617    628    718.909    2    0.0668 50/43      1                        Probable global            LDAW↓LEMN       P51532
+O00155, ARALDGACGR                316    325    546.304    2    0.0350   35/31                     1       Probable G-protein         RSFR↓ARAL
+Q99848, LEGDQKPLAQR               213    223    672.930    2    0.0642 50/43      1                        Probable rRNA-             KLDF↓LEGD
+Q9UQ80, EVQDAELKALLQSSASR         347    363    967.827    2   -0.1843   49/48    1                        Proliferation-associated   KSEM↓EVQD
+P60900, AINQGGLTSVAVR              31     43    668.944    2    0.0286 55/47               1               Proteasome subunit         YAFK↓AINQ
+P28065, VEFDGGVVMGSDSR             26     39    758.396    2    0.0585   66/43    1                        Proteasome subunit         TIMA↓VEFD
+P41223, IEPTLDELDQKMR              18     30    847.488    2    0.0625 46/44      1                        Protein BUD31              GWEL↓IEPT
+O60610, EEAKELVGR                1238    1246   560.904    2    0.1019   50/43    1                        Protein diaphanous         PTIL↓EEAK                  PR
+P30101, LELTDDNFESR                28     38    692.492    2    0.1723   71/43    1                        Protein disulfide-         ASDV↓LELT                  GP41;
+Q96PU8, AEIKLKR                   164    170    499.883    2    0.0209 55/31      1        1               Protein quaking            AQNR↓AEIK
+Q9P258, LELDGAPGGGKR               57     68    630.411    2    0.0716 72/43      1                        Protein RCC2               DEDG↓LELD
+Q9Y5G7, LLETKGEPR                 797    805    566.851    2    0.0307 67/43                       1       Protocadherin γ-A6         ITQD↓LLET
+P55786, FVKDVFSPIGER           678    689   742.476   2    0.0765   61/43                     1       Puromycin-sensitive       EIQE↓FVKD
+O60231, VEEESGAPGEEQR          315    327   734.378   2    0.0119   64/43             1               Putative pre-mRNA-        AVDL↓VEEE
+P14618, LAQKMMIGR              307    315   585.317   2    0.0063 65/42      1                        Pyruvate kinase           EKVF↓LAQK       P30613
+P14618, LSGETAKGDYPLEAVR       360    375   901.526   2    0.0192   76/44             1               Pyruvate kinase           DCIM↓LSGE
+P14618, SGETAKGDYPLEAVR        361    375   841.944   2    0.0225 44/44      1                        Pyruvate kinase           CIML↓SGET
+P18754, TLGQGDVGQLGLGENVMER     39     57   678.796   3    0.1318   57/44    1                        Regulator of              GLVL↓TLGQ
+Q92900, YEGSLQNGVTAADR         728    741   763.907   2    0.0527   81/43    3                        Regulator of nonsense     SNIF↓YEGS
+P13489, LQALEKDKPSLR           446    457   767.483   2    0.0450 33/32      1                        Ribonuclease inhibitor    MEDR↓LQAL                  NC
+Q15050, QVAKVSTASVGR           223    234   646.917   2    0.0487 98/43      1                        Ribosome biogenesis       GRAM↓QVAK
+Q9NW13, FQTKAEVEQVELPDGKKR     649    666   761.322   3   -0.0894   49/44    1                        RNA-binding protein       SWTG↓FQTK
+Q9Y5S9, VEQDGDEPGPQR            57     68   686.435   2    0.1279   51/43                     1       RNA-binding protein       DYDS↓VEQD
+Q8IYB3, LELKKEEIKQR            124    134   800.503   2   -0.0166   66/44             2               Serine/arginine           PSAF↓LELK
+Q13523, LEDLEKQR               106    113   563.836   2   -0.0094   54/43             1               Serine/threonine-         DLAL↓LEDL
+P10768, VVIAPDTSPR              77     86   550.373   2    0.0674   56/46    1                        S-formylglutathione       EHGL↓VVIA
+O76094, LENSAGATYIR            520    530   623.393   2    0.0331   64/43    1        2               Signal recognition        DVEA↓LENS
+Q13573, LEKSVSQKVAAAMPVR       151    166   933.034   2    0.0122   50/49    1                        SNW domain-               TRVA↓LEKS
+Q99865, QQTRAAAGR               12     20   502.821   2    0.0591   48/43    1                        Spindlin-2A               EAEG↓QQTR       Q9BPZ2
+Q13435, AEFQTKTEEEEIDR         669    682   907.946   2    0.0216   56/44    2        1               Splicing factor 3B        GTNA↓AEFQ
+Q7KZF4,  PVLEEKER                                 671    678    545.398     2    0.0988 60/46         1                            Staphylococcal            EEVM↓PVLE
+Q9UH65,  TEAELEER                                 567    574    514.315     2    0.0316   70/43                1                   Switch-associated         PAAF↓TEAE
+Q9Y2W1,  LVYAPPGKEKQR                             474    485    763.959     2   -0.0197   61/43       1        1                   Thyroid hormone           KWEG↓LVYA                      GAG
+P49711,  VEVSKLKR                                 361    368    550.413     2    0.0271   63/43       1        1                   Transcriptional           DYAS↓VEVS
+P25490,  TLVTVAAAGKSGGGGSSSSGGGR                  149    171    670.976     3   -0.0322   55/44       1                            Transcriptional           YIEQ↓TLVT
+P29401,  VAILDINR                                 179    186    479.930     2    0.1457 45/42                            1         Transketolase             LDNL↓VAIL
+P68363,  VDLEPTVIDEVR                              68     79    718.423     2    0.0028 70/43         2        1                   Tubulin α-1B chain        RAVF↓VDLE
+P68363,  MVDNEAIYDICR                             203    214    783.405     2    0.0200 55/43                  1                   Tubulin α-1B chain        DCAF↓MVDN          P68366,
+O43290,  VTFKKTKR                                 397    404    594.392     2    0.0189   45/43       1                            U4/U6.U5 tri-snRNP-       PEEM↓VTFK
+P42768,  FIEDQGGLEAVR                             292    303    689.891     2    0.0426 57/47                            1         Wiskott-Aldrich           LIYD↓FIED
+Q7Z2W4,  LASASASAER                               261    270    504.325     2    0.0689 69/43         1                            Zinc finger CCCH-type     SQEF↓LASA
+O95125,  ELCHQWLR                                  69      76   594.450     2    0.1684   40/35       1                            Zinc finger protein 202   IRLR↓ELCH          O43309,
+O60281,  QKASNLKR                                1771 1778      541.436     2    0.1298   38/31       1                            Zinc finger protein 292   QSER↓QKAS
+Q86UK7,  EVAAAVR                                  344 350       760.583     1    0.1512   40/36       1                            Zinc finger protein 598   EEDR↓EVAA
+Q14790,                                                                                                                                                      PKVF↓FIQA
+P05155,                                                                                                                                                      SKML↓FVEP
+P11940,                                                                                                                                                      GFVS↓FERH
