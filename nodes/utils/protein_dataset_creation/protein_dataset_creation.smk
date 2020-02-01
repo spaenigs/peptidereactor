@@ -1,12 +1,4 @@
-from modlamp.core import read_fasta, save_fasta
-from more_itertools import windowed
-import joblib as jl
-import urllib.parse
-import urllib.request
-import yaml
-
 TOKEN = config["token"]
-CORES = config["cores"]
 
 def get_ids():
     with open(config["ids_file_in"]) as f:

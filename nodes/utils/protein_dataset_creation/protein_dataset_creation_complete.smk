@@ -6,7 +6,6 @@ import urllib.request
 import yaml
 
 TOKEN = config["token"]
-CORES = config["cores"]
 
 def get_ids():
     with open(config["ids_file_in"]) as f:
