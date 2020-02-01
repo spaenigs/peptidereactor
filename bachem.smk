@@ -3,9 +3,9 @@ import pandas as pd
 
 WINDOW_LENGTHS = [8,12]#[8,11,15,20]
 DATASETS = \
-    ["protease_window_length_8", "protease_window_length_8_complete"] + \
-    expand(["bachem_window_length_{window_length}", "bachem_window_length_{window_length}_complete"],
-           window_length=WINDOW_LENGTHS)
+    ["protease_window_length_8", "protease_window_length_8_complete"] #+ \
+    # expand(["bachem_window_length_{window_length}", "bachem_window_length_{window_length}_complete"],
+    #        window_length=WINDOW_LENGTHS)
 
 CORES = int(config["cores"])
 
@@ -17,12 +17,25 @@ def get_aaindex():
 
 rule all:
     input:
-         # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/seqs.fasta", window_length=[8,11,15,20]),
-         # f"data/{DATASET}_window_length_7_complete/seqs.fasta",
-         # f"data/{DATASET}_window_length_7_complete/classes.yaml"
-         # expand(f"data/{DATASET}_window_length_{{window_length}}_complete/classes.yaml", window_length=[8,11,15,20])
-         f"data/bachem/plots/filtered_datasets.png",
-         f"data/bachem/machine_learning/top_encodings.csv"
+         expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS[0]),
+         expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS[0]),
+         expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
+                normalized_dataset=DATASETS[1], distance=[0,3,6,9,12]),
+         expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS[1]),
+         expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
+                normalized_dataset=DATASETS[1],
+                algorithm=["average_distance", "total_distance", "cartesian_product",
+                           "number_instances", "frequency_instances"])
+         # f"data/bachem/plots/filtered_datasets.png",
+         # f"data/bachem/machine_learning/top_encodings.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -55,20 +68,20 @@ rule utils_sliding_windows_complete:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule utils_protein_dataset_ceation:
+rule utils_protein_dataset_creation:
     input:
          dataset_in="data/protease/impensData.txt",
     output:
          fasta_out="data/protease_window_length_8/seqs.fasta",
          classes_out="data/protease_window_length_8/classes.txt"
     params:
-         snakefile="nodes/utils/protein_dataset_ceation/protein_dataset_ceation.smk",
-         configfile="nodes/utils/protein_dataset_ceation/config.yaml"
+         snakefile="nodes/utils/protein_dataset_creation/protein_dataset_creation.smk",
+         configfile="nodes/utils/protein_dataset_creation/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule utils_protein_dataset_ceation_complete:
+rule utils_protein_dataset_creation_complete:
     input:
          dataset_in="data/protease/impensData.txt",
          ids_file_in="data/protease/impens_ids.txt"
@@ -79,8 +92,8 @@ rule utils_protein_dataset_ceation_complete:
          classes_yaml_out=f"data/protease_window_length_8_complete/classes.yaml",
          classes_idx_out=f"data/protease_window_length_8_complete/classes_idx.txt"
     params:
-         snakefile="nodes/utils/protein_dataset_ceation/protein_dataset_ceation_complete.smk",
-         configfile="nodes/utils/protein_dataset_ceation/config.yaml"
+         snakefile="nodes/utils/protein_dataset_creation/protein_dataset_creation_complete.smk",
+         configfile="nodes/utils/protein_dataset_creation/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
@@ -298,7 +311,7 @@ rule meta_workflow_structure_based_encodings:
          fasta_anno_pdbs_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/annotated_pdbs_seqs.fasta",
          classes_anno_pdbs_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/annotated_pdbs_classes.txt",
          pdb_out=directory("data/{normalized_dataset,.*?(1[2-9]|2\d)}/pdb/"),
-         pssm_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/pssm.csv",
+         # pssm_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/pssm.csv",
          asa_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/asa.csv",
          # ta_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/ta.csv",
          # ssec_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/ssec.csv",
@@ -336,22 +349,22 @@ rule meta_workflow_structure_based_encodings_windowed:
          fasta_anno_pdbs_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_seqs.fasta",
          classes_anno_pdbs_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_classes.txt",
          pdb_out=directory("data/{normalized_dataset,.*?[a-z]})_complete}/pdb/"),
-         # asa_out="data/{normalized_dataset,.*?[a-z]}/csv/asa.csv",
+         asa_out="data/{normalized_dataset,.*?[a-z]}/csv/asa.csv",
          ta_out="data/{normalized_dataset,.*?[a-z]}/csv/ta.csv",
-         # ssec_out="data/{normalized_dataset,.*?[a-z]}/csv/ssec.csv",
-         # sseb_out="data/{normalized_dataset,.*?[a-z]}/csv/sseb.csv",
-         # disorder_out="data/{normalized_dataset,.*?[a-z]}/csv/disorder.csv",
-         # disorderb_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderb.csv",
-         # disorderc_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderc.csv",
-         # qsar_out="data/{normalized_dataset,.*?[a-z]}/csv/qsar.csv",
-         # electrostatic_hull_out=\
-         #      expand("data/{{normalized_dataset,.*?[a-z]$}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
-         #             distance=[0,3,6,9,12]),
-         # distance_distribution_out="data/{normalized_dataset,.*?[a-z]}/csv/distance_distribution.csv",
-         # delaunay_out=\
-         #      expand("data/{{normalized_dataset,.*?[a-z]}}/csv/delaunay/delaunay_{algorithm}.csv",
-         #             algorithm=["average_distance", "total_distance", "cartesian_product",
-         #                        "number_instances", "frequency_instances"])
+         ssec_out="data/{normalized_dataset,.*?[a-z]}/csv/ssec.csv",
+         sseb_out="data/{normalized_dataset,.*?[a-z]}/csv/sseb.csv",
+         disorder_out="data/{normalized_dataset,.*?[a-z]}/csv/disorder.csv",
+         disorderb_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderb.csv",
+         disorderc_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderc.csv",
+         qsar_out="data/{normalized_dataset,.*?[a-z]}/csv/qsar.csv",
+         electrostatic_hull_out=\
+              expand("data/{{normalized_dataset,.*?[a-z]}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
+                     distance=[0,3,6,9,12]),
+         distance_distribution_out="data/{normalized_dataset,.*?[a-z]}/csv/distance_distribution.csv",
+         delaunay_out=\
+              expand("data/{{normalized_dataset,.*?[a-z]}}/csv/delaunay/delaunay_{algorithm}.csv",
+                     algorithm=["average_distance", "total_distance", "cartesian_product",
+                                "number_instances", "frequency_instances"])
     params:
          snakefile="nodes/meta_workflows/structure_based_encodings/structure_based_encodings_windowed.smk",
          configfile="nodes/meta_workflows/structure_based_encodings/config.yaml"
@@ -363,7 +376,7 @@ rule meta_workflow_structure_based_encodings_windowed:
 ################################################ COLLECT ENCODINGS #####################################################
 ########################################################################################################################
 
-# TODO get structure windows from protease_complet
+# TODO get structure windows from protease_complete
 
 rule collect_encodings:
     input:
@@ -409,6 +422,7 @@ rule plot_empty_datasets:
 ########################################################################################################################
 
 # TODO keep final test set
+# TODO check whether wildcard constraints are necessary
 
 rule machine_learning_top_encodings:
     input:
@@ -423,4 +437,4 @@ rule machine_learning_top_encodings:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=DATASETS) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-# https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
+# TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
