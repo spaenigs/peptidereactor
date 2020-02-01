@@ -1,9 +1,9 @@
+import os
+
 TOKEN = config["token"]
 
-# rule all:
-#     input:
-#         expand(f"data/temp/{TOKEN}/{{database}}_download_link.txt",
-#                database=["nr70", "nr90", "TPL_BC40", "TPL_Remain", "pdb_BC40", "pdb_Remain", "CNFsearch"])
+try:
+    with open()
 
 rule download_index_html:
     input:
