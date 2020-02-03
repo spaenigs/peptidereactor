@@ -28,8 +28,7 @@ rule dump_fasta_orig:
     output:
          temp(f"data/temp/{TOKEN}/dataset.jl"),
          config["fasta_out"],
-         config["classes_out"],
-         config["classes_idx_out"]
+         config["classes_out"]
     run:
          with open(str(input)) as f:
              tuples = [l.rstrip().split(",") for l in f.readlines()]
@@ -42,12 +41,10 @@ rule dump_fasta_orig:
              stream.flush()
 
          with open(str(output[1]), mode="a") as f1, \
-                 open(str(output[2]), mode="a") as f2, \
-                 open(str(output[3]), mode="a") as f3:
+                 open(str(output[2]), mode="a") as f2:
              for i, (seq, class_) in enumerate(seq_tups.items(), start=1):
                  write_and_flush(f1, f">Seq_{str(i)}\n{seq}\n")
                  write_and_flush(f2, f"{0 if class_ == -1 else 1}\n")
-                 write_and_flush(f3, f"{i-1}\n")
 
 rule get_fasta:
     input:
@@ -126,15 +123,26 @@ rule get_windows:
 
 rule combine_classes_yaml:
     input:
-         expand(f"data/temp/{TOKEN}/classes_part_{{id}}.yaml", id=get_ids())
+         config["fasta_complete_out"],
+         expand(f"data/temp/{TOKEN}/classes_part_{{id}}.yaml",
+                id=get_ids())
     output:
-         config["classes_yaml_out"]
+         config["classes_yaml_out"],
+         config["classes_idx_out"]
     run:
+         seqs, names = read_fasta(str(input[0]))
+
          res = []
-         for path in list(input):
+         for path in list(input[1:]):
              with open(path) as f:
                  data = yaml.safe_load(f)
              res += [data]
 
-         with open(str(output), mode="w") as f:
+         with open(str(output[0]), mode="w") as f:
              yaml.safe_dump(res, f)
+
+         with open(str(output[1]), mode="w") as f:
+             d = dict([(list(e.keys())[0], i) for i, e in enumerate(res)])
+             for n in names:
+                 f.write(f"{d[n]}\n")
+                 f.flush()
