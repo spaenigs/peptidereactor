@@ -2,9 +2,6 @@ import os
 
 TOKEN = config["token"]
 
-try:
-    with open()
-
 rule download_index_html:
     input:
          config["download_link_in"]
