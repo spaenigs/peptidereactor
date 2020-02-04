@@ -70,7 +70,7 @@ rule compute_pdb_chunks:
          for i, v in enumerate(values, start=1):
              start, end = v["range"]
              name, class_ = f"{structure.get_id()}_part_{str(i)}", v["class"]
-             filename = f"data/temp/{TOKEN}/{name}.pdb"
+             filename = f"data/temp/{TOKEN}/{wildcards.algorithm}_{name}.pdb"
              Dice.extract(structure, chain_id, start, end, filename)
              res[name] = run_delaunay(wildcards.algorithm, filename)
              names += [name]
