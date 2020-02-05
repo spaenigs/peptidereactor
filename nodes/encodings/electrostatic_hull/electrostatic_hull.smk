@@ -21,7 +21,7 @@ rule assign_charges_and_radii:
     input:
           PDB_DIR + "{seq_name}.pdb"
     output:
-          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
+          temp(f"data/temp/{TOKEN}/{{seq_name}}.pqr")
     shell:
           "pdb2pqr --whitespace --ff=amber {input} {output} 1> /dev/null;"
 
@@ -29,7 +29,7 @@ rule solvent_accessible_surface:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.sas.dx"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.sas.dx")
     threads:
          1000
     shell:
@@ -39,7 +39,7 @@ rule electrostatic_hull:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.sas.dx"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv")
     run:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
              import readDX, electrostatic_hull
@@ -52,7 +52,7 @@ rule electrostatic_potential:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.esp.dx"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.esp.dx")
     threads:
          1000
     shell:
@@ -63,7 +63,7 @@ rule electrostatic_pot_at_electrostatic_hull_grid:
          f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv",
          f"data/temp/{TOKEN}/{{seq_name}}.esp.dx"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv")
     run:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
             import csv2points, readDX, dx2csv
@@ -83,7 +83,7 @@ rule combine:
                     seq_name=read_fasta(config["fasta_in"])[1],
                     distance=wildcards.distance)
     output:
-         f"data/temp/{TOKEN}/final_{{distance}}.yaml"
+         temp(f"data/temp/{TOKEN}/final_{{distance}}.yaml")
     run:
          enco = {"enco_seqs": {}}
          for path in list(input[1:]):
@@ -100,9 +100,9 @@ rule interpolate:
     input:
          enco=f"data/temp/{TOKEN}/final_{{distance}}.yaml"
     output:
-         f"data/temp/{TOKEN}/out_{{distance}}.csv"
+         temp(f"data/temp/{TOKEN}/out_{{distance}}.csv")
     script:
-        "scripts/interpolate.R"
+         "scripts/interpolate.R"
 
 rule dump:
     input:
