@@ -17,25 +17,32 @@ def get_aaindex():
 
 rule all:
     input:
-         expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS[0]),
-         expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS[0]),
-         expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
-                normalized_dataset=DATASETS[1], distance=[0,3,6,9,12]),
-         expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS[1]),
-         expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
-                normalized_dataset=DATASETS[1],
-                algorithm=["average_distance", "total_distance", "cartesian_product",
-                           "number_instances", "frequency_instances"])
-         # f"data/bachem/plots/filtered_datasets.png",
-         # f"data/bachem/machine_learning/top_encodings.csv"
+         # "data/protease_window_length_8/seqs.fasta",
+         # "data/protease_window_length_8/classes.txt",
+         # "data/protease_window_length_8_complete/seqs_orig.fasta",
+         # "data/protease_window_length_8_complete/classes_orig.txt",
+         # "data/protease_window_length_8_complete/seqs.fasta",
+         # "data/protease_window_length_8_complete/classes.yaml",
+         # "data/protease_window_length_8_complete/classes.txt",
+         # expand("data/{normalized_dataset}/csv/zscale.csv", normalized_dataset=DATASETS[0]),
+         # expand("data/{normalized_dataset}/csv/tpc.csv", normalized_dataset=DATASETS[0]),
+         # expand("data/{normalized_dataset}/csv/asa.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/ta.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/ssec.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/sseb.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/disorder.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/disorderb.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/disorderc.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/qsar.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
+         #        normalized_dataset=DATASETS[1], distance=[0,3,6,9,12]),
+         # expand("data/{normalized_dataset}/csv/distance_distribution.csv", normalized_dataset=DATASETS[1]),
+         # expand("data/{normalized_dataset}/csv/delaunay/delaunay_{algorithm}.csv",
+         #        normalized_dataset=DATASETS[1],
+         #        algorithm=["average_distance", "total_distance", "cartesian_product",
+         #                   "number_instances", "frequency_instances"])
+         f"data/bachem/plots/filtered_datasets.png",
+         f"data/bachem/machine_learning/top_encodings.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -86,11 +93,11 @@ rule utils_protein_dataset_creation_complete:
          dataset_in="data/protease/impensData.txt",
          ids_file_in="data/protease/impens_ids.txt"
     output:
-         fasta_out="data/protease_window_length_8_complete/seqs.fasta",
-         classes_out="data/protease_window_length_8_complete/classes.txt",
-         fasta_complete_out=f"data/protease_window_length_8_complete/seqs_complete.fasta",
-         classes_yaml_out=f"data/protease_window_length_8_complete/classes.yaml",
-         classes_idx_out=f"data/protease_window_length_8_complete/classes_idx.txt"
+         fasta_out="data/protease_window_length_8_complete/seqs_orig.fasta",
+         classes_out="data/protease_window_length_8_complete/classes_orig.txt",
+         fasta_complete_out="data/protease_window_length_8_complete/seqs.fasta",
+         classes_yaml_out="data/protease_window_length_8_complete/classes.yaml",
+         classes_idx_out="data/protease_window_length_8_complete/classes.txt"
     params:
          snakefile="nodes/utils/protein_dataset_creation/protein_dataset_creation_complete.smk",
          configfile="nodes/utils/protein_dataset_creation/config.yaml"
@@ -340,7 +347,14 @@ rule meta_workflow_structure_based_encodings_windowed:
          fasta_in="data/{normalized_dataset}/seqs.fasta",
          fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
          classes_idx_in="data/{normalized_dataset}/classes.txt",
-         classes_in="data/{normalized_dataset}/classes.yaml"
+         classes_in="data/{normalized_dataset}/classes.yaml",
+         # fasta_anno_out="data/{normalized_dataset}/annotated_seqs.fasta",
+         # classes_anno_idx_out="data/{normalized_dataset}/annotated_classes.txt",
+         # fasta_anno_msa_out="data/{normalized_dataset}/annotated_seqs_msa.fasta",
+         # profile_dir=directory("data/{normalized_dataset}/profile/"),
+         # fasta_anno_pdbs_out="data/{normalized_dataset}/annotated_pdbs_seqs.fasta",
+         # classes_anno_pdbs_idx_out="data/{normalized_dataset}/annotated_pdbs_classes.txt",
+         # pdb_out=directory("data/{normalized_dataset}/pdb/"),
     output:
          fasta_anno_out="data/{normalized_dataset,.*?[a-z]}/annotated_seqs.fasta",
          classes_anno_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_classes.txt",
@@ -348,15 +362,15 @@ rule meta_workflow_structure_based_encodings_windowed:
          profile_dir=directory("data/{normalized_dataset,.*?[a-z]}/profile/"),
          fasta_anno_pdbs_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_seqs.fasta",
          classes_anno_pdbs_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_classes.txt",
-         pdb_out=directory("data/{normalized_dataset,.*?[a-z]})_complete}/pdb/"),
-         asa_out="data/{normalized_dataset,.*?[a-z]}/csv/asa.csv",
-         ta_out="data/{normalized_dataset,.*?[a-z]}/csv/ta.csv",
-         ssec_out="data/{normalized_dataset,.*?[a-z]}/csv/ssec.csv",
-         sseb_out="data/{normalized_dataset,.*?[a-z]}/csv/sseb.csv",
-         disorder_out="data/{normalized_dataset,.*?[a-z]}/csv/disorder.csv",
-         disorderb_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderb.csv",
-         disorderc_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderc.csv",
-         qsar_out="data/{normalized_dataset,.*?[a-z]}/csv/qsar.csv",
+         pdb_out=directory("data/{normalized_dataset,.*?[a-z]}/pdb/"),
+         # asa_out="data/{normalized_dataset,.*?[a-z]}/csv/asa.csv",
+         # ta_out="data/{normalized_dataset,.*?[a-z]}/csv/ta.csv",
+         # ssec_out="data/{normalized_dataset,.*?[a-z]}/csv/ssec.csv",
+         # sseb_out="data/{normalized_dataset,.*?[a-z]}/csv/sseb.csv",
+         # disorder_out="data/{normalized_dataset,.*?[a-z]}/csv/disorder.csv",
+         # disorderb_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderb.csv",
+         # disorderc_out="data/{normalized_dataset,.*?[a-z]}/csv/disorderc.csv",
+         # qsar_out="data/{normalized_dataset,.*?[a-z]}/csv/qsar.csv",
          electrostatic_hull_out=\
               expand("data/{{normalized_dataset,.*?[a-z]}}/csv/electrostatic_hull/electrostatic_hull_{distance}.csv",
                      distance=[0,3,6,9,12]),
@@ -376,36 +390,52 @@ rule meta_workflow_structure_based_encodings_windowed:
 ################################################ COLLECT ENCODINGS #####################################################
 ########################################################################################################################
 
-# TODO get structure windows from protease_complete
-
 rule collect_encodings:
     input:
          sequence_based_encodings=\
              expand(rules.meta_workflow_sequence_based_encodings.output,
-                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] != "complete", DATASETS)),
+                    normalized_dataset=[ds for ds in DATASETS
+                                        if ds.split("_")[-1] != "complete"]),
          structure_based_encodings=\
              expand(rules.meta_workflow_structure_based_encodings.output[7:],
-                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] != "complete" and \
-                                                         int(ds.split("_")[-1]) >= 12, DATASETS)) + \
+                    normalized_dataset=[ds for ds in DATASETS
+                                        if ds.split("_")[-1] != "complete" and int(ds.split("_")[-1]) >= 12]) + \
              expand(rules.meta_workflow_structure_based_encodings_windowed.output[7:],
-                    normalized_dataset=filter(lambda ds: ds.split("_")[-1] == "complete", DATASETS))
+                    normalized_dataset=[ds for ds in DATASETS
+                                        if ds.split("_")[-1] == "complete"])
     output:
          sequence_based_encodings=\
-             directory(f"data/temp/bachem/csv/sequence_based/"),
+             directory(f"data/temp/datasets/csv/sequence_based/"),
          structure_based_encodings=\
-             directory(f"data/temp/bachem/csv/structure_based/")
+             directory(f"data/temp/datasets/csv/structure_based/")
     run:
          import os
          def copy(from_files, target_dir):
             for i in from_files:
-                shell(f"cp {i} {target_dir}{os.path.basename(i)}")
+                dataset = i.split("/")[1]
+                shell(f"cp {i} {target_dir}{dataset}_{os.path.basename(i)}")
          copy(list(input.sequence_based_encodings), str(output.sequence_based_encodings))
          copy(list(input.structure_based_encodings), str(output.structure_based_encodings))
 
+rule remove_empty_datasets:
+    input:
+         f"data/temp/datasets/csv/sequence_based/",
+         f"data/temp/datasets/csv/structure_based/"
+    output:
+         directory(f"data/temp/datasets/csv_non_empty/")
+    run:
+         from glob import glob
+
+         for csv_path in glob(input[0] + "*.csv") + glob(input[1] + "*.csv"):
+             if os.path.getsize(csv_path) == 0:
+                 continue
+             else:
+                 shell(f"cp {csv_path} {str(output)}")
+
 rule plot_empty_datasets:
     input:
-         sequence_based_encodings=f"data/temp/bachem/csv/sequence_based/",
-         structure_based_encodings=f"data/temp/bachem/csv/structure_based/"
+         sequence_based_encodings=f"data/temp/datasets/csv/sequence_based/",
+         structure_based_encodings=f"data/temp/datasets/csv/structure_based/"
     output:
          png_out=f"data/bachem/plots/filtered_datasets.png"
     params:
@@ -422,19 +452,36 @@ rule plot_empty_datasets:
 ########################################################################################################################
 
 # TODO keep final test set
-# TODO check whether wildcard constraints are necessary
+rule hold_out_data:
+    input:
+         f"data/temp/datasets/csv_non_empty/"
+    output:
+         directory(f"data/temp/datasets/csv_non_empty_train/"),
+         directory(f"data/temp/datasets/csv_non_empty_test/")
+    run:
+         from sklearn.model_selection import train_test_split
+         from glob import glob
+
+         for csv_path in glob(str(input) + "*.csv"):
+             csv_name = os.path.basename(csv_path)
+             df = pd.read_csv(csv_path, index_col=0)
+             X_train, X_test, y_train, y_test = \
+                 train_test_split(df.iloc[:,:-1], df["y"], test_size=0.1, random_state=42, stratify=df["y"])
+             X_train["y"], X_test["y"] = y_train, y_test
+             X_train.to_csv(str(output[0]) + csv_name)
+             X_test.to_csv(str(output[1]) + csv_name)
 
 rule machine_learning_top_encodings:
     input:
-         sequence_based_encodings=f"data/temp/bachem/csv/sequence_based/",
-         structure_based_encodings=f"data/temp/bachem/csv/structure_based/"
+         csv_dir_in=f"data/temp/datasets/csv_non_empty_train/"
     output:
          csv_out=f"data/bachem/machine_learning/top_encodings.csv"
     params:
          snakefile="nodes/machine_learning/top_encodings/Snakefile",
          configfile="nodes/machine_learning/top_encodings/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=DATASETS) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 # TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
+
