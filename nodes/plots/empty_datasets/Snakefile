@@ -16,10 +16,13 @@ rule count_non_empty_datasets:
          seq_based=glob(config["sequence_based_encodings"] + "*.csv"),
          struc_based=glob(config["structure_based_encodings"] + "*.csv")
     output:
-         f"data/temp/{TOKEN}/empty_datasets.yaml"
+         temp(f"data/temp/{TOKEN}/empty_datasets.yaml")
     run:
          def count_non_empty_files(ds, csv_paths):
-             tmp = filter(lambda p: ds in p, csv_paths)
+             if "complete" in ds:
+                 tmp = filter(lambda p: re.match(f".*{ds}", p), csv_paths)
+             else:
+                 tmp = filter(lambda p: re.match(f".*{ds}(?!_complete)", p), csv_paths)
              return sum([1 if os.path.getsize(i) != 0 else 0 for i in tmp])
 
          count_data = {}
