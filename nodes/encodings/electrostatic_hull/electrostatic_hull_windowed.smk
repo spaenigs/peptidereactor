@@ -31,6 +31,8 @@ rule solvent_accessible_surface:
          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.sas.dx"
+    threads:
+         1000
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} smol"
 
@@ -52,6 +54,8 @@ rule electrostatic_potential:
          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.esp.dx"
+    threads:
+         1000
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} pot"
 
