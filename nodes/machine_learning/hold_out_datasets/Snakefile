@@ -1,0 +1,47 @@
+from sklearn.model_selection import train_test_split
+from glob import glob
+import pandas as pd
+import os
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         f"data/temp/{TOKEN}/generated.txt",
+         config["csv_train_dir_out"],
+         config["csv_val_1_dir_out"],
+         config["csv_val_2_dir_out"],
+         config["csv_test_dir_out"]
+
+rule hold_out_data:
+    input:
+         config["csv_dir_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/generated.txt")
+    run:
+         def split(df):
+            X_train, X_test, y_train, y_test = \
+                train_test_split(df.iloc[:,:-1],
+                                 df["y"],
+                                 test_size=0.1,
+                                 random_state=42,
+                                 stratify=df["y"])
+            X_train["y"], X_test["y"] = y_train, y_test
+            return X_train, X_test
+
+         for csv_path in glob(str(input) + "*.csv"):
+             csv_name = os.path.basename(csv_path)
+             df = pd.read_csv(csv_path, index_col=0)
+             # split train/test
+             X_train_val1_val2, X_test = split(df)
+             # split train/val_1
+             X_train_val2, X_val1 = split(X_train_val1_val2)
+             # split train/val_2
+             X_train, X_val2 = split(X_train_val2)
+             # dump
+             X_train.to_csv(str(config["csv_train_dir_out"]) + csv_name)
+             X_val1.to_csv(str(config["csv_val_1_dir_out"]) + csv_name)
+             X_val2.to_csv(str(config["csv_val_2_dir_out"]) + csv_name)
+             X_test.to_csv(str(config["csv_test_dir_out"]) + csv_name)
+
+         shell("touch {output}")
