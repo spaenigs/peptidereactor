@@ -1,0 +1,46 @@
+from glob import glob
+import os
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         f"data/temp/{TOKEN}/collected.txt",
+         f"data/temp/{TOKEN}/filtered.txt",
+         config["sequence_based_encodings_out"],
+         config["structure_based_encodings_out"],
+         config["csv_dir_out"]
+
+rule collect_encodings:
+    input:
+         sequence_based_encodings=config["sequence_based_encodings_in"],
+         structure_based_encodings=config["structure_based_encodings_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/collected.txt")
+    run:
+         def copy(from_files, target_dir):
+            for i in from_files:
+                dataset = i.split("/")[1]
+                shell(f"cp {i} {target_dir}{dataset}-{os.path.basename(i)}")
+
+         copy(list(input.sequence_based_encodings),
+              str(config["sequence_based_encodings_out"]))
+         copy(list(input.structure_based_encodings),
+              str(config["structure_based_encodings_out"]))
+
+         shell("touch {output}")
+
+rule remove_empty_datasets:
+    input:
+         config["sequence_based_encodings_out"],
+         config["structure_based_encodings_out"]
+    output:
+         temp(f"data/temp/{TOKEN}/filtered.txt")
+    run:
+         for csv_path in glob(str(input[0]) + "*.csv") + glob(str(input[1]) + "*.csv"):
+             if os.path.getsize(csv_path) == 0:
+                 continue
+             else:
+                 shell(f"cp {csv_path} {config['csv_dir_out']}")
+
+         shell("touch {output}")
