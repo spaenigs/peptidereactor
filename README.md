@@ -1,3 +1,16 @@
+## Installation
+
+1. Clone this repo: `git clone git@github.com:spaenigs/proteinreactor.git`
+2. Install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html). 
+3. Create conda environment: `conda env create --file apps/environment.yaml`
+4. Install docker: 
+    - Ubuntu: `./apps/install_docker_io`
+    - Other distros: `./apps/install_docker_ce` 
+5. Build image: `./apps/build_image`
+6. Set required download links. See `nodes/utils/protein_structure_prediction/README.md` and
+`nodes/utils/secondary_structure_profile/README.md` for further instructions.
+7. Run the pipeline via `./apps/run_pipeline -s eb.smk --config cores=4 --quiet`
+
 ## Docker
 
 ### Save/load docker image
