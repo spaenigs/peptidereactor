@@ -3,11 +3,13 @@ from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.metrics import f1_score
 from glob import glob
 import pandas as pd
+import numpy as np
 import os
+import re
 
 TOKEN = config["token"]
 
-ENCODINGS = glob(config["csv_dir_in"] + "*.csv")
+ENCODED_CSVS = glob(config["train_dir_in"] + "*.csv")
 
 rule all:
     input:
@@ -15,19 +17,19 @@ rule all:
 
 rule split_datasets:
     input:
-         ENCODINGS
+         ENCODED_CSVS
     output:
-         temp(f"data/temp/{TOKEN}/{{encoding}}.csv")
+         temp(f"data/temp/{TOKEN}/{{dataset_and_encoding,.*-.*}}.csv")
     run:
-         csv_path = list(filter(lambda p: wildcards.encoding in p, list(input)))[0]
+         csv_path = list(filter(lambda p: wildcards.dataset_and_encoding in p, list(input)))[0]
          file_name = os.path.basename(csv_path)
          shell(f"cp {csv_path} {{output}}")
 
 rule repeated_k_fold_cv:
     input:
-         f"data/temp/{TOKEN}/{{encoding}}.csv"
+         f"data/temp/{TOKEN}/{{dataset_and_encoding}}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{encoding}}.tmp")
+         temp(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp")
     run:
          df = pd.read_csv(str(input), index_col=0)
          X, y = df.iloc[:, :-1].values, df["y"]
@@ -42,24 +44,76 @@ rule repeated_k_fold_cv:
              y_pred = brf.predict(X_test)
              f1_scores += [f1_score(y_test, y_pred)]
 
-         encoding = wildcards.encoding
-         print(encoding)
+         dataset, encoding = wildcards.dataset_and_encoding.split("-")
 
-         df_res = pd.DataFrame({encoding: f1_scores}).transpose()
+         res = {encoding: [dataset] + f1_scores + [np.mean(f1_scores)]}
+         df_res = pd.DataFrame(res).transpose()
          df_res.to_csv(str(output))
 
 rule collect:
     input:
-         expand(f"data/temp/{TOKEN}/{{encoding}}.tmp",
-                encoding=[os.path.basename(path).replace(".csv", "")
-                          for path in ENCODINGS])
+         expand(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp",
+                dataset_and_encoding=[os.path.basename(path).replace(".csv", "")
+                                      for path in ENCODED_CSVS])
     output:
-         config["csv_out"]
+         f"data/temp/{TOKEN}/top_encodings.csv"
     run:
          df_res = pd.DataFrame()
 
          for path in list(input):
              df_res = pd.concat([df_res, pd.read_csv(path, index_col=0)])
 
+         colnames = list(df_res.columns)
+         colnames[0], colnames[-1] = "dataset", "mean"
+         df_res.columns = colnames
+         df_res.sort_values(by="mean", ascending=False, inplace=True)
          df_res.to_csv(str(output))
 
+rule validate:
+    input:
+         f"data/temp/{TOKEN}/top_encodings.csv",
+         config["val_dir_in"]
+    output:
+         f"data/temp/{TOKEN}/top_{{k}}_encodings.csv"
+    run:
+         def get_train_val(dataset, encoding):
+             csv_path = [csv_path for csv_path in ENCODED_CSVS
+                         if f"{dataset}-{encoding}" in csv_path][0]
+             df_train = pd.read_csv(csv_path, index_col=0)
+             csv_path_val = [csv_path for csv_path in glob(str(input[1]) + "*.csv")
+                             if f"{dataset}-{encoding}" in csv_path][0]
+             df_val = pd.read_csv(csv_path_val, index_col=0)
+             return df_train, df_val
+
+         df = pd.read_csv(str(input[0]), index_col=0)
+
+         df_res = pd.DataFrame()
+         for encoding, series in df.iloc[:int(wildcards.k), :].iterrows():
+             df_train, df_val = get_train_val(series["dataset"], encoding)
+             # train
+             X_train, y_train = df_train.iloc[:, :-1].values, df_train["y"]
+             brf = BalancedRandomForestClassifier(n_estimators=100)
+             brf.fit(X_train, y_train)
+             # test
+             X_val, y_val = df_val.iloc[:, :-1].values, df_val["y"]
+             y_pred = brf.predict(X_val)
+             df_tmp = pd.DataFrame({encoding: [series["dataset"]] + [f1_score(y_val, y_pred)]})\
+                 .transpose()
+             df_res = pd.concat([df_res, df_tmp])
+
+         df_res.to_csv(str(output))
+
+rule collect_top_k_encodings:
+    input:
+         expand(f"data/temp/{TOKEN}/top_{{k}}_encodings.csv",
+                k=[int(re.match(".*?top_(\d+).*", csv_path).group(1))
+                   for csv_path in config["csv_out"]])
+    output:
+         config["csv_out"]
+    run:
+         target_dir = \
+             os.path.dirname(str(output)) \
+                 if type(config["csv_out"]) == str \
+                 else os.path.dirname(list(output)[0])
+         for p in list(input):
+            shell(f"cp {p} {target_dir}/{os.path.basename(p)}")
