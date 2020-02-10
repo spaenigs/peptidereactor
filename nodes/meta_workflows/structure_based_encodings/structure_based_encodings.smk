@@ -22,77 +22,22 @@ def check_empty(path_to_fasta, path_to_csv_out,
 
 rule all:
     input:
-         config["fasta_anno_out"],
-         config["fasta_anno_msa_out"],
-         config["classes_anno"],
-         config["profile_dir"],
-         config["fasta_anno_pdbs_out"],
-         config["classes_anno_pdbs_out"],
-         config["pdb_out"],
          config["pssm_out"],
          config["asa_out"],
-         config["ta_out"],
-         config["ssec_out"],
-         config["sseb_out"],
-         config["disorder_out"],
-         config["disorderb_out"],
-         config["disorderc_out"],
-         config["qsar_out"],
-         config["electrostatic_hull_out"],
-         config["distance_distribution_out"],
-         config["delaunay_out"]
-
-rule util_secondary_structure_profile:
-    input:
-         fasta_in=config["fasta_in"],
-         fasta_msa_in=config["fasta_msa_in"],
-         classes_in=config["classes_in"],
-         uniprot90_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/uniprot90_download_link.txt",
-         psipred_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/psipred_download_link.txt",
-         spineXpublic_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/spineXpublic_download_link.txt",
-         VSL2_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/VSL2_download_link.txt"
-    output:
-         fasta_anno_out=config["fasta_anno_out"],
-         fasta_anno_msa_out=config["fasta_anno_msa_out"],
-         classes_anno=config["classes_anno"],
-         profiles_out=directory(config["profile_dir"])
-    priority:
-         1000
-    params:
-         snakefile="nodes/utils/secondary_structure_profile/Snakefile",
-         configfile="nodes/utils/secondary_structure_profile/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule util_protein_structure_prediction:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         download_link_in=\
-             "nodes/utils/protein_structure_prediction/download_links/raptorx_download_link.txt",
-         license_key_in=\
-             "nodes/utils/protein_structure_prediction/download_links/modeller_license_key.txt"
-    output:
-         fasta_out=config["fasta_anno_pdbs_out"],
-         classes_out=config["classes_anno_pdbs_out"],
-         pdbs_out=directory(config["pdb_out"])
-    priority:
-         1000
-    params:
-         snakefile="nodes/utils/protein_structure_prediction/Snakefile",
-         configfile="nodes/utils/protein_structure_prediction/config.yaml",
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+         # config["ta_out"],
+         # config["ssec_out"],
+         # config["sseb_out"],
+         # config["disorder_out"],
+         # config["disorderb_out"],
+         # config["disorderc_out"],
+         # config["qsar_out"],
+         # config["electrostatic_hull_out"],
+         # config["distance_distribution_out"],
+         # config["delaunay_out"]
 
 rule encoding_pssm:
     input:
-         fasta_in=config["fasta_anno_out"],
+         fasta_in=config["fasta_anno"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -106,7 +51,7 @@ rule encoding_pssm:
 
 rule encoding_asa:
     input:
-         fasta_in=config["fasta_anno_out"],
+         fasta_in=config["fasta_anno"],
          classes_in=config["classes_anno"],
          profile=config["profile_dir"]
     output:
@@ -122,182 +67,182 @@ rule encoding_asa:
                      params_snakefile=params.snakefile,
                      params_configfile= params.configfile)
 
-rule encoding_ta:
-    input:
-         fasta_in=config["fasta_anno_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["ta_out"]
-    params:
-         snakefile="nodes/encodings/ta/ta.smk",
-         configfile="nodes/encodings/ta/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_ssec:
-    input:
-         fasta_in=config["fasta_anno_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["ssec_out"]
-    params:
-         snakefile="nodes/encodings/ssec/ssec.smk",
-         configfile="nodes/encodings/ssec/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_sseb:
-    input:
-         fasta_in=config["fasta_anno_msa_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["sseb_out"]
-    params:
-         snakefile="nodes/encodings/sseb/sseb.smk",
-         configfile="nodes/encodings/sseb/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_disorder:
-    input:
-         fasta_in=config["fasta_anno_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["disorder_out"]
-    params:
-         snakefile="nodes/encodings/disorder/disorder.smk",
-         configfile="nodes/encodings/disorder/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_disorderb:
-    input:
-         fasta_in=config["fasta_anno_msa_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["disorderb_out"]
-    params:
-         snakefile="nodes/encodings/disorderb/disorderb.smk",
-         configfile="nodes/encodings/disorderb/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_disorderc:
-    input:
-         fasta_in=config["fasta_anno_out"],
-         classes_in=config["classes_anno"],
-         profile=config["profile_dir"]
-    output:
-         csv_out=config["disorderc_out"]
-    params:
-         snakefile="nodes/encodings/disorderc/disorderc.smk",
-         configfile="nodes/encodings/disorderc/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_qsar:
-    input:
-         fasta_in=config["fasta_anno_pdbs_out"],
-         classes_in=config["classes_anno_pdbs_out"],
-         pdb_dir=config["pdb_out"]
-    output:
-         csv_out=config["qsar_out"]
-    params:
-         snakefile="nodes/encodings/qsar/qsar.smk",
-         configfile="nodes/encodings/qsar/config.yaml",
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_electrostatic_hull:
-    input:
-         fasta_in=config["fasta_anno_pdbs_out"],
-         classes_in=config["classes_anno_pdbs_out"],
-         pdb_dir=config["pdb_out"]
-    output:
-         csv_out=config["electrostatic_hull_out"]
-    params:
-         snakefile="nodes/encodings/electrostatic_hull/electrostatic_hull.smk",
-         configfile="nodes/encodings/electrostatic_hull/config.yaml"
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_distance_distribution:
-    input:
-         fasta_in=config["fasta_anno_pdbs_out"],
-         classes_in=config["classes_anno_pdbs_out"],
-         pdb_dir=config["pdb_out"]
-    output:
-         csv_out=config["distance_distribution_out"]
-    params:
-         snakefile="nodes/encodings/distance_distribution/distance_distribution.smk",
-         configfile="nodes/encodings/distance_distribution/config.yaml"
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
-
-rule encoding_delaunay:
-    input:
-         fasta_in=config["fasta_anno_pdbs_out"],
-         classes_in=config["classes_anno_pdbs_out"],
-         pdb_dir=config["pdb_out"]
-    output:
-         csv_out=config["delaunay_out"]
-    params:
-         snakefile="nodes/encodings/delaunay/delaunay.smk",
-         configfile="nodes/encodings/delaunay/config.yaml"
-    run:
-         check_empty(path_to_fasta=input.fasta_in,
-                     path_to_csv_out=output.csv_out,
-                     dict_input=dict(input),
-                     dict_output=dict(output),
-                     params_snakefile=params.snakefile,
-                     params_configfile= params.configfile)
+# rule encoding_ta:
+#     input:
+#          fasta_in=config["fasta_anno"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["ta_out"]
+#     params:
+#          snakefile="nodes/encodings/ta/ta.smk",
+#          configfile="nodes/encodings/ta/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_ssec:
+#     input:
+#          fasta_in=config["fasta_anno"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["ssec_out"]
+#     params:
+#          snakefile="nodes/encodings/ssec/ssec.smk",
+#          configfile="nodes/encodings/ssec/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_sseb:
+#     input:
+#          fasta_in=config["fasta_anno_msa"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["sseb_out"]
+#     params:
+#          snakefile="nodes/encodings/sseb/sseb.smk",
+#          configfile="nodes/encodings/sseb/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_disorder:
+#     input:
+#          fasta_in=config["fasta_anno"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["disorder_out"]
+#     params:
+#          snakefile="nodes/encodings/disorder/disorder.smk",
+#          configfile="nodes/encodings/disorder/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_disorderb:
+#     input:
+#          fasta_in=config["fasta_anno_msa"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["disorderb_out"]
+#     params:
+#          snakefile="nodes/encodings/disorderb/disorderb.smk",
+#          configfile="nodes/encodings/disorderb/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_disorderc:
+#     input:
+#          fasta_in=config["fasta_anno"],
+#          classes_in=config["classes_anno"],
+#          profile=config["profile_dir"]
+#     output:
+#          csv_out=config["disorderc_out"]
+#     params:
+#          snakefile="nodes/encodings/disorderc/disorderc.smk",
+#          configfile="nodes/encodings/disorderc/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_qsar:
+#     input:
+#          fasta_in=config["fasta_anno_pdbs"],
+#          classes_in=config["classes_anno_pdbs"],
+#          pdb_dir=config["pdb_dir"]
+#     output:
+#          csv_out=config["qsar_out"]
+#     params:
+#          snakefile="nodes/encodings/qsar/qsar.smk",
+#          configfile="nodes/encodings/qsar/config.yaml",
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_electrostatic_hull:
+#     input:
+#          fasta_in=config["fasta_anno_pdbs"],
+#          classes_in=config["classes_anno_pdbs"],
+#          pdb_dir=config["pdb_dir"]
+#     output:
+#          csv_out=config["electrostatic_hull_out"]
+#     params:
+#          snakefile="nodes/encodings/electrostatic_hull/electrostatic_hull.smk",
+#          configfile="nodes/encodings/electrostatic_hull/config.yaml"
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_distance_distribution:
+#     input:
+#          fasta_in=config["fasta_anno_pdbs"],
+#          classes_in=config["classes_anno_pdbs"],
+#          pdb_dir=config["pdb_dir"]
+#     output:
+#          csv_out=config["distance_distribution_out"]
+#     params:
+#          snakefile="nodes/encodings/distance_distribution/distance_distribution.smk",
+#          configfile="nodes/encodings/distance_distribution/config.yaml"
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
+#
+# rule encoding_delaunay:
+#     input:
+#          fasta_in=config["fasta_anno_pdbs"],
+#          classes_in=config["classes_anno_pdbs"],
+#          pdb_dir=config["pdb_dir"]
+#     output:
+#          csv_out=config["delaunay_out"]
+#     params:
+#          snakefile="nodes/encodings/delaunay/delaunay.smk",
+#          configfile="nodes/encodings/delaunay/config.yaml"
+#     run:
+#          check_empty(path_to_fasta=input.fasta_in,
+#                      path_to_csv_out=output.csv_out,
+#                      dict_input=dict(input),
+#                      dict_output=dict(output),
+#                      params_snakefile=params.snakefile,
+#                      params_configfile= params.configfile)
