@@ -18,63 +18,63 @@ rule all:
     input:
          config["zscale_out"],
          config["tpc_out"],
-         config["gtpc_out"],
-         config["gdpc_out"],
-         config["gaac_out"],
-         config["dpc_out"],
-         config["dde_out"],
-         config["ctdt_out"],
-         config["ctdd_out"],
-         config["ctdc_out"],
-         config["blosum62_out"],
-         config["binary_out"],
-         config["aac_out"],
-         config["ctriad_out"],
-         config["blomap_out"],
-         config["egaac_out"],
-         config["aaindex_out"],
-         config["fft_out"],
-         config["waac_out"],
-         config["flgc_out"],
-         config["fldpc_out"],
-         config["ngram_a2_out"],
-         config["ngram_a3_out"],
-         config["ngram_e2_out"],
-         config["ngram_e3_out"],
-         config["ngram_s2_out"],
-         config["ngram_s3_out"],
-         config["cgr_out"],
-         config["distance_frequency_out"],
-         config["cksaagp_out"],
-         config["socnumber_out"],
-         config["qsorder_out"],
-         config["nmbroto_out"],
-         config["moran_out"],
-         config["ksctriad_out"],
-         config["geary_out"],
-         config["eaac_out"],
-         config["cksaap"],
-         config["apaac_out"],
-         config["paac_out"],
-         config["psekraac_type16_out"],
-         config["psekraac_type15_out"],
-         config["psekraac_type14_out"],
-         config["psekraac_type13_out"],
-         config["psekraac_type12_out"],
-         config["psekraac_type11_out"],
-         config["psekraac_type10_out"],
-         config["psekraac_type9_out"],
-         config["psekraac_type8_out"],
-         config["psekraac_type7_out"],
-         config["psekraac_type6C_out"],
-         config["psekraac_type6B_out"],
-         config["psekraac_type6A_out"],
-         config["psekraac_type5_out"],
-         config["psekraac_type4_out"],
-         config["psekraac_type3B_out"],
-         config["psekraac_type3A_out"],
-         config["psekraac_type2_out"],
-         config["psekraac_type1_out"]
+         # config["gtpc_out"],
+         # config["gdpc_out"],
+         # config["gaac_out"],
+         # config["dpc_out"],
+         # config["dde_out"],
+         # config["ctdt_out"],
+         # config["ctdd_out"],
+         # config["ctdc_out"],
+         # config["blosum62_out"],
+         # config["binary_out"],
+         # config["aac_out"],
+         # config["ctriad_out"],
+         # config["blomap_out"],
+         # config["egaac_out"],
+         # config["aaindex_out"],
+         # config["fft_out"],
+         # config["waac_out"],
+         # config["flgc_out"],
+         # config["fldpc_out"],
+         # config["ngram_a2_out"],
+         # config["ngram_a3_out"],
+         # config["ngram_e2_out"],
+         # config["ngram_e3_out"],
+         # config["ngram_s2_out"],
+         # config["ngram_s3_out"],
+         # config["cgr_out"],
+         # config["distance_frequency_out"],
+         # config["cksaagp_out"],
+         # config["socnumber_out"],
+         # config["qsorder_out"],
+         # config["nmbroto_out"],
+         # config["moran_out"],
+         # config["ksctriad_out"],
+         # config["geary_out"],
+         # config["eaac_out"],
+         # config["cksaap"],
+         # config["apaac_out"],
+         # config["paac_out"],
+         # config["psekraac_type16_out"],
+         # config["psekraac_type15_out"],
+         # config["psekraac_type14_out"],
+         # config["psekraac_type13_out"],
+         # config["psekraac_type12_out"],
+         # config["psekraac_type11_out"],
+         # config["psekraac_type10_out"],
+         # config["psekraac_type9_out"],
+         # config["psekraac_type8_out"],
+         # config["psekraac_type7_out"],
+         # config["psekraac_type6C_out"],
+         # config["psekraac_type6B_out"],
+         # config["psekraac_type6A_out"],
+         # config["psekraac_type5_out"],
+         # config["psekraac_type4_out"],
+         # config["psekraac_type3B_out"],
+         # config["psekraac_type3A_out"],
+         # config["psekraac_type2_out"],
+         # config["psekraac_type1_out"]
 
 ########################################################################################################################
 ############################################## PARAMETER COMPUTATION ###################################################
@@ -134,796 +134,796 @@ rule encoding_tpc:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
 
-rule encoding_gtpc:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["gtpc_out"]
-    params:
-         snakefile="nodes/encodings/gtpc/Snakefile",
-         configfile="nodes/encodings/gtpc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_gdpc:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["gdpc_out"]
-    params:
-         snakefile="nodes/encodings/gdpc/Snakefile",
-         configfile="nodes/encodings/gdpc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_gaac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["gaac_out"]
-    params:
-         snakefile="nodes/encodings/gaac/Snakefile",
-         configfile="nodes/encodings/gaac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_egaac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["egaac_out"]
-    params:
-         snakefile="nodes/encodings/egaac/Snakefile",
-         configfile="nodes/encodings/egaac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_dpc:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["dpc_out"]
-    params:
-         snakefile="nodes/encodings/dpc/Snakefile",
-         configfile="nodes/encodings/dpc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_dde:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["dde_out"]
-    params:
-         snakefile="nodes/encodings/dde/Snakefile",
-         configfile="nodes/encodings/dde/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ctdt:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["ctdt_out"]
-    params:
-         snakefile="nodes/encodings/ctdt/Snakefile",
-         configfile="nodes/encodings/ctdt/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ctdd:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["ctdd_out"]
-    params:
-         snakefile="nodes/encodings/ctdd/Snakefile",
-         configfile="nodes/encodings/ctdd/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ctdc:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["ctdc_out"]
-    params:
-         snakefile="nodes/encodings/ctdc/Snakefile",
-         configfile="nodes/encodings/ctdc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_blosum62:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["blosum62_out"]
-    params:
-         snakefile="nodes/encodings/blosum62/Snakefile",
-         configfile="nodes/encodings/blosum62/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_binary:
-    input:
-         fasta_in=config["fasta_msa_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["binary_out"]
-    params:
-         snakefile="nodes/encodings/binary/Snakefile",
-         configfile="nodes/encodings/binary/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_aaindex:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["aaindex_out"]
-    params:
-         snakefile="nodes/encodings/aaindex/Snakefile",
-         configfile="nodes/encodings/aaindex/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule encoding_aac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["aac_out"]
-    params:
-         snakefile="nodes/encodings/aac/Snakefile",
-         configfile="nodes/encodings/aac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_fft:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         csv_in=expand("data/{{normalized_dataset}}/csv/aaindex/aaindex_{aaindex}.csv",
-                       aaindex=get_aaindex())
-    output:
-         csv_out=config["fft_out"]
-    params:
-         snakefile="nodes/encodings/fft/Snakefile",
-         configfile="nodes/encodings/fft/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_waac:
-    input:
-         csv_in=config["aac_out"],
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
-    output:
-         csv_out=config["waac_out"]
-    params:
-         snakefile="nodes/encodings/waac/Snakefile",
-         configfile="nodes/encodings/waac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_flgc:
-    input:
-         csv_in=config["aac_out"],
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
-    output:
-         csv_out=config["flgc_out"]
-    params:
-         snakefile="nodes/encodings/flgc/Snakefile",
-         configfile="nodes/encodings/flgc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_fldpc:
-    input:
-         csv_in=config["dpc_out"],
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
-    output:
-         csv_out=config["fldpc_out"]
-    params:
-         snakefile="nodes/encodings/fldpc/Snakefile",
-         configfile="nodes/encodings/fldpc/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_a2:
-    input:
-         csv_in=config["dpc_out"],
-         length_in=f"data/temp/{TOKEN}/ngram_a2.yaml"
-    output:
-         csv_out=config["ngram_a2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_a3:
-    input:
-         csv_in=config["tpc_out"],
-         length_in=f"data/temp/{TOKEN}/ngram_a3.yaml"
-    output:
-         csv_out=config["ngram_a3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_e2:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/ngram_e2.yaml"
-    output:
-         csv_out=config["ngram_e2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_e3:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/ngram_e3.yaml"
-    output:
-         csv_out=config["ngram_e3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_s2:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/ngram_s2.yaml"
-    output:
-         csv_out=config["ngram_s2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ngram_s3:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/ngram_s3.yaml"
-    output:
-         csv_out=config["ngram_s3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
-    params:
-         snakefile="nodes/encodings/ngram/Snakefile",
-         configfile="nodes/encodings/ngram/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_cgr:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["cgr_out"]
-    params:
-         snakefile="nodes/encodings/cgr/Snakefile",
-         configfile="nodes/encodings/cgr/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ctriad:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["ctriad_out"]
-    params:
-         snakefile="nodes/encodings/ctriad/Snakefile",
-         configfile="nodes/encodings/ctriad/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_distance_frequency:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["distance_frequency_out"]
-    params:
-         snakefile="nodes/encodings/distance_frequency/Snakefile",
-         configfile="nodes/encodings/distance_frequency/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_blomap:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["blomap_out"]
-    params:
-         snakefile="nodes/encodings/blomap/Snakefile",
-         configfile="nodes/encodings/blomap/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-########################################################################################################################
-########################################### PARAM_BASED ENCODINGS ######################################################
-########################################################################################################################
-
-rule encoding_cksaagp:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/cksaagp.yaml"
-    output:
-         csv_out=config["cksaagp_out"]
-    params:
-         snakefile="nodes/encodings/cksaagp/Snakefile",
-         configfile="nodes/encodings/cksaagp/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_socnumber:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/socnumber.yaml"
-    output:
-         csv_out=config["socnumber_out"]
-    params:
-         snakefile="nodes/encodings/socnumber/Snakefile",
-         configfile="nodes/encodings/socnumber/config.yaml"
-    resources:
-         cores=4
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_qsorder:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/qsorder.yaml"
-    output:
-         csv_out=config["qsorder_out"]
-    params:
-         snakefile="nodes/encodings/qsorder/Snakefile",
-         configfile="nodes/encodings/qsorder/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_nmbroto:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/nmbroto.yaml"
-    output:
-         csv_out=config["nmbroto_out"]
-    params:
-         snakefile="nodes/encodings/nmbroto/Snakefile",
-         configfile="nodes/encodings/nmbroto/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_moran:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/moran.yaml"
-    output:
-         csv_out=config["moran_out"]
-    params:
-         snakefile="nodes/encodings/moran/Snakefile",
-         configfile="nodes/encodings/moran/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_ksctriad:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/ksctriad.yaml"
-    output:
-         csv_out=config["ksctriad_out"]
-    params:
-         snakefile="nodes/encodings/ksctriad/Snakefile",
-         configfile="nodes/encodings/ksctriad/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_geary:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/geary.yaml"
-    output:
-         csv_out=config["geary_out"]
-    params:
-         snakefile="nodes/encodings/geary/Snakefile",
-         configfile="nodes/encodings/geary/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_eaac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/eaac.yaml"
-    output:
-         csv_out=config["eaac_out"]
-    params:
-         snakefile="nodes/encodings/eaac/Snakefile",
-         configfile="nodes/encodings/eaac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_cksaap:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/cksaap.yaml"
-    output:
-         csv_out=config["cksaap_out"]
-    params:
-         snakefile="nodes/encodings/cksaap/Snakefile",
-         configfile="nodes/encodings/cksaap/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_apaac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/apaac.yaml"
-    output:
-         csv_out=config["apaac_out"]
-    params:
-         snakefile="nodes/encodings/apaac/Snakefile",
-         configfile="nodes/encodings/apaac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_paac:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"],
-         length_in=f"data/temp/{TOKEN}/paac.yaml"
-    output:
-         csv_out=config["paac_out"]
-    params:
-         snakefile="nodes/encodings/paac/Snakefile",
-         configfile="nodes/encodings/paac/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-########################################################################################################################
-############################################## PSEKRAAC ENCODINGS ######################################################
-########################################################################################################################
-
-rule encoding_psekraac_type16:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type16_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type16/Snakefile",
-         configfile="nodes/encodings/psekraac_type16/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type15:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type15_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type15/Snakefile",
-         configfile="nodes/encodings/psekraac_type15/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type14:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type14_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type14/Snakefile",
-         configfile="nodes/encodings/psekraac_type14/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type13:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type13_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type13/Snakefile",
-         configfile="nodes/encodings/psekraac_type13/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type12:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type12_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type12/Snakefile",
-         configfile="nodes/encodings/psekraac_type12/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type11:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type11_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type11/Snakefile",
-         configfile="nodes/encodings/psekraac_type11/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type10:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type10_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type10/Snakefile",
-         configfile="nodes/encodings/psekraac_type10/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type9:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type9_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type9/Snakefile",
-         configfile="nodes/encodings/psekraac_type9/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type8:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type8_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type8/Snakefile",
-         configfile="nodes/encodings/psekraac_type8/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type7:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type7_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type7/Snakefile",
-         configfile="nodes/encodings/psekraac_type7/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type6C:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type6C_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type6C/Snakefile",
-         configfile="nodes/encodings/psekraac_type6C/config.yaml"
-    resources:
-         cores=8
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type6B:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type6B_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type6B/Snakefile",
-         configfile="nodes/encodings/psekraac_type6B/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type6A:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type6A_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type6A/Snakefile",
-         configfile="nodes/encodings/psekraac_type6A/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type5:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type5_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type5/Snakefile",
-         configfile="nodes/encodings/psekraac_type5/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type4:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type4_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type4/Snakefile",
-         configfile="nodes/encodings/psekraac_type4/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type3B:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type3B_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type3B/Snakefile",
-         configfile="nodes/encodings/psekraac_type3B/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type3A:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type3A_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type3A/Snakefile",
-         configfile="nodes/encodings/psekraac_type3A/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type2:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type2_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type2/Snakefile",
-         configfile="nodes/encodings/psekraac_type2/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
-
-rule encoding_psekraac_type1:
-    input:
-         fasta_in=config["fasta_in"],
-         classes_in=config["classes_in"]
-    output:
-         csv_out=config["psekraac_type1_out"]
-    params:
-         snakefile="nodes/encodings/psekraac_type1/Snakefile",
-         configfile="nodes/encodings/psekraac_type1/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile):
-             shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+# rule encoding_gtpc:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["gtpc_out"]
+#     params:
+#          snakefile="nodes/encodings/gtpc/Snakefile",
+#          configfile="nodes/encodings/gtpc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_gdpc:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["gdpc_out"]
+#     params:
+#          snakefile="nodes/encodings/gdpc/Snakefile",
+#          configfile="nodes/encodings/gdpc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_gaac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["gaac_out"]
+#     params:
+#          snakefile="nodes/encodings/gaac/Snakefile",
+#          configfile="nodes/encodings/gaac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_egaac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["egaac_out"]
+#     params:
+#          snakefile="nodes/encodings/egaac/Snakefile",
+#          configfile="nodes/encodings/egaac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_dpc:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["dpc_out"]
+#     params:
+#          snakefile="nodes/encodings/dpc/Snakefile",
+#          configfile="nodes/encodings/dpc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_dde:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["dde_out"]
+#     params:
+#          snakefile="nodes/encodings/dde/Snakefile",
+#          configfile="nodes/encodings/dde/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ctdt:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["ctdt_out"]
+#     params:
+#          snakefile="nodes/encodings/ctdt/Snakefile",
+#          configfile="nodes/encodings/ctdt/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ctdd:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["ctdd_out"]
+#     params:
+#          snakefile="nodes/encodings/ctdd/Snakefile",
+#          configfile="nodes/encodings/ctdd/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ctdc:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["ctdc_out"]
+#     params:
+#          snakefile="nodes/encodings/ctdc/Snakefile",
+#          configfile="nodes/encodings/ctdc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_blosum62:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["blosum62_out"]
+#     params:
+#          snakefile="nodes/encodings/blosum62/Snakefile",
+#          configfile="nodes/encodings/blosum62/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_binary:
+#     input:
+#          fasta_in=config["fasta_msa_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["binary_out"]
+#     params:
+#          snakefile="nodes/encodings/binary/Snakefile",
+#          configfile="nodes/encodings/binary/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_aaindex:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["aaindex_out"]
+#     params:
+#          snakefile="nodes/encodings/aaindex/Snakefile",
+#          configfile="nodes/encodings/aaindex/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# rule encoding_aac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["aac_out"]
+#     params:
+#          snakefile="nodes/encodings/aac/Snakefile",
+#          configfile="nodes/encodings/aac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_fft:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          csv_in=expand("data/{{normalized_dataset}}/csv/aaindex/aaindex_{aaindex}.csv",
+#                        aaindex=get_aaindex())
+#     output:
+#          csv_out=config["fft_out"]
+#     params:
+#          snakefile="nodes/encodings/fft/Snakefile",
+#          configfile="nodes/encodings/fft/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_waac:
+#     input:
+#          csv_in=config["aac_out"],
+#          aaindex_in="apps/iFeature/data/AAindex.tsv"
+#     output:
+#          csv_out=config["waac_out"]
+#     params:
+#          snakefile="nodes/encodings/waac/Snakefile",
+#          configfile="nodes/encodings/waac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_flgc:
+#     input:
+#          csv_in=config["aac_out"],
+#          aaindex_in="apps/iFeature/data/AAindex.tsv"
+#     output:
+#          csv_out=config["flgc_out"]
+#     params:
+#          snakefile="nodes/encodings/flgc/Snakefile",
+#          configfile="nodes/encodings/flgc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_fldpc:
+#     input:
+#          csv_in=config["dpc_out"],
+#          aaindex_in="apps/iFeature/data/AAindex.tsv"
+#     output:
+#          csv_out=config["fldpc_out"]
+#     params:
+#          snakefile="nodes/encodings/fldpc/Snakefile",
+#          configfile="nodes/encodings/fldpc/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_a2:
+#     input:
+#          csv_in=config["dpc_out"],
+#          length_in=f"data/temp/{TOKEN}/ngram_a2.yaml"
+#     output:
+#          csv_out=config["ngram_a2_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_a3:
+#     input:
+#          csv_in=config["tpc_out"],
+#          length_in=f"data/temp/{TOKEN}/ngram_a3.yaml"
+#     output:
+#          csv_out=config["ngram_a3_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_e2:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/ngram_e2.yaml"
+#     output:
+#          csv_out=config["ngram_e2_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_e3:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/ngram_e3.yaml"
+#     output:
+#          csv_out=config["ngram_e3_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_s2:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/ngram_s2.yaml"
+#     output:
+#          csv_out=config["ngram_s2_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ngram_s3:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/ngram_s3.yaml"
+#     output:
+#          csv_out=config["ngram_s3_out"],
+#          lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
+#                         dim=[1, 5, 20, 50, 100, 200, 300]),
+#          sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
+#                        dim=[1, 5, 20, 50, 100, 200, 300])
+#     params:
+#          snakefile="nodes/encodings/ngram/Snakefile",
+#          configfile="nodes/encodings/ngram/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_cgr:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["cgr_out"]
+#     params:
+#          snakefile="nodes/encodings/cgr/Snakefile",
+#          configfile="nodes/encodings/cgr/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ctriad:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["ctriad_out"]
+#     params:
+#          snakefile="nodes/encodings/ctriad/Snakefile",
+#          configfile="nodes/encodings/ctriad/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_distance_frequency:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["distance_frequency_out"]
+#     params:
+#          snakefile="nodes/encodings/distance_frequency/Snakefile",
+#          configfile="nodes/encodings/distance_frequency/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_blomap:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["blomap_out"]
+#     params:
+#          snakefile="nodes/encodings/blomap/Snakefile",
+#          configfile="nodes/encodings/blomap/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# ########################################################################################################################
+# ########################################### PARAM_BASED ENCODINGS ######################################################
+# ########################################################################################################################
+#
+# rule encoding_cksaagp:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/cksaagp.yaml"
+#     output:
+#          csv_out=config["cksaagp_out"]
+#     params:
+#          snakefile="nodes/encodings/cksaagp/Snakefile",
+#          configfile="nodes/encodings/cksaagp/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_socnumber:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/socnumber.yaml"
+#     output:
+#          csv_out=config["socnumber_out"]
+#     params:
+#          snakefile="nodes/encodings/socnumber/Snakefile",
+#          configfile="nodes/encodings/socnumber/config.yaml"
+#     resources:
+#          cores=4
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_qsorder:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/qsorder.yaml"
+#     output:
+#          csv_out=config["qsorder_out"]
+#     params:
+#          snakefile="nodes/encodings/qsorder/Snakefile",
+#          configfile="nodes/encodings/qsorder/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_nmbroto:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/nmbroto.yaml"
+#     output:
+#          csv_out=config["nmbroto_out"]
+#     params:
+#          snakefile="nodes/encodings/nmbroto/Snakefile",
+#          configfile="nodes/encodings/nmbroto/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_moran:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/moran.yaml"
+#     output:
+#          csv_out=config["moran_out"]
+#     params:
+#          snakefile="nodes/encodings/moran/Snakefile",
+#          configfile="nodes/encodings/moran/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_ksctriad:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/ksctriad.yaml"
+#     output:
+#          csv_out=config["ksctriad_out"]
+#     params:
+#          snakefile="nodes/encodings/ksctriad/Snakefile",
+#          configfile="nodes/encodings/ksctriad/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_geary:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/geary.yaml"
+#     output:
+#          csv_out=config["geary_out"]
+#     params:
+#          snakefile="nodes/encodings/geary/Snakefile",
+#          configfile="nodes/encodings/geary/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_eaac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/eaac.yaml"
+#     output:
+#          csv_out=config["eaac_out"]
+#     params:
+#          snakefile="nodes/encodings/eaac/Snakefile",
+#          configfile="nodes/encodings/eaac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_cksaap:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/cksaap.yaml"
+#     output:
+#          csv_out=config["cksaap_out"]
+#     params:
+#          snakefile="nodes/encodings/cksaap/Snakefile",
+#          configfile="nodes/encodings/cksaap/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_apaac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/apaac.yaml"
+#     output:
+#          csv_out=config["apaac_out"]
+#     params:
+#          snakefile="nodes/encodings/apaac/Snakefile",
+#          configfile="nodes/encodings/apaac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_paac:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"],
+#          length_in=f"data/temp/{TOKEN}/paac.yaml"
+#     output:
+#          csv_out=config["paac_out"]
+#     params:
+#          snakefile="nodes/encodings/paac/Snakefile",
+#          configfile="nodes/encodings/paac/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# ########################################################################################################################
+# ############################################## PSEKRAAC ENCODINGS ######################################################
+# ########################################################################################################################
+#
+# rule encoding_psekraac_type16:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type16_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type16/Snakefile",
+#          configfile="nodes/encodings/psekraac_type16/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type15:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type15_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type15/Snakefile",
+#          configfile="nodes/encodings/psekraac_type15/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type14:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type14_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type14/Snakefile",
+#          configfile="nodes/encodings/psekraac_type14/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type13:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type13_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type13/Snakefile",
+#          configfile="nodes/encodings/psekraac_type13/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type12:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type12_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type12/Snakefile",
+#          configfile="nodes/encodings/psekraac_type12/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type11:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type11_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type11/Snakefile",
+#          configfile="nodes/encodings/psekraac_type11/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type10:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type10_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type10/Snakefile",
+#          configfile="nodes/encodings/psekraac_type10/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type9:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type9_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type9/Snakefile",
+#          configfile="nodes/encodings/psekraac_type9/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type8:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type8_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type8/Snakefile",
+#          configfile="nodes/encodings/psekraac_type8/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type7:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type7_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type7/Snakefile",
+#          configfile="nodes/encodings/psekraac_type7/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type6C:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type6C_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type6C/Snakefile",
+#          configfile="nodes/encodings/psekraac_type6C/config.yaml"
+#     resources:
+#          cores=8
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type6B:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type6B_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type6B/Snakefile",
+#          configfile="nodes/encodings/psekraac_type6B/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type6A:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type6A_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type6A/Snakefile",
+#          configfile="nodes/encodings/psekraac_type6A/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type5:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type5_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type5/Snakefile",
+#          configfile="nodes/encodings/psekraac_type5/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type4:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type4_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type4/Snakefile",
+#          configfile="nodes/encodings/psekraac_type4/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type3B:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type3B_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type3B/Snakefile",
+#          configfile="nodes/encodings/psekraac_type3B/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type3A:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type3A_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type3A/Snakefile",
+#          configfile="nodes/encodings/psekraac_type3A/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type2:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type2_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type2/Snakefile",
+#          configfile="nodes/encodings/psekraac_type2/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
+#
+# rule encoding_psekraac_type1:
+#     input:
+#          fasta_in=config["fasta_in"],
+#          classes_in=config["classes_in"]
+#     output:
+#          csv_out=config["psekraac_type1_out"]
+#     params:
+#          snakefile="nodes/encodings/psekraac_type1/Snakefile",
+#          configfile="nodes/encodings/psekraac_type1/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile):
+#              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
