@@ -1,3 +1,4 @@
+from snakemake import shell
 from snakemake.utils import Namedlist
 import yaml
 import secrets
@@ -40,7 +41,7 @@ class WorkflowExecuter:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.remove_configfile()
-        self.remove_temp_dir()
+        # self.remove_temp_dir()
 
     def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
         self.snakemake = f"snakemake --nolock --quiet -d $PWD --cores {cores}"
