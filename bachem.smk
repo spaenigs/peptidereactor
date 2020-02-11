@@ -99,7 +99,6 @@ rule util_multiple_sequence_alignment:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-
 ########################################################################################################################
 ############################################ SEQUENCE-BASED ENCODINGS #################################################
 ########################################################################################################################
@@ -318,7 +317,7 @@ rule meta_workflow_structure_based_encodings:
          pdb_dir="data/{normalized_dataset}/pdb/"
     output:
          pssm_out="data/{normalized_dataset}/csv/pssm.csv",
-         asa_out="data/{normalized_dataset}/csv/asa.csv",
+         asa_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/asa.csv",
          ta_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/ta.csv",
          ssec_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/ssec.csv",
          sseb_out="data/{normalized_dataset,.*?(1[2-9]|2\d)}/csv/sseb.csv",
