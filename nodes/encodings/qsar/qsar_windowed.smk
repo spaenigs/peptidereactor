@@ -36,6 +36,8 @@ rule find_energy_minimized_conformation:
          PDB_DIR + "{seq_name}.pdb"
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb")
+    threads:
+         int(np.maximum(os.cpu_count() / 8, os.cpu_count()))
     run:
          pdb = PDBFile(str(input))
          forcefield = ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
