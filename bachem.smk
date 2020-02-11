@@ -19,8 +19,8 @@ rule all:
     input:
          f"data/bachem/plots/filtered_datasets.png",
          f"data/protease/plots/filtered_datasets.png",
-         expand("data/bachem/machine_learning/top_{k}_encodings.csv", k=range(3, 12)),
-         expand("data/protease/machine_learning/top_{k}_encodings.csv", k=range(3, 12))
+         # expand("data/bachem/machine_learning/top_{k}_encodings.csv", k=range(3, 12)),
+         # expand("data/protease/machine_learning/top_{k}_encodings.csv", k=range(3, 12))
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -344,10 +344,10 @@ rule meta_workflow_structure_based_profile_windowed:
          fasta_anno_out="data/{normalized_dataset,.*?[a-z]}/annotated_seqs.fasta",
          classes_anno_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_classes.txt",
          fasta_anno_msa_out="data/{normalized_dataset,.*?[a-z]}/annotated_seqs_msa.fasta",
-         profile_dir="data/{normalized_dataset,.*?[a-z]}/profile/",
+         profile_dir=directory("data/{normalized_dataset,.*?[a-z]}/profile/"),
          fasta_anno_pdbs_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_seqs.fasta",
          classes_anno_pdbs_idx_out="data/{normalized_dataset,.*?[a-z]}/annotated_pdbs_classes.txt",
-         pdb_out="data/{normalized_dataset,.*?[a-z]}/pdb/"
+         pdb_out=directory("data/{normalized_dataset,.*?[a-z]}/pdb/")
     params:
          snakefile="nodes/meta_workflows/structure_based_profile/structure_based_profile_windowed.smk",
          configfile="nodes/utils/multiple_sequence_alignment/config.yaml"
