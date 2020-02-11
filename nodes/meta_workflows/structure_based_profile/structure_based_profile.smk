@@ -1,6 +1,20 @@
+import os, sys
+
+sys.path.append(os.getcwd())
+
 from proteinreactor.workflow_executer import WorkflowExecuter
 
 CORES = config["cores"]
+
+rule all:
+    input:
+         config["fasta_anno_out"],
+         config["classes_anno"],
+         config["fasta_anno_msa_out"],
+         config["profile_dir"],
+         config["fasta_anno_pdbs_out"],
+         config["classes_anno_pdbs_out"],
+         config["pdb_out"]
 
 rule util_secondary_structure_profile:
     input:

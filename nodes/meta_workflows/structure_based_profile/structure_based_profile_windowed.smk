@@ -1,7 +1,21 @@
+import os, sys
+
+sys.path.append(os.getcwd())
+
 from proteinreactor.workflow_executer import WorkflowExecuter
 
 TOKEN = config["token"]
 CORES = config["cores"]
+
+rule all:
+    input:
+         config["fasta_anno_out"],
+         config["classes_anno_idx_out"],
+         config["fasta_anno_msa_out"],
+         config["profile_dir"],
+         config["fasta_anno_pdbs_out"],
+         config["classes_anno_pdbs_idx_out"],
+         config["pdb_out"]
 
 rule utils_validate_sequence_names:
     input:
