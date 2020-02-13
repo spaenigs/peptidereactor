@@ -5,7 +5,9 @@ from glob import glob
 import pandas as pd
 import numpy as np
 import os
-import re
+from scipy import stats
+from itertools import combinations
+from sklearn.metrics import matthews_corrcoef
 
 TOKEN = config["token"]
 
@@ -13,7 +15,8 @@ ENCODED_CSVS = glob(config["train_dir_in"] + "*.csv")
 
 rule all:
     input:
-         config["csv_out"]
+         config["top_encodings_out"],
+         config["phi_correlation_out"]
 
 rule split_datasets:
     input:
@@ -44,37 +47,44 @@ rule repeated_k_fold_cv:
              y_pred = brf.predict(X_test)
              f1_scores += [f1_score(y_test, y_pred)]
 
-         dataset, encoding = wildcards.dataset_and_encoding.split("-")
+         dataset_encoding = wildcards.dataset_and_encoding
 
-         res = {encoding: [dataset] + f1_scores + [np.mean(f1_scores)]}
+         pvalue = stats.ttest_1samp(f1_scores, 0.5).pvalue
+         res = {dataset_encoding: f1_scores + [pvalue] + [np.mean(f1_scores)]}
          df_res = pd.DataFrame(res).transpose()
          df_res.to_csv(str(output))
 
-rule collect:
+rule collect_and_remove_insignificant:
     input:
          expand(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp",
                 dataset_and_encoding=[os.path.basename(path).replace(".csv", "")
                                       for path in ENCODED_CSVS])
     output:
-         f"data/temp/{TOKEN}/top_encodings.csv"
+         temp(f"data/temp/{TOKEN}/top_encodings.csv")
     run:
          df_res = pd.DataFrame()
-
          for path in list(input):
-             df_res = pd.concat([df_res, pd.read_csv(path, index_col=0)])
+             df_tmp = pd.read_csv(path, index_col=0)
+             if df_tmp.iloc[0, -2] < 0.05 and df_tmp.iloc[0, -1] >= 0.5:
+                 df_res = pd.concat([df_res, df_tmp])
 
          colnames = list(df_res.columns)
-         colnames[0], colnames[-1] = "dataset", "mean"
+         colnames[-2], colnames[-1] = "pvalue", "mean"
          df_res.columns = colnames
          df_res.sort_values(by="mean", ascending=False, inplace=True)
-         df_res.to_csv(str(output))
+
+         # take top 20% of best encodings
+         # to_index = int(0.2*df_res.shape[0])
+         to_index = int(0.2*df_res.shape[0])
+         df_res.iloc[:to_index, :].to_csv(str(output))
 
 rule validate:
     input:
          f"data/temp/{TOKEN}/top_encodings.csv",
          config["val_dir_in"]
     output:
-         f"data/temp/{TOKEN}/top_{{k}}_encodings.csv"
+         config["top_encodings_out"],
+         temp(f"data/temp/{TOKEN}/top_encodings_diversity.csv")
     run:
          def get_train_val(dataset, encoding):
              csv_path = [csv_path for csv_path in ENCODED_CSVS
@@ -88,32 +98,69 @@ rule validate:
          df = pd.read_csv(str(input[0]), index_col=0)
 
          df_res = pd.DataFrame()
-         for encoding, series in df.iloc[:int(wildcards.k), :].iterrows():
-             df_train, df_val = get_train_val(series["dataset"], encoding)
+         df_diversity = pd.DataFrame()
+         for dataset_and_encoding, series in df.iterrows():
+
+             dataset, encoding = dataset_and_encoding.split("-")
+             df_train, df_val = get_train_val(dataset, encoding)
+
              # train
              X_train, y_train = df_train.iloc[:, :-1].values, df_train["y"]
              brf = BalancedRandomForestClassifier(n_estimators=100)
              brf.fit(X_train, y_train)
+
              # test
              X_val, y_val = df_val.iloc[:, :-1].values, df_val["y"]
              y_pred = brf.predict(X_val)
-             df_tmp = pd.DataFrame({encoding: [series["dataset"]] + [f1_score(y_val, y_pred)]})\
+
+             # store y_pred to compute diversity:
+             df_div_tmp = pd.DataFrame({dataset_and_encoding: y_pred})\
+                 .transpose()
+             df_diversity = pd.concat([df_diversity, df_div_tmp])
+
+             df_tmp = pd.DataFrame({dataset_and_encoding: [f1_score(y_val, y_pred)]})\
                  .transpose()
              df_res = pd.concat([df_res, df_tmp])
 
-         df_res.to_csv(str(output))
+         # take top 20% of best (validated) encodings
+         # to_index = int(0.2*df_res.shape[0])
+         to_index = df_res.shape[0]
+         df_res = df_res.iloc[:to_index, :]
+         df_diversity = df_diversity.loc[df_res.index, :]
 
-rule collect_top_k_encodings:
+         df_res.to_csv(str(output[0]))
+         df_diversity.to_csv(str(output[1]))
+
+## now we have approx. 40 encodings left (when we start with 1000)
+
+rule phi_correlation:
     input:
-         expand(f"data/temp/{TOKEN}/top_{{k}}_encodings.csv",
-                k=[int(re.match(".*?top_(\d+).*", csv_path).group(1))
-                   for csv_path in config["csv_out"]])
+         f"data/temp/{TOKEN}/top_encodings_diversity.csv"
     output:
-         config["csv_out"]
+         config["phi_correlation_out"]
     run:
-         target_dir = \
-             os.path.dirname(str(output)) \
-                 if type(config["csv_out"]) == str \
-                 else os.path.dirname(list(output)[0])
-         for p in list(input):
-            shell(f"cp {p} {target_dir}/{os.path.basename(p)}")
+         df = pd.read_csv(str(input), index_col=0)
+
+         idx = df.index
+
+         res = {}
+         for i in idx:
+             tmp = {}
+             for j in idx:
+                tmp[j] = 1.0 if i == j else np.nan
+             res[i] = tmp
+
+         corr_mat = pd.DataFrame(res)
+         for i,j in combinations(idx, 2):
+             corr_mat.loc[i, j] = matthews_corrcoef(df.loc[i, :], df.loc[j, :])
+             corr_mat.loc[j, i] = corr_mat.loc[i, j]
+
+         # try different k's (k = 3)
+         df_res = pd.DataFrame()
+         for c in combinations(corr_mat.index, 3):
+             tmp = [np.abs(corr_mat.loc[i, j]) for i,j in combinations(c, 2)]
+             mean_r = np.mean(tmp)
+             df_tmp = pd.DataFrame(list(c) + tmp + [mean_r] + [False if all([i != 0 for i in tmp]) else True])
+             df_res = pd.concat([df_res, df_tmp.transpose()])
+         df_res.columns = ["e1", "e2", "e3", "phi_1", "phi_2", "phi_3", "mean_phi", "phi_zero?"]
+         df_res.index = range(df_res.shape[0])
