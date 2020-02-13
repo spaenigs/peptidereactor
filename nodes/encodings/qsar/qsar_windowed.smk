@@ -31,33 +31,34 @@ rule split_input_data:
          jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]),
                  filename=str(output))
 
-rule find_energy_minimized_conformation:
-    input:
-         PDB_DIR + "{seq_name}.pdb"
-    output:
-         temp(f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb")
-    threads:
-         int(np.maximum(os.cpu_count() / 8, os.cpu_count()))
-    run:
-         pdb = PDBFile(str(input))
-         forcefield = ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
-         modeller = Modeller(pdb.topology, pdb.positions)
-         modeller.addHydrogens(forcefield)
-         system = forcefield.createSystem(modeller.topology,
-                                          nonbondedMethod=NoCutoff,
-                                          nonbondedCutoff=1*nanometer,
-                                          constraints=HBonds)
-         integrator = LangevinIntegrator(300*kelvin, 1/picometer, 0.002*picometer)
-         simulation = Simulation(modeller.topology, system, integrator)
-         simulation.context.setPositions(modeller.positions)
-         simulation.minimizeEnergy()
-         simulation.step(10000)
-         positions = simulation.context.getState(getPositions=True).getPositions()
-         PDBFile.writeFile(simulation.topology, positions, open(str(output), 'w'))
+# rule find_energy_minimized_conformation:
+#     input:
+#          PDB_DIR + "{seq_name}.pdb"
+#     output:
+#          temp(f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb")
+#     threads:
+#          int(np.maximum(os.cpu_count() / 8, os.cpu_count()))
+#     run:
+#          pdb = PDBFile(str(input))
+#          forcefield = ForceField('amber14-all.xml', 'amber14/tip3pfb.xml')
+#          modeller = Modeller(pdb.topology, pdb.positions)
+#          modeller.addHydrogens(forcefield)
+#          system = forcefield.createSystem(modeller.topology,
+#                                           nonbondedMethod=NoCutoff,
+#                                           nonbondedCutoff=1*nanometer,
+#                                           constraints=HBonds)
+#          integrator = LangevinIntegrator(300*kelvin, 1/picometer, 0.002*picometer)
+#          simulation = Simulation(modeller.topology, system, integrator)
+#          simulation.context.setPositions(modeller.positions)
+#          simulation.minimizeEnergy()
+#          simulation.step(10000)
+#          positions = simulation.context.getState(getPositions=True).getPositions()
+#          PDBFile.writeFile(simulation.topology, positions, open(str(output), 'w'))
 
 rule compute_molecular_descriptors:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb",
+         PDB_DIR + "{seq_name}.pdb",
+         # f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb",
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
          config["classes_in"],
     output:
