@@ -1,9 +1,10 @@
 from modlamp.core import read_fasta
-from more_itertools import windowed, tail
+from more_itertools import windowed, split_before
 import pandas as pd
 import numpy as np
 import yaml
 import os
+from scipy import interpolate
 
 TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
@@ -30,7 +31,7 @@ rule solvent_accessible_surface:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.pqr"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.sas.dx"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.sas.dx")
     threads:
          1000
     shell:
@@ -64,7 +65,7 @@ rule electrostatic_pot_at_electrostatic_hull_grid:
          f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv",
          f"data/temp/{TOKEN}/{{seq_name}}.esp.dx"
     output:
-         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv")
+         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv"
     run:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
             import csv2points, readDX, dx2csv
@@ -76,85 +77,74 @@ rule electrostatic_pot_at_electrostatic_hull_grid:
 
          dx2csv(dx_list, filter=filter, ids=ids, filename=str(output), sep=",")
 
-rule get_window_size:
-    input:
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv",
-         config["classes_idx_in"],
-         config["classes_in"],
-         config["fasta_in"],
-    output:
-         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_window_size.yaml")
-    run:
-         points = pd.read_csv(str(input[0]))
-
-         with open(str(input[1])) as f1, \
-                open(str(input[2])) as f2:
-             classes_idx = \
-                list(map(lambda l: int(l.rstrip()), f1.readlines()))
-             windowed_classes = \
-                yaml.safe_load(f2)
-
-         seqs, names = read_fasta(str(input[3]))
-
-         seq, name, class_idx = \
-             [(s, n, cidx) for s, n, cidx in zip(seqs, names, classes_idx)
-              if n == wildcards.seq_name][0]
-
-         values = list(windowed_classes[class_idx].values())[0]
-
-         peptide_len = len(seq)
-         window_len = values[0]["range"][-1]
-         total_len, required_window_len = len(points["x"]), peptide_len - window_len
-         res = []
-         for ws in [ws for ws in range(1, total_len) if len(str(ws)) < len(str(total_len))]:
-         	 for s in [s for s in range(1, total_len) if s < ws]:
-                  windows = enumerate(windowed(range(total_len), ws, step=s), start=1)
-                  size, last_window = list(tail(1, windows))[0]
-                  if last_window[-1] is not None and size == required_window_len:
-                       res += [(ws, s)]
-
-         with open(str(output), mode="w") as f:
-             tmp = {"name": name, "seq": seq, "values": values}
-             index = -2
-             if len(res) == 0:
-                 raise ValueError(f"No window size found for {wildcards.seq_name}!")
-             elif len(res) == 1:
-                 index = 0
-             elif len(res) == 2:
-                 index = 1
-             tmp["window_size"] = res[index]
-             yaml.safe_dump(tmp, f)
-
-rule get_windows:
+rule scale_sliding_windows_to_electrostatic_hull:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv",
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_window_size.yaml",
+         config["classes_idx_in"],
+         config["classes_in"],
+         config["fasta_in"]
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_windowed.csv")
     run:
-         # reformat '12.125.10' to (12, 125, 10)
-         df = pd.read_csv(str(input[0]), index_col=0)
-         df.columns = [tuple([int(i) for i in cn.split(".")]) for cn in df.columns]
+         def get_ws_s(peptide_len, ws, s, eh_points_len):
+             factor = eh_points_len / peptide_len
+             if factor < 1:
+                 zeros = \
+                     split_before(
+                         np.format_float_positional(factor).replace(".", ""),
+                         lambda digit: int(digit) != 0)
+                 factor *= eval(f"10e{sum([1 for digit in list(zeros)[0] if digit == '0']) - 1}")
+             factor = int(np.round(factor))
+             return peptide_len * factor, ws*factor, s*factor
 
-         with open(str(input[1])) as f:
-             tmp = yaml.safe_load(f)
+         def interpolate_eh_points(eh_points_len_old, eh_points, eh_points_len_new):
+             x, y = np.arange(0, eh_points_len_old), eh_points
+             f = interpolate.interp1d(x, y, kind="linear")
+             return f(np.linspace(0, eh_points_len_old-1, eh_points_len_new))
 
-         seq, name, values = tmp["seq"], tmp["name"], tmp["values"]
+         with open(str(input[1])) as f1, \
+                open(str(input[2])) as f2:
 
-         points_x, window_size, step = \
-             [x for x, _, _ in df.columns], \
-             tmp["window_size"][0] , \
-             tmp["window_size"][1]
+             classes_idx, windowed_classes = \
+                list(map(lambda l: int(l.rstrip()), f1.readlines())), \
+                yaml.safe_load(f2)
 
-         df_res, classes_res = pd.DataFrame(), []
-         for i, (w, v) in enumerate(zip(windowed(range(len(points_x)), n=window_size, step=step), values), start=1):
-             start, end = w[0], w[-1]
-             classes_res += [v["class"]]
-             # filter based on window range of eh window
-             encoded_seq_window = df.iloc[0, w[0]:w[-1]]
-             df_tmp = pd.DataFrame({f"{name}_part_{str(i)}": encoded_seq_window.values})\
-                 .transpose()
-             df_res = pd.concat([df_res, df_tmp])
+             seqs, names = read_fasta(str(input[3]))
+             seq, name, class_idx = \
+                 [(s, n, cidx) for s, n, cidx in zip(seqs, names, classes_idx)
+                  if n == wildcards.seq_name][0]
+
+             values = list(windowed_classes[class_idx].values())[0]
+
+         eh_points = pd.read_csv(str(input[0]), index_col=0)
+         ws, s = 8, 1
+         peptide_len = len(seq)
+         eh_points_len = eh_points.shape[1]
+
+         eh_points_len_new, ws_new, s_new = \
+             get_ws_s(peptide_len, ws, s, eh_points_len)
+         eh_points_interp = \
+             interpolate_eh_points(eh_points_len, eh_points.iloc[0, :].values, eh_points_len_new)
+
+         windows_peptide, windows_peptide_indices = \
+             windowed(seq, ws, step=s), \
+             windowed(range(peptide_len), ws, step=s)
+         windows_eh_points, windows_eh_points_indices = \
+             windowed(eh_points_interp, ws_new, step=s_new), \
+             windowed(range(eh_points_len_new), ws_new, step=s_new)
+
+         df_res, classes_res, cnt = pd.DataFrame(), [], 1
+         for wpi, wp, wehi, weh in \
+                 zip(windows_peptide_indices,
+                     windows_peptide,
+                     windows_eh_points_indices,
+                     windows_eh_points):
+             for ([start, stop], class_) in [(i["range"], i["class"]) for i in values]:
+                 if [wpi[0], wpi[-1]] == [start, stop-1]:
+                     classes_res += [class_]
+                     df_tmp = pd.DataFrame({f"{name}_part_{str(cnt)}": weh})
+                     df_res = pd.concat([df_res, df_tmp.transpose()])
+                     cnt += 1
 
          df_res["y"] = classes_res
          df_res.to_csv(str(output))
