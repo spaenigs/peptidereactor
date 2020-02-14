@@ -162,5 +162,7 @@ rule phi_correlation:
              mean_r = np.mean(tmp)
              df_tmp = pd.DataFrame(list(c) + tmp + [mean_r] + [False if all([i != 0 for i in tmp]) else True])
              df_res = pd.concat([df_res, df_tmp.transpose()])
+
          df_res.columns = ["e1", "e2", "e3", "phi_1", "phi_2", "phi_3", "mean_phi", "phi_zero?"]
          df_res.index = range(df_res.shape[0])
+         df_res.to_csv(str(output))
