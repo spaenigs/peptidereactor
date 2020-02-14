@@ -3,220 +3,189 @@ import numpy as np
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import RepeatedStratifiedKFold
+from glob import glob
+
+# TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
 
 TOKEN = config["token"]
 
-rule random_k_encodings:
-    input:
-         config["top_encodings_in"]
-    output:
-         f"data/temp/{TOKEN}/random_encodings_{{k}}.txt"
-    run:
-         df = pd.read_csv(str(input), index_col=0)
+def get_csv_path_from_name(name, *path_to_dirs):
+    for path in path_to_dirs:
+        yield [csv_path for csv_path in glob(path + "*.csv")
+               if name in csv_path][0]
 
-         with open(str(output), mode="a") as f:
-                for i in range(5):
-                    indices = np.random.randint(40, size=int(wildcards.k))
-                    names = df.iloc[indices, :].index
-                    f.write((f"{','.join(names)}\n"))
-                    f.flush()
+def combine_csvs_to_df(path_to_csvs):
+    df_res = pd.DataFrame()
+    for csv_path in path_to_csvs:
+        df_tmp = pd.read_csv(csv_path, index_col=0)
+        df_res = pd.concat([df_res, df_tmp])
+    return df_res
+
+def init_classifiers():
+     brf_1 = BalancedRandomForestClassifier(n_estimators=100)
+     brf_2 = BalancedRandomForestClassifier(n_estimators=100)
+     brf_3 = BalancedRandomForestClassifier(n_estimators=100)
+     return brf_1, brf_2, brf_3
+
+rule all:
+    input:
+         config["ensemble_validation_results_out"]
+
+rule split_encodings_for_ensemble:
+  input:
+       config["phi_correlation_in"]
+  output:
+       f"data/temp/{TOKEN}/{{encoding_combination}}.csv"
+  run:
+       df = pd.read_csv(config["phi_correlation_in"], index_col=0)
+       df_res = pd.DataFrame()
+       n1, n2, n3 = wildcards.encoding_combination.split("__")
+       for index, series in df.iterrows():
+           if [n1, n2, n3] == list(series[0:3].values):
+               df_res = pd.concat([df_res, df.loc[index:index, :]])
+               break
+       df_res.to_csv(str(output))
 
 rule ensemble_cross_validation:
     input:
-         f"data/temp/{TOKEN}/random_encodings_3.txt",
-         train_dirs=config["train_dirs_in"],
+         f"data/temp/{TOKEN}/{{encoding_combination}}.csv",
+         train_dirs=config["train_dirs_in"]
     output:
-         f"data/temp/{TOKEN}/ensemble_3_results.csv"
+         f"data/temp/{TOKEN}/{{encoding_combination}}.tmp"
     run:
-         def csv_path(dataset_encoding, csv_list):
-            return [csv_path for csv_path in csv_list
-                    if dataset_encoding in csv_path][0]
-
-         runs = {}
-         with open(str(input)) as f:
-             for i, line in enumerate(f.readlines(), start=1):
-                 runs[i] = line.rstrip().split(",")
-
-         def get_train_data_for_encoding(name):
-             df_train_1, df_train_2 = \
-                pd.read_csv(csv_path(name, input.train_dirs[0]), index_col=0), \
-                pd.read_csv(csv_path(name, input.train_dirs[1]), index_col=0)
-             return pd.concat([df_train_1, df_train_2])
-
-         def train(df):
+         def split(df):
              X, y = df.iloc[:,:-1].values, df["y"]
              rskf = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)
              for train_index, test_index in  rskf.split(X, y):
                  yield X[train_index], y[train_index], X[test_index], y[test_index]
 
-         df_res = pd.DataFrame()
-         for i in runs.keys():
-             df_encoding_1_train = get_train_data_for_encoding(runs[i][0])
-             df_encoding_2_train = get_train_data_for_encoding(runs[i][1])
-             df_encoding_3_train = get_train_data_for_encoding(runs[i][2])
+         df_phi, df_res = \
+             pd.read_csv(str(input[0]), index_col=0), pd.DataFrame()
 
-             f1_scores = []
-             for (X_train_1, y_train_1, X_test_1, y_test_1), \
-                 (X_train_2, y_train_2, X_test_2, y_test_2), \
-                 (X_train_3, y_train_3, X_test_3, y_test_3) in \
-                     zip(train(df_encoding_1_train),
-                         train(df_encoding_2_train),
-                         train(df_encoding_3_train)):
+         name_1, name_2, name_3 = \
+             df_phi.iloc[0, 0], df_phi.iloc[0, 1], df_phi.iloc[0, 2]
 
-                 # train model 1
-                 brf_encoding_1 = BalancedRandomForestClassifier(n_estimators=100)
-                 brf_encoding_1.fit(X_train_1, y_train_1)
-                 y_pred_encoding_1 = brf_encoding_1.predict(X_test_1)
-                 # train model 2
-                 brf_encoding_2 = BalancedRandomForestClassifier(n_estimators=100)
-                 brf_encoding_2.fit(X_train_2, y_train_2)
-                 y_pred_encoding_2 = brf_encoding_2.predict(X_test_2)
-                 # train model 3
-                 brf_encoding_3 = BalancedRandomForestClassifier(n_estimators=100)
-                 brf_encoding_3.fit(X_train_3, y_train_3)
-                 y_pred_encoding_3 = brf_encoding_3.predict(X_test_3)
+         df_encoding_1_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_1, input.train_dirs[0], input.train_dirs[1]))
+         df_encoding_2_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_2, input.train_dirs[0], input.train_dirs[1]))
+         df_encoding_3_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1]))
 
-                 # ensemble
-                 y_pred = [1 if sum(predictions) >= 2 else 0
-                           for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
+         f1_scores = []
+         for (X_train_1, y_train_1, X_test_1, y_test_1), \
+             (X_train_2, y_train_2, X_test_2, y_test_2), \
+             (X_train_3, y_train_3, X_test_3, y_test_3) in \
+                 zip(split(df_encoding_1_train),
+                     split(df_encoding_2_train),
+                     split(df_encoding_3_train)):
 
-                 f1_scores += [f1_score(y_test_1, y_pred)]
+             brf_encoding_1, brf_encoding_2, brf_encoding_3 = init_classifiers()
 
-             df_tmp = pd.DataFrame({i: [runs[i][0], runs[i][1], runs[i][2]] + [np.mean(f1_scores)]})
-             df_res = pd.concat([df_res, df_tmp])
-
-rule ensemble_validation:
-    input:
-         f"data/temp/{TOKEN}/ensemble_3_results.csv",
-         config["val_dir_in"],
-         train_dirs=config["train_dirs_in"]
-    output:
-         f"data/temp/{TOKEN}/ensemble_3.jl"
-    run:
-         df = pd.read_csv(str(input[0]), index_col=0)
-
-         def csv_path(dataset_encoding, csv_list):
-            return [csv_path for csv_path in csv_list
-                    if dataset_encoding in csv_path][0]
-
-         def get_train_data_for_encoding(name):
-             df_train_1, df_train_2 = \
-                pd.read_csv(csv_path(name, input.train_dirs[0]), index_col=0), \
-                pd.read_csv(csv_path(name, input.train_dirs[1]), index_col=0)
-             return pd.concat([df_train_1, df_train_2])
-
-         def get_val_data(name):
-             df_train = \
-                 get_train_data_for_encoding(name)
-             X_train, y_train = \
-                 df_train.iloc[:,:-1].values, \
-                 df_train["y"]
-             df_val = \
-                 pd.read_csv(csv_path(name, str(input[1])), index_col=0)
-             X_val, y_val = \
-                 df_val.iloc[:,:-1].values, \
-                 df_val["y"]
-             return X_train, y_train, X_val, y_val
-
-         df_res = pd.DataFrame()
-         for name, series in df.iterrows():
-
-             name1, name2, name3 = series[0:2]
-
-             X_encoding_1_train, y_encoding_1_train, X_encoding_1_val, y_encoding_1_val = \
-                 get_val_data(name1)
-             X_encoding_2_train, y_encoding_2_train, X_encoding_2_val, y_encoding_2_val = \
-                 get_val_data(name2)
-             X_encoding_3_train, y_encoding_3_train, X_encoding_3_val, y_encoding_3_val = \
-                 get_val_data(name3)
-
-             brf_encoding_1 = BalancedRandomForestClassifier(n_estimators=100)
-             brf_encoding_1.fit(X_encoding_1_train, y_encoding_1_train)
-             y_pred_encoding_1 = brf_encoding_1.predict(X_encoding_1_val)
+             # train model 1
+             brf_encoding_1.fit(X_train_1, y_train_1)
+             y_pred_encoding_1 = brf_encoding_1.predict(X_test_1)
              # train model 2
-             brf_encoding_2 = BalancedRandomForestClassifier(n_estimators=100)
-             brf_encoding_2.fit(X_encoding_2_train, y_encoding_2_train)
-             y_pred_encoding_2 = brf_encoding_2.predict(X_encoding_2_val)
+             brf_encoding_2.fit(X_train_2, y_train_2)
+             y_pred_encoding_2 = brf_encoding_2.predict(X_test_2)
              # train model 3
-             brf_encoding_3 = BalancedRandomForestClassifier(n_estimators=100)
-             brf_encoding_3.fit(X_encoding_3_train, y_encoding_3_train)
-             y_pred_encoding_3 = brf_encoding_3.predict(X_encoding_3_val)
+             brf_encoding_3.fit(X_train_3, y_train_3)
+             y_pred_encoding_3 = brf_encoding_3.predict(X_test_3)
 
-             # ensemble
+             # ensemble prediction
              y_pred = [1 if sum(predictions) >= 2 else 0
                        for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
 
+             f1_scores += [f1_score(y_test_1, y_pred)]
 
+         df_res = pd.DataFrame({np.random.randint(100000): [name_1, name_2, name_3, np.mean(f1_scores)]})
+         df_res.transpose().to_csv(str(output))
 
-             f1_score(y_encoding_1_val, y_pred)
+def get_encoding_combinations():
+    df = pd.read_csv(config["phi_correlation_in"], index_col=0)\
+        .sort_values(by="mean_phi", ascending=False)
+    for index, series in df.iterrows():
+        name_1, name_2, name_3 = series["e1"], series["e2"], series["e3"]
+        yield f"{name_1}__{name_2}__{name_3}"
 
-
-
-
-rule collect_results:
+rule collect_encodings_for_ensemble:
     input:
-         expand(f"data/temp/{TOKEN}/ensemble_{{k}}_results.csv", k=range(3,15,2))
+         expand(f"data/temp/{TOKEN}/{{encoding_combination}}.tmp",
+                encoding_combination=get_encoding_combinations())
     output:
-         config["results_out"]
+         f"data/temp/{TOKEN}/ensemble_results.csv"
     run:
-         pass
+         df_res = pd.DataFrame()
+         for csv_path in list(input):
+             df_tmp = pd.read_csv(csv_path, index_col=0)
+             df_res = pd.concat([df_res, df_tmp])
+         df_res.to_csv(str(output))
 
-rule collect_ensembles:
+rule ensemble_validation:
     input:
-         expand(f"data/temp/{TOKEN}/ensemble_{{k}}.csv", k=range(3,15,2))
+         f"data/temp/{TOKEN}/ensemble_results.csv",
+         config["val_dir_in"],
+         train_dirs=config["train_dirs_in"]
     output:
-         config["results_out"]
+         f"data/temp/{TOKEN}/validated_ensembles.csv"
+         # config["ensemble_validation_results_out"]
     run:
-         pass
+         df = pd.read_csv(str(input[0]), index_col=0)
 
+         df_best_ensembles = pd.DataFrame()
+         for index, series in df.iterrows():
 
+             name_1, name_2, name_3 = series[0:3]
 
-rule split_encoded_datasets:
-    input:
-         train_dirs=config["train_dirs_in"],
-         val_dir=config["val_dir_in"],
-         test_dir=config["test_dir_in"]
-    output:
-         f"data/temp/{TOKEN}/{{dataset_encoding}}_train.csv",
-         f"data/temp/{TOKEN}/{{dataset_encoding}}_val.csv",
-         f"data/temp/{TOKEN}/{{dataset_encoding}}_test.csv",
-    run:
-         def get_data(dataset_encoding, csv_list):
-            return [csv_path for csv_path in csv_list
-                    if dataset_encoding in csv_path][0]
+             df_encoding_1_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_1, input.train_dirs[0], input.train_dirs[1]))
+             df_encoding_2_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_2, input.train_dirs[0], input.train_dirs[1]))
+             df_encoding_3_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1]))
 
-         csv_path_train_1, csv_path_train_2 = \
-             get_data(wildcards.dataset_encoding, input.train_dirs[0]), \
-             get_data(wildcards.dataset_encoding, input.train_dirs[1])
+             df_encoding_1_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_1, str(input[1])))
+             df_encoding_2_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_2, str(input[1])))
+             df_encoding_3_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_3, str(input[1])))
 
-         df_train_1, df_train_2 = \
-             pd.read_csv(csv_path_train_1, index_col=0), \
-             pd.read_csv(csv_path_train_2, index_col=0)
+             split = lambda df: (df.iloc[:,:-1].values, df["y"])
 
-         pd.concat([df_train_1, df_train_2]).to_csv(str(output[0]))
+             (X_encoding_1_train, y_encoding_1_train), (X_encoding_1_val, y_encoding_1_val) = \
+                 split(df_encoding_1_train), split(df_encoding_1_val)
+             (X_encoding_2_train, y_encoding_2_train), (X_encoding_2_val, y_encoding_2_val) = \
+                 split(df_encoding_2_train), split(df_encoding_2_val)
+             (X_encoding_3_train, y_encoding_3_train), (X_encoding_3_val, y_encoding_3_val) = \
+                 split(df_encoding_3_train), split(df_encoding_3_val)
 
-         csv_path_val = get_data(wildcards.dataset_encoding, input.val_dir)
-         shell(f"cp {csv_path_val} {str(output[1])}")
+             brf_encoding_1, brf_encoding_2, brf_encoding_3 = init_classifiers()
 
-         csv_path_test = get_data(wildcards.dataset_encoding, input.test_dir)
-         shell(f"cp {csv_path_test} {str(output[2])}")
+             brf_encoding_1.fit(X_encoding_1_train, y_encoding_1_train)
+             y_pred_encoding_1 = brf_encoding_1.predict(X_encoding_1_val)
+             # train model 2
+             brf_encoding_2.fit(X_encoding_2_train, y_encoding_2_train)
+             y_pred_encoding_2 = brf_encoding_2.predict(X_encoding_2_val)
+             # train model 3
+             brf_encoding_3.fit(X_encoding_3_train, y_encoding_3_train)
+             y_pred_encoding_3 = brf_encoding_3.predict(X_encoding_3_val)
 
-rule collect:
-    input:
-        expand()
+             # ensemble prediction on unknown validation data (test on validation set 2)
+             y_pred = [1 if sum(predictions) >= 2 else 0
+                       for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
 
+             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)]})
+             df_best_ensembles = pd.concat([df_best_ensembles, df_tmp.transpose()])
 
+         df_best_ensembles.to_csv(str(output))
 
-
-
-
-
-
-
-
-# rule find_best_ensemble_cv:
-#     input:
-#          train_dirs=config["train_dirs_in"],
-#          val_dir=config["val_dir_in"],
-#          val_dir=config["val_dir_in"],
-#     output:
