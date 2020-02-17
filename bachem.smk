@@ -24,7 +24,8 @@ rule all:
          f"data/protease/plots/filtered_datasets.png",
          # "data/protease/machine_learning/top_encodings.csv",
          # "data/bachem/machine_learning/top_encodings.csv",
-         # "data/protease/machine_learning/ensemble_results_validated.csv"
+         # "data/protease/machine_learning/ensemble_results_validated.csv",
+         # "data/protease/machine_learning/ensemble_results_validated_tuned_hp.csv"
 
 ########################################################################################################################
 ############################################## DATASET CREATION ########################################################
@@ -139,16 +140,40 @@ rule meta_workflow_sequence_based_encodings:
               expand("data/{{normalized_dataset,.*?\d+}}/csv/fldpc/fldpc_{aaindex}.csv", aaindex=get_aaindex()),
          ngram_a2_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a2/ngram_a2_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_a2_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_a2_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a2/ngram_a2_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          ngram_a3_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a3/ngram_a3_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_a3_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_a3_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_a3/ngram_a3_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          ngram_e2_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e2/ngram_e2_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_e2_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_e2_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e2/ngram_e2_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          ngram_e3_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e3/ngram_e3_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_e3_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_e3_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_e3/ngram_e3_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          ngram_s2_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s2/ngram_s2_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_s2_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_s2_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s2/ngram_s2_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          ngram_s3_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s3/ngram_s3_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_s3_lsv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
+         ngram_s3_sv_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/ngram_s3/ngram_s3_sv_{dim}.csv", dim=[1, 5, 20, 50, 100, 200, 300]),
          cgr_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
                      resolution=[10, 20, 100, 200], sfactor=[0.5, 0.8632713]),
@@ -403,9 +428,9 @@ rule meta_workflow_structure_based_encodings_windowed:
          with MetaWorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-########################################################################################################################
-################################################ COLLECT ENCODINGS #####################################################
-########################################################################################################################
+#######################################################################################################################
+############################################### COLLECT ENCODINGS #####################################################
+#######################################################################################################################
 
 rule utils_collect_encodings_bachem:
     input:
@@ -491,92 +516,94 @@ rule plot_empty_datasets_bachem:
 ################################################ MACHINE LEARNING ######################################################
 ########################################################################################################################
 
-rule machine_learning_hold_out_datasets_bachem:
-    input:
-         csv_dir_in=f"data/bachem/csv/non_empty/all/"
-    output:
-         csv_train_dir_out=directory(f"data/bachem/csv/non_empty_train/"),
-         csv_val_1_dir_out=directory(f"data/bachem/csv/non_empty_val_1/"),
-         csv_val_2_dir_out=directory(f"data/bachem/csv/non_empty_val_2/"),
-         csv_test_dir_out=directory(f"data/bachem/csv/non_empty_test/")
-    params:
-         snakefile="nodes/machine_learning/hold_out_datasets/Snakefile",
-         configfile="nodes/machine_learning/hold_out_datasets/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule machine_learning_hold_out_datasets_protease:
-    input:
-         csv_dir_in=f"data/protease/csv/non_empty/all/"
-    output:
-         csv_train_dir_out=directory(f"data/protease/csv/non_empty_train/"),
-         csv_val_1_dir_out=directory(f"data/protease/csv/non_empty_val_1/"),
-         csv_val_2_dir_out=directory(f"data/protease/csv/non_empty_val_2/"),
-         csv_test_dir_out=directory(f"data/protease/csv/non_empty_test/")
-    params:
-         snakefile="nodes/machine_learning/hold_out_datasets/Snakefile",
-         configfile="nodes/machine_learning/hold_out_datasets/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule machine_learning_top_encodings_bachem:
-    input:
-         train_dir_in=f"data/bachem/csv/non_empty_train/",
-         val_dir_in=f"data/bachem/csv/non_empty_val_1/"
-    output:
-         top_encodings_out="data/bachem/machine_learning/top_encodings.csv",
-         phi_correlation_out=f"data/bachem/machine_learning/phi_correlation.csv",
-    params:
-         snakefile="nodes/machine_learning/top_encodings/Snakefile",
-         configfile="nodes/machine_learning/top_encodings/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule machine_learning_top_encodings_protease:
-    input:
-         train_dir_in=f"data/protease/csv/non_empty_train/",
-         val_dir_in=f"data/protease/csv/non_empty_val_1/"
-    output:
-         top_encodings_out="data/protease/machine_learning/top_encodings.csv",
-         phi_correlation_out=f"data/protease/machine_learning/phi_correlation.csv"
-    params:
-         snakefile="nodes/machine_learning/top_encodings/Snakefile",
-         configfile="nodes/machine_learning/top_encodings/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-# rule machine_learning_best_ensemble_bachem:
+# rule machine_learning_hold_out_datasets_bachem:
 #     input:
-#          train_dirs_in=[f"data/bachem/csv/non_empty_train/", f"data/bachem/csv/non_empty_val_1/"],
-#          val_dir_in=f"data/bachem/csv/non_empty_val_2/",
-#          test_dir_in=f"data/bachem/csv/non_empty_train/",
-#          top_encodings_in="data/bachem/machine_learning/top_encodings.csv"
+#          csv_dir_in=f"data/bachem/csv/non_empty/all/"
 #     output:
-#          ensemble_out=f"data/bachem/machine_learning/diff_coupl_clf.jl"
+#          csv_train_dir_out=directory(f"data/bachem/csv/non_empty_train/"),
+#          csv_val_1_dir_out=directory(f"data/bachem/csv/non_empty_val_1/"),
+#          csv_val_2_dir_out=directory(f"data/bachem/csv/non_empty_val_2/"),
+#          csv_test_dir_out=directory(f"data/bachem/csv/non_empty_test/")
+#     params:
+#          snakefile="nodes/machine_learning/hold_out_datasets/Snakefile",
+#          configfile="nodes/machine_learning/hold_out_datasets/config.yaml"
 #     run:
-#          # TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
-#          pass
-
-rule machine_learning_best_ensemble_protease:
-    input:
-         train_dirs_in=[f"data/protease/csv/non_empty_train/", f"data/protease/csv/non_empty_val_1/"],
-         val_dir_in=f"data/protease/csv/non_empty_val_2/",
-         test_dir_in=f"data/protease/csv/non_empty_train/",
-         phi_correlation_in=f"data/protease/machine_learning/phi_correlation.csv"
-    output:
-         ensemble_validation_results_out=\
-             "data/protease/machine_learning/ensemble_results_validated.csv"
-    params:
-         snakefile="nodes/machine_learning/best_ensemble/Snakefile",
-         configfile="nodes/machine_learning/best_ensemble/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-
-
-
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# rule machine_learning_hold_out_datasets_protease:
+#     input:
+#          csv_dir_in=f"data/protease/csv/non_empty/all/"
+#     output:
+#          csv_train_dir_out=directory(f"data/protease/csv/non_empty_train/"),
+#          csv_val_1_dir_out=directory(f"data/protease/csv/non_empty_val_1/"),
+#          csv_val_2_dir_out=directory(f"data/protease/csv/non_empty_val_2/"),
+#          csv_test_dir_out=directory(f"data/protease/csv/non_empty_test/")
+#     params:
+#          snakefile="nodes/machine_learning/hold_out_datasets/Snakefile",
+#          configfile="nodes/machine_learning/hold_out_datasets/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# rule machine_learning_top_encodings_bachem:
+#     input:
+#          train_dir_in=f"data/bachem/csv/non_empty_train/",
+#          val_dir_in=f"data/bachem/csv/non_empty_val_1/"
+#     output:
+#          top_encodings_out="data/bachem/machine_learning/top_encodings.csv",
+#          phi_correlation_out=f"data/bachem/machine_learning/phi_correlation.csv",
+#     params:
+#          snakefile="nodes/machine_learning/top_encodings/Snakefile",
+#          configfile="nodes/machine_learning/top_encodings/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# rule machine_learning_top_encodings_protease:
+#     input:
+#          train_dir_in=f"data/protease/csv/non_empty_train/",
+#          val_dir_in=f"data/protease/csv/non_empty_val_1/"
+#     output:
+#          top_encodings_out="data/protease/machine_learning/top_encodings.csv",
+#          phi_correlation_out=f"data/protease/machine_learning/phi_correlation.csv"
+#     params:
+#          snakefile="nodes/machine_learning/top_encodings/Snakefile",
+#          configfile="nodes/machine_learning/top_encodings/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+# # rule machine_learning_best_ensemble_bachem:
+# #     input:
+# #          train_dirs_in=[f"data/bachem/csv/non_empty_train/", f"data/bachem/csv/non_empty_val_1/"],
+# #          val_dir_in=f"data/bachem/csv/non_empty_val_2/",
+# #          test_dir_in=f"data/bachem/csv/non_empty_train/",
+# #          top_encodings_in="data/bachem/machine_learning/top_encodings.csv"
+# #     output:
+# #          ensemble_out=f"data/bachem/machine_learning/diff_coupl_clf.jl"
+# #     run:
+# #          # TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
+# #          pass
+#
+# rule machine_learning_best_ensemble_protease:
+#     input:
+#          train_dirs_in=[f"data/protease/csv/non_empty_train/", f"data/protease/csv/non_empty_val_1/"],
+#          val_dir_in=f"data/protease/csv/non_empty_val_2/",
+#          test_dir_in=f"data/protease/csv/non_empty_test/",
+#          phi_correlation_in=f"data/protease/machine_learning/phi_correlation.csv"
+#     output:
+#          ensemble_validation_out=\
+#              "data/protease/machine_learning/ensemble_results_validated.csv",
+#          ensemble_validation_tuned_hp_out=\
+#              "data/protease/machine_learning/ensemble_results_validated_tuned_hp.csv"
+#     params:
+#          snakefile="nodes/machine_learning/best_ensemble/Snakefile",
+#          configfile="nodes/machine_learning/best_ensemble/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+#
+#
+#
+#

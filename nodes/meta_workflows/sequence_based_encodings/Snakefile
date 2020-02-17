@@ -363,10 +363,8 @@ rule encoding_ngram_a2:
          length_in=f"data/temp/{TOKEN}/ngram_a2.yaml"
     output:
          csv_out=config["ngram_a2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a2/ngram_a2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_a2_lsv_out"],
+         sv_out=config["ngram_a2_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -380,10 +378,8 @@ rule encoding_ngram_a3:
          length_in=f"data/temp/{TOKEN}/ngram_a3.yaml"
     output:
          csv_out=config["ngram_a3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_a3/ngram_a3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_a3_lsv_out"],
+         sv_out=config["ngram_a3_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -398,10 +394,8 @@ rule encoding_ngram_e2:
          length_in=f"data/temp/{TOKEN}/ngram_e2.yaml"
     output:
          csv_out=config["ngram_e2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e2/ngram_e2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_e2_lsv_out"],
+         sv_out=config["ngram_e2_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -416,10 +410,8 @@ rule encoding_ngram_e3:
          length_in=f"data/temp/{TOKEN}/ngram_e3.yaml"
     output:
          csv_out=config["ngram_e3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_e3/ngram_e3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_e3_lsv_out"],
+         sv_out=config["ngram_e3_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -434,10 +426,8 @@ rule encoding_ngram_s2:
          length_in=f"data/temp/{TOKEN}/ngram_s2.yaml"
     output:
          csv_out=config["ngram_s2_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s2/ngram_s2_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_s2_lsv_out"],
+         sv_out=config["ngram_s2_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
@@ -452,10 +442,8 @@ rule encoding_ngram_s3:
          length_in=f"data/temp/{TOKEN}/ngram_s3.yaml"
     output:
          csv_out=config["ngram_s3_out"],
-         lsv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_lsv_{dim}.csv",
-                        dim=[1, 5, 20, 50, 100, 200, 300]),
-         sv_out=expand("data/{{normalized_dataset}}/csv/ngram_s3/ngram_s3_sv_{dim}.csv",
-                       dim=[1, 5, 20, 50, 100, 200, 300])
+         lsv_out=config["ngram_s3_lsv_out"],
+         sv_out=config["ngram_s3_sv_out"]
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"
