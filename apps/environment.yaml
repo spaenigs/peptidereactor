@@ -25,6 +25,7 @@ dependencies:
   - rdkit
   - mordred=1.2.0
   - imbalanced-learn
+  - pathos
   - pip:
     - modlamp
     - joblib
