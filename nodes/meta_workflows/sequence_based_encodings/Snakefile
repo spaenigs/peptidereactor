@@ -319,8 +319,7 @@ rule encoding_fft:
     input:
          fasta_in=config["fasta_in"],
          classes_in=config["classes_in"],
-         csv_in=expand("data/{{normalized_dataset}}/csv/aaindex/aaindex_{aaindex}.csv",
-                       aaindex=get_aaindex())
+         csv_in=config["aaindex_out"]
     output:
          csv_out=config["fft_out"]
     params:
