@@ -6,7 +6,7 @@ RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >>
 
 RUN apt-get update && apt-get install -y unzip
 RUN apt-get update && apt-get install -y r-base r-base-dev
-RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr'), repos = 'https://cran.uni-muenster.de/')"
+RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr', 'pROC'), repos = 'https://cran.uni-muenster.de/')"
 
 RUN apt-get update && apt-get install -y pdb2pqr apbs
 
