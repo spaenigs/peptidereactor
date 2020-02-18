@@ -26,6 +26,7 @@ dependencies:
   - mordred=1.2.0
   - imbalanced-learn
   - pathos
+  - more-itertools
   - pip:
     - modlamp
     - joblib
