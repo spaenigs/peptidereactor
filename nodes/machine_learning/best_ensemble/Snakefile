@@ -1,9 +1,14 @@
+from pathos.multiprocessing import ProcessingPool as Pool
 import pandas as pd
 import numpy as np
 from imblearn.ensemble import BalancedRandomForestClassifier
 from sklearn.metrics import f1_score
 from sklearn.model_selection import RepeatedStratifiedKFold
 from glob import glob
+from sklearn.model_selection import RandomizedSearchCV
+from more_itertools import partition
+import yaml
+import joblib
 
 # TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
 
@@ -22,14 +27,17 @@ def combine_csvs_to_df(path_to_csvs):
     return df_res
 
 def init_classifiers():
-     brf_1 = BalancedRandomForestClassifier(n_estimators=100)
-     brf_2 = BalancedRandomForestClassifier(n_estimators=100)
-     brf_3 = BalancedRandomForestClassifier(n_estimators=100)
-     return brf_1, brf_2, brf_3
+    brf_1 = BalancedRandomForestClassifier(n_estimators=100)
+    brf_2 = BalancedRandomForestClassifier(n_estimators=100)
+    brf_3 = BalancedRandomForestClassifier(n_estimators=100)
+    return brf_1, brf_2, brf_3
 
 rule all:
     input:
-         config["ensemble_validation_results_out"]
+         config["ensemble_validation_out"],
+         config["ensemble_validation_tuned_hp_out"],
+         config["plot_cv_out"],
+         config["ensemble_out"]
 
 rule split_encodings_for_ensemble:
   input:
@@ -124,14 +132,14 @@ rule collect_encodings_for_ensemble:
              df_res = pd.concat([df_res, df_tmp])
          df_res.to_csv(str(output))
 
-rule ensemble_validation:
+rule validate_ensemble:
     input:
          f"data/temp/{TOKEN}/ensemble_results.csv",
          config["val_dir_in"],
          train_dirs=config["train_dirs_in"]
     output:
-         f"data/temp/{TOKEN}/validated_ensembles.csv"
-         # config["ensemble_validation_results_out"]
+         config["ensemble_validation_out"],
+         f"data/temp/{TOKEN}/best_model_0.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
 
@@ -184,8 +192,307 @@ rule ensemble_validation:
              y_pred = [1 if sum(predictions) >= 2 else 0
                        for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
 
-             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)]})
-             df_best_ensembles = pd.concat([df_best_ensembles, df_tmp.transpose()])
+             best_params = \
+                 [brf_encoding_1.n_estimators, brf_encoding_1.max_features, brf_encoding_1.max_depth,
+                  brf_encoding_1.min_samples_split, brf_encoding_1.min_samples_leaf, brf_encoding_1.bootstrap]
 
-         df_best_ensembles.to_csv(str(output))
+             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)] + best_params + best_params + best_params})
+             df_tmp = df_tmp.transpose()
+             colnames = ["n_estimators", "max_features", "max_depth", "min_samples_split", "min_samples_leaf", "bootstrap"]
+             df_tmp.columns = \
+                 ["e1", "e2", "e3", "f1"] + \
+                 [f"{cn}_e1" for cn in colnames] + \
+                 [f"{cn}_e2" for cn in colnames] + \
+                 [f"{cn}_e3" for cn in colnames]
+             df_best_ensembles = pd.concat([df_best_ensembles, df_tmp])
 
+         df_best_ensembles.to_csv(str(output[0]))
+
+         df_best_ensembles\
+             .sort_values(by=df_best_ensembles.columns[-1], ascending=False)\
+             .iloc[0, :]\
+             .to_csv(str(output[1]))
+
+rule hyperparameter_tuning:
+    input:
+         config["ensemble_validation_out"],
+         config["val_dir_in"],
+         train_dirs=config["train_dirs_in"]
+    output:
+         config["ensemble_validation_tuned_hp_out"],
+         f"data/temp/{TOKEN}/best_model_1.csv"
+    run:
+         df = pd.read_csv(str(input[0]), index_col=0)
+
+         # https://towardsdatascience.com/hyperparameter-tuning-the-random-forest-in-python-using-scikit-learn-28d2aa77dd74
+         random_grid = {'n_estimators':[int(x) for x in np.linspace(start = 50, stop = 1500, num = 10)] + [100],
+                        'max_features': ["auto", "log2", None],
+                        'max_depth': [int(x) for x in np.linspace(10, 110, num = 11)] + [None],
+                        'min_samples_split': [2, 5, 10],
+                        'min_samples_leaf': [1, 2, 4],
+                        'bootstrap': [True, False]}
+
+         def tune(row):
+
+             index, series = row
+             name_1, name_2, name_3 = series[0:3]
+
+             df_encoding_1_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_1, input.train_dirs[0], input.train_dirs[1]))
+             df_encoding_2_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_2, input.train_dirs[0], input.train_dirs[1]))
+             df_encoding_3_train = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1]))
+
+             df_encoding_1_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_1, str(input[1])))
+             df_encoding_2_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_2, str(input[1])))
+             df_encoding_3_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_3, str(input[1])))
+
+             split = lambda df: (df.iloc[:,:-1].values, df["y"])
+
+             (X_encoding_1_train, y_encoding_1_train), (X_encoding_1_val, y_encoding_1_val) = \
+                 split(df_encoding_1_train), split(df_encoding_1_val)
+             (X_encoding_2_train, y_encoding_2_train), (X_encoding_2_val, y_encoding_2_val) = \
+                 split(df_encoding_2_train), split(df_encoding_2_val)
+             (X_encoding_3_train, y_encoding_3_train), (X_encoding_3_val, y_encoding_3_val) = \
+                 split(df_encoding_3_train), split(df_encoding_3_val)
+
+             brf1, brf2, brf3 = init_classifiers()
+
+             brf1_random = RandomizedSearchCV(estimator=brf1, param_distributions=random_grid,
+                                              n_iter=5, # 100
+                                              cv=5, verbose=0, random_state=42,  n_jobs = 1)
+
+             brf1_random.fit(X_encoding_1_train, y_encoding_1_train)
+             y_pred_encoding_1 = brf1_random.predict(X_encoding_1_val)
+
+             brf2_random = RandomizedSearchCV(estimator = brf2, param_distributions = random_grid,
+                                              n_iter = 5, # 100
+                                              cv = 5, verbose=0, random_state=42, n_jobs = 1)
+
+             brf2_random.fit(X_encoding_2_train, y_encoding_2_train)
+             y_pred_encoding_2 = brf2_random.predict(X_encoding_2_val)
+
+             brf3_random = RandomizedSearchCV(estimator = brf3, param_distributions = random_grid,
+                                              n_iter = 5, # 100
+                                              # cv = 5,
+                                              verbose=0, random_state=42, n_jobs = 1)
+
+             brf3_random.fit(X_encoding_3_train, y_encoding_3_train)
+             y_pred_encoding_3 = brf3_random.predict(X_encoding_3_val)
+
+             # ensemble prediction on unknown validation data (test on validation set 2)
+             y_pred = [1 if sum(predictions) >= 2 else 0
+                       for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
+
+             best_params = \
+                 [brf1_random.best_params_[key] for key in random_grid.keys()] + \
+                 [brf2_random.best_params_[key] for key in random_grid.keys()] + \
+                 [brf3_random.best_params_[key] for key in random_grid.keys()]
+
+             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)] + best_params})
+             df_tmp = df_tmp.transpose()
+             colnames = list(random_grid.keys())
+             df_tmp.columns = \
+                 ["e1", "e2", "e3", "f1"] + \
+                 [f"{cn}_e1" for cn in colnames] + \
+                 [f"{cn}_e2" for cn in colnames] + \
+                 [f"{cn}_e3" for cn in colnames]
+             return df_tmp
+
+         p = Pool(8)
+         res = p.map(tune, df.iterrows())
+
+         df_best_ensembles_tuned_hp = pd.concat(res)
+         df_best_ensembles_tuned_hp.to_csv(str(output[0]))
+
+         df_best_ensembles_tuned_hp\
+             .sort_values(by=df_best_ensembles_tuned_hp.columns[-1], ascending=False)\
+             .iloc[0, :]\
+             .to_csv(str(output[1]))
+
+rule test_ensemble:
+    input:
+         f"data/temp/{TOKEN}/best_model_{{tuning}}.csv",
+         config["val_dir_in"],
+         config["test_dir_in"],
+         train_dirs=config["train_dirs_in"]
+    output:
+         f"data/temp/{TOKEN}/best_model_{{tuning}}_ytrue.yaml",
+         f"data/temp/{TOKEN}/best_model_{{tuning}}_yprob.yaml"
+    run:
+         df = pd.read_csv(str(input[0]), index_col=0)
+
+         name_1, name_2, name_3 = df.iloc[0:3, :].values.flatten()
+
+         df_encoding_1_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_1, input.train_dirs[0], input.train_dirs[1], str(input[1])))
+         df_encoding_2_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_2, input.train_dirs[0], input.train_dirs[1], str(input[1])))
+         df_encoding_3_train = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1], str(input[1])))
+
+         df_encoding_1_val = \
+                 combine_csvs_to_df(
+                     get_csv_path_from_name(name_1, str(input[2])))
+         df_encoding_2_val = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_2, str(input[2])))
+         df_encoding_3_val = \
+             combine_csvs_to_df(
+                 get_csv_path_from_name(name_3, str(input[2])))
+
+         split = lambda df: (df.iloc[:,:-1].values, df["y"])
+
+         (X_encoding_1_train, y_encoding_1_train), (X_encoding_1_val, y_encoding_1_val) = \
+             split(df_encoding_1_train), split(df_encoding_1_val)
+         (X_encoding_2_train, y_encoding_2_train), (X_encoding_2_val, y_encoding_2_val) = \
+             split(df_encoding_2_train), split(df_encoding_2_val)
+         (X_encoding_3_train, y_encoding_3_train), (X_encoding_3_val, y_encoding_3_val) = \
+             split(df_encoding_3_train), split(df_encoding_3_val)
+
+         brf_encoding_1, brf_encoding_2, brf_encoding_3 = init_classifiers()
+
+         brf_encoding_1.fit(X_encoding_1_train, y_encoding_1_train)
+         y_pred_prob_encoding_1 = brf_encoding_1.predict_proba(X_encoding_1_val)
+         y_pred_encoding_1 = brf_encoding_1.predict(X_encoding_1_val)
+
+         # train model 2
+         brf_encoding_2.fit(X_encoding_2_train, y_encoding_2_train)
+         y_pred_prob_encoding_2 = brf_encoding_2.predict_proba(X_encoding_2_val)
+         y_pred_encoding_2 = brf_encoding_2.predict(X_encoding_2_val)
+
+         # train model 3
+         brf_encoding_3.fit(X_encoding_3_train, y_encoding_3_train)
+         y_pred_prob_encoding_3 = brf_encoding_3.predict_proba(X_encoding_3_val)
+         y_pred_encoding_3 = brf_encoding_3.predict(X_encoding_3_val)
+
+         # ensemble prediction on unknown validation data (test on validation set 2)
+         def get_ensemble_probas(zipped_weak_probas):
+             for p1, p2, p3 in zipped_weak_probas:
+                 res = partition(lambda x: x > .5, [p1, p2, p3])
+                 neg = list(res[0])
+                 pos = list(res[1])
+                 yield np.mean(pos) if len(pos) > len(neg) else np.mean(neg)
+
+         with open(str(output[0]), mode="w") as f1, \
+                 open(str(output[1]), mode="w") as f2:
+             yaml.safe_dump([int(i) for i in y_encoding_1_val], f1)
+             gen = get_ensemble_probas(
+                 zip(y_pred_prob_encoding_1[:, 1],
+                     y_pred_prob_encoding_2[:, 1],
+                     y_pred_prob_encoding_3[:, 1]))
+             yaml.safe_dump([float(i) for i in gen], f2)
+
+rule plot_roc:
+    input:
+         ytrue=f"data/temp/{TOKEN}/best_model_{{tuning}}_ytrue.yaml",
+         yprob=f"data/temp/{TOKEN}/best_model_{{tuning}}_yprob.yaml"
+    output:
+         f"data/temp/{TOKEN}/best_model_{{tuning}}.png"
+    script:
+         "scripts/plot_roc.R"
+
+rule collect_plots:
+    input:
+         f"data/temp/{TOKEN}/best_model_0.png",
+         f"data/temp/{TOKEN}/best_model_1.png"
+    output:
+         config["plot_cv_out"]
+    run:
+         out_files = list(output)
+         shell(f"cp {str(input[0])} {out_files[0]}")
+         shell(f"cp {str(input[1])} {out_files[1]}")
+
+rule retrain_best_and_dump:
+    input:
+         f"data/temp/{TOKEN}/best_model_{{tuning}}.csv",
+         config["val_dir_in"],
+         config["test_dir_in"],
+         train_dirs=config["train_dirs_in"]
+    output:
+         f"data/temp/{TOKEN}/best_model_{{tuning}}.joblib"
+    run:
+         df = pd.read_csv(str(input[0]), index_col=0)
+         col_idx = df.columns[0]
+
+         name_1, name_2, name_3 = df.iloc[0:3, 0].values
+
+         df_encoding_1 = combine_csvs_to_df(
+             get_csv_path_from_name(name_1, input.train_dirs[0], input.train_dirs[1],
+                                    str(input[1]), str(input[2])))
+
+         df_encoding_2 = combine_csvs_to_df(
+             get_csv_path_from_name(name_2, input.train_dirs[0], input.train_dirs[1],
+                                    str(input[1]), str(input[2])))
+
+         df_encoding_3 = combine_csvs_to_df(
+             get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1],
+                                    str(input[1]), str(input[2])))
+
+         split = lambda df: (df.iloc[:,:-1].values, df["y"])
+
+         X_encoding_1, y_encoding_1 = split(df_encoding_1)
+         X_encoding_2, y_encoding_2 = split(df_encoding_2)
+         X_encoding_3, y_encoding_3 = split(df_encoding_3)
+
+         def init_model(n_estimators, max_features, max_depth, min_samples_split,
+                        min_samples_leaf, bootstrap):
+             max_depth = \
+                 None if type(max_depth) != str and \
+                         np.isnan(max_depth) else int(max_depth)
+             max_features = \
+                 None if type(max_features) != str and \
+                         np.isnan(max_features) else max_features
+             return BalancedRandomForestClassifier(
+                 n_estimators=int(n_estimators), max_features=max_features,
+                 max_depth=max_depth, min_samples_split=int(min_samples_split),
+                 min_samples_leaf=int(min_samples_leaf), bootstrap=bool(bootstrap))
+
+         brf_encoding_1 = \
+            init_model(n_estimators=df.loc["n_estimators_e1", col_idx], max_features=df.loc["max_features_e1", col_idx],
+                       max_depth=df.loc["max_depth_e1", col_idx], min_samples_split=df.loc["min_samples_split_e1", col_idx],
+                       min_samples_leaf=df.loc["min_samples_leaf_e1", col_idx], bootstrap=df.loc["bootstrap_e1", col_idx])
+
+         brf_encoding_2 = \
+            init_model(n_estimators=df.loc["n_estimators_e2", col_idx], max_features=df.loc["max_features_e2", col_idx],
+                       max_depth=df.loc["max_depth_e2", col_idx], min_samples_split=df.loc["min_samples_split_e2", col_idx],
+                        min_samples_leaf=df.loc["min_samples_leaf_e2", col_idx], bootstrap=df.loc["bootstrap_e2", col_idx])
+
+         brf_encoding_3 = \
+            init_model(n_estimators=df.loc["n_estimators_e3", col_idx], max_features=df.loc["max_features_e3", col_idx],
+                       max_depth=df.loc["max_depth_e3", col_idx], min_samples_split=df.loc["min_samples_split_e3", col_idx],
+                       min_samples_leaf=df.loc["min_samples_leaf_e3", col_idx], bootstrap=df.loc["bootstrap_e3", col_idx])
+
+         brf_encoding_1.fit(X_encoding_1, y_encoding_1)
+         brf_encoding_2.fit(X_encoding_2, y_encoding_2)
+         brf_encoding_3.fit(X_encoding_3, y_encoding_3)
+
+         predict_fn = lambda y_pred_e1, y_pred_e2, y_pred_e3: \
+             [1 if sum(predictions) >= 2 else 0 for predictions in zip(y_pred_e1, y_pred_e2, y_pred_e3)]
+
+         final_model = {name_1: brf_encoding_1, name_2: brf_encoding_2, name_3: brf_encoding_3, predict_fn: predict_fn}
+         joblib.dump(final_model, str(output))
+
+rule collect_models:
+    input:
+         f"data/temp/{TOKEN}/best_model_0.joblib",
+         f"data/temp/{TOKEN}/best_model_1.joblib"
+    output:
+         config["ensemble_out"]
+    run:
+         out_files = list(output)
+         shell(f"cp {str(input[0])} {out_files[0]}")
+         shell(f"cp {str(input[1])} {out_files[1]}")
