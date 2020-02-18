@@ -33,7 +33,8 @@ rule collect_encodings:
 rule remove_empty_datasets:
     input:
          config["sequence_based_encodings_out"],
-         config["structure_based_encodings_out"]
+         config["structure_based_encodings_out"],
+         f"data/temp/{TOKEN}/collected.txt"
     output:
          temp(f"data/temp/{TOKEN}/filtered.txt")
     run:
