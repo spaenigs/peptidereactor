@@ -180,6 +180,8 @@ rule meta_workflow_sequence_based_encodings:
          distance_frequency_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/distance_frequency/distance_frequency_dn_{nterminal}_dc_{cterminal}.csv",
                      nterminal=[5, 10, 20, 50, 100], cterminal=[5, 10, 20, 50, 100]),
+         cksaap_out=\
+              expand("data/{{normalized_dataset,.*?\d+}}/csv/cksaap/cksaap_gap_{gap_val}.csv", gap_val=list(range(1, 31))),
          cksaagp_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=list(range(1, 31))),
          socnumber_out=\
