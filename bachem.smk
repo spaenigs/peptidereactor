@@ -198,8 +198,6 @@ rule meta_workflow_sequence_based_encodings:
               expand("data/{{normalized_dataset,.*?\d+}}/csv/geary/geary_nlag_{nlag_val}.csv", nlag_val=list(range(1, 31))),
          eaac_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/eaac/eaac_window_{window_val}.csv", window_val=list(range(1, 31))),
-         cksaap=\
-              expand("data/{{normalized_dataset,.*?\d+}}/csv/cksaap/cksaap_gap_{gap_val}.csv", gap_val=list(range(1, 31))),
          apaac_out=\
               expand("data/{{normalized_dataset,.*?\d+}}/csv/apaac/apaac_lambda_{lambda_val}.csv", lambda_val=list(range(1, 31))),
          paac_out=\
