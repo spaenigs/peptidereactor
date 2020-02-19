@@ -77,7 +77,7 @@ rule utils_sliding_windows:
          snakefile="nodes/utils/sliding_windows/sliding_windows.smk",
          configfile="nodes/utils/sliding_windows/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule utils_sliding_windows_complete:
@@ -91,7 +91,7 @@ rule utils_sliding_windows_complete:
          snakefile="nodes/utils/sliding_windows/sliding_windows_complete.smk",
          configfile="nodes/utils/sliding_windows/config.yaml"
     run:
-        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
+        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule utils_protein_dataset_creation:
