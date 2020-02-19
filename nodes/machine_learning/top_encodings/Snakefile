@@ -1,6 +1,5 @@
 from sklearn.model_selection import RepeatedStratifiedKFold
 from imblearn.ensemble import BalancedRandomForestClassifier
-from sklearn.metrics import f1_score
 from glob import glob
 import pandas as pd
 import numpy as np
@@ -22,7 +21,7 @@ rule split_datasets:
     input:
          ENCODED_CSVS
     output:
-         temp(f"data/temp/{TOKEN}/{{dataset_and_encoding,.*-.*}}.csv")
+         f"data/temp/{TOKEN}/{{dataset_and_encoding,.*-.*}}.csv"
     run:
          csv_path = list(filter(lambda p: wildcards.dataset_and_encoding in p, list(input)))[0]
          file_name = os.path.basename(csv_path)
@@ -32,25 +31,25 @@ rule repeated_k_fold_cv:
     input:
          f"data/temp/{TOKEN}/{{dataset_and_encoding}}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp")
+         f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp"
     run:
          df = pd.read_csv(str(input), index_col=0)
          X, y = df.iloc[:, :-1].values, df["y"]
 
          rskf = RepeatedStratifiedKFold(n_splits=5, n_repeats=10)
-         f1_scores = []
+         matthews_corrcoefs = []
          for train_index, test_index in rskf.split(X, y):
              X_train, X_test = X[train_index], X[test_index]
              y_train, y_test = y[train_index], y[test_index]
              brf = BalancedRandomForestClassifier(n_estimators=100)
              brf.fit(X_train, y_train)
              y_pred = brf.predict(X_test)
-             f1_scores += [f1_score(y_test, y_pred)]
+             matthews_corrcoefs += [matthews_corrcoef(y_test, y_pred)]
 
          dataset_encoding = wildcards.dataset_and_encoding
 
-         pvalue = stats.ttest_1samp(f1_scores, 0.5).pvalue
-         res = {dataset_encoding: f1_scores + [pvalue] + [np.mean(f1_scores)]}
+         pvalue = stats.ttest_1samp(matthews_corrcoefs, 0.0).pvalue
+         res = {dataset_encoding: matthews_corrcoefs + [pvalue] + [np.mean(matthews_corrcoefs)]}
          df_res = pd.DataFrame(res).transpose()
          df_res.to_csv(str(output))
 
@@ -60,12 +59,13 @@ rule collect_and_remove_insignificant:
                 dataset_and_encoding=[os.path.basename(path).replace(".csv", "")
                                       for path in ENCODED_CSVS])
     output:
-         temp(f"data/temp/{TOKEN}/top_encodings.csv")
+         f"data/temp/{TOKEN}/top_encodings.csv"
     run:
          df_res = pd.DataFrame()
          for path in list(input):
              df_tmp = pd.read_csv(path, index_col=0)
-             if df_tmp.iloc[0, -2] < 0.05 and df_tmp.iloc[0, -1] >= 0.5:
+             # TODO adjust threshold (0.5)
+             if df_tmp.iloc[0, -2] < 0.05 and df_tmp.iloc[0, -1] >= 0.3:
                  df_res = pd.concat([df_res, df_tmp])
 
          colnames = list(df_res.columns)
@@ -74,7 +74,6 @@ rule collect_and_remove_insignificant:
          df_res.sort_values(by="mean", ascending=False, inplace=True)
 
          # take top 20% of best encodings
-         # to_index = int(0.2*df_res.shape[0])
          to_index = int(0.2*df_res.shape[0])
          df_res.iloc[:to_index, :].to_csv(str(output))
 
@@ -84,7 +83,7 @@ rule validate:
          config["val_dir_in"]
     output:
          config["top_encodings_out"],
-         temp(f"data/temp/{TOKEN}/top_encodings_diversity.csv")
+         f"data/temp/{TOKEN}/top_encodings_diversity.csv"
     run:
          def get_train_val(dataset, encoding):
              csv_path = [csv_path for csv_path in ENCODED_CSVS
@@ -118,13 +117,13 @@ rule validate:
                  .transpose()
              df_diversity = pd.concat([df_diversity, df_div_tmp])
 
-             df_tmp = pd.DataFrame({dataset_and_encoding: [f1_score(y_val, y_pred)]})\
+             df_tmp = pd.DataFrame({dataset_and_encoding: [matthews_corrcoef(y_val, y_pred)]})\
                  .transpose()
              df_res = pd.concat([df_res, df_tmp])
 
          # take top 20% of best (validated) encodings
-         # to_index = int(0.2*df_res.shape[0])
-         to_index = df_res.shape[0]
+         to_index = int(0.5*df_res.shape[0])
+         # to_index = df_res.shape[0]
          df_res = df_res.iloc[:to_index, :]
          df_diversity = df_diversity.loc[df_res.index, :]
 

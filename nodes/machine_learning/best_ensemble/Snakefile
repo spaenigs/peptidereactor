@@ -2,13 +2,13 @@ from pathos.multiprocessing import ProcessingPool as Pool
 import pandas as pd
 import numpy as np
 from imblearn.ensemble import BalancedRandomForestClassifier
-from sklearn.metrics import f1_score
 from sklearn.model_selection import RepeatedStratifiedKFold
 from glob import glob
 from sklearn.model_selection import RandomizedSearchCV
 from more_itertools import partition
 import yaml
 import joblib
+from sklearn.metrics import matthews_corrcoef
 
 # TODO https://scikit-learn.org/stable/modules/ensemble.html#voting-classifier
 
@@ -83,7 +83,7 @@ rule ensemble_cross_validation:
              combine_csvs_to_df(
                  get_csv_path_from_name(name_3, input.train_dirs[0], input.train_dirs[1]))
 
-         f1_scores = []
+         matthews_corrcoefs = []
          for (X_train_1, y_train_1, X_test_1, y_test_1), \
              (X_train_2, y_train_2, X_test_2, y_test_2), \
              (X_train_3, y_train_3, X_test_3, y_test_3) in \
@@ -107,9 +107,9 @@ rule ensemble_cross_validation:
              y_pred = [1 if sum(predictions) >= 2 else 0
                        for predictions in zip(y_pred_encoding_1, y_pred_encoding_2, y_pred_encoding_3)]
 
-             f1_scores += [f1_score(y_test_1, y_pred)]
+             matthews_corrcoefs += [matthews_corrcoef(y_test_1, y_pred)]
 
-         df_res = pd.DataFrame({np.random.randint(100000): [name_1, name_2, name_3, np.mean(f1_scores)]})
+         df_res = pd.DataFrame({np.random.randint(100000): [name_1, name_2, name_3, np.mean(matthews_corrcoefs)]})
          df_res.transpose().to_csv(str(output))
 
 def get_encoding_combinations():
@@ -196,7 +196,7 @@ rule validate_ensemble:
                  [brf_encoding_1.n_estimators, brf_encoding_1.max_features, brf_encoding_1.max_depth,
                   brf_encoding_1.min_samples_split, brf_encoding_1.min_samples_leaf, brf_encoding_1.bootstrap]
 
-             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)] + best_params + best_params + best_params})
+             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, matthews_corrcoef(y_encoding_1_val, y_pred)] + best_params + best_params + best_params})
              df_tmp = df_tmp.transpose()
              colnames = ["n_estimators", "max_features", "max_depth", "min_samples_split", "min_samples_leaf", "bootstrap"]
              df_tmp.columns = \
@@ -299,7 +299,7 @@ rule hyperparameter_tuning:
                  [brf2_random.best_params_[key] for key in random_grid.keys()] + \
                  [brf3_random.best_params_[key] for key in random_grid.keys()]
 
-             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, f1_score(y_encoding_1_val, y_pred)] + best_params})
+             df_tmp = pd.DataFrame({index: [name_1, name_2, name_3, matthews_corrcoef(y_encoding_1_val, y_pred)] + best_params})
              df_tmp = df_tmp.transpose()
              colnames = list(random_grid.keys())
              df_tmp.columns = \
@@ -483,7 +483,7 @@ rule retrain_best_and_dump:
          predict_fn = lambda y_pred_e1, y_pred_e2, y_pred_e3: \
              [1 if sum(predictions) >= 2 else 0 for predictions in zip(y_pred_e1, y_pred_e2, y_pred_e3)]
 
-         final_model = {name_1: brf_encoding_1, name_2: brf_encoding_2, name_3: brf_encoding_3, predict_fn: predict_fn}
+         final_model = {name_1: brf_encoding_1, name_2: brf_encoding_2, name_3: brf_encoding_3, "predict_fn": predict_fn}
          joblib.dump(final_model, str(output))
 
 rule collect_models:
