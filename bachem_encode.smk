@@ -344,7 +344,7 @@ rule utils_collect_encodings_bachem:
          snakefile="nodes/utils/collect_encodings/Snakefile",
          configfile="nodes/utils/collect_encodings/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=DATASETS, cores=CORES) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule utils_collect_encodings_protease:
@@ -371,7 +371,7 @@ rule utils_collect_encodings_protease:
          snakefile="nodes/utils/collect_encodings/Snakefile",
          configfile="nodes/utils/collect_encodings/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=DATASETS, cores=CORES) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule plot_empty_datasets_protease:
