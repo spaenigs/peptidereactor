@@ -65,7 +65,7 @@ rule electrostatic_pot_at_electrostatic_hull_grid:
          f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}.eh.csv",
          f"data/temp/{TOKEN}/{{seq_name}}.esp.dx"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}_{{distance}}_part.csv")
     run:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
             import csv2points, readDX, dx2csv
@@ -117,7 +117,8 @@ rule scale_sliding_windows_to_electrostatic_hull:
              values = list(windowed_classes[class_idx].values())[0]
 
          eh_points = pd.read_csv(str(input[0]), index_col=0)
-         ws, s = 8, 1
+         from_pos, to_pos = values[0]["range"]
+         ws, s = (to_pos-from_pos), 1
          peptide_len = len(seq)
          eh_points_len = eh_points.shape[1]
 
@@ -156,7 +157,7 @@ rule collect:
                     seq_name=read_fasta(config["fasta_in"])[1],
                     distance=wildcards.distance)
     output:
-         temp(f"data/temp/{TOKEN}/final_{{distance}}.yaml")
+        temp(f"data/temp/{TOKEN}/final_{{distance}}.yaml")
     run:
          enco = {"enco_seqs": {}}
          column_sizes = []
