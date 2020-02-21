@@ -16,14 +16,14 @@ rule count_non_empty_datasets:
          seq_based=glob(config["sequence_based_encodings"] + "*.csv"),
          struc_based=glob(config["structure_based_encodings"] + "*.csv")
     output:
-         temp(f"data/temp/{TOKEN}/empty_datasets.yaml")
+         f"data/temp/{TOKEN}/empty_datasets.yaml"
     run:
          def count_non_empty_files(ds, csv_paths):
              if "complete" in ds:
                  tmp = filter(lambda p: re.match(f".*{ds}", p), csv_paths)
              else:
                  tmp = filter(lambda p: re.match(f".*{ds}(?!_complete)", p), csv_paths)
-             return sum([1 if os.path.getsize(i) != 0 else 0 for i in tmp])
+             return sum([1 if os.path.getsize(i) != 0 else 0 for i in tmp]) / len(csv_paths) * 100
 
          count_data = {}
          for ds in config["datasets"]:
@@ -31,8 +31,8 @@ rule count_non_empty_datasets:
                  {"seq_based": count_non_empty_files(ds, list(input.seq_based)),
                   "struc_based": count_non_empty_files(ds, list(input.struc_based))}
 
-         count_data["max_seq_based"] = len(list(input.seq_based))
-         count_data["max_struc_based"] = len(list(input.struc_based))
+         count_data["max_seq_based"] = 100 # len(list(input.seq_based))
+         count_data["max_struc_based"] = 100 # len(list(input.struc_based))
 
          with open(str(output[0]), mode="w") as f:
              yaml.safe_dump(count_data, f)
@@ -63,10 +63,10 @@ rule plot:
          plt.axhline(y=max_seq_based, color=rects1[0].get_facecolor(), linewidth=0.5, ls="dotted")
          plt.axhline(y=max_struc_based, color=rects2[0].get_facecolor(), linewidth=0.5, ls="dotted")
 
-         ax.set_ylabel('Non-empty datasets')
-         ax.set_title('Non-empty datasets by dataset and encoding type')
+         ax.set_ylabel("Non-empty datasets (%)")
+         ax.set_title("Dataset")
          ax.set_xticks(x)
-         ax.set_xticklabels(labels, rotation=45)
+         ax.set_xticklabels(labels, rotation=90)
          ax.legend()
 
          fig.tight_layout()
