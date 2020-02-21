@@ -85,38 +85,34 @@ rule replace_seq_names:
 
          save_fasta(str(output), seqs, names)
 
-rule split_fasta:
-    input:
-         config["fasta_complete_out"]
-    output:
-         temp(f"data/temp/{TOKEN}/{{id}}.fasta")
-    run:
-         seqs, names = read_fasta(str(input[0]))
-         d = dict((name, seq) for name, seq in zip(names, seqs))
-         d_filtered = {k: v for k, v in d.items() if wildcards.id in k}
-         save_fasta(str(output), d_filtered.values(), [wildcards.id])
-
 rule get_windows:
     input:
-         f"data/temp/{TOKEN}/{{id}}.fasta",
+         config["fasta_complete_out"],
          f"data/temp/{TOKEN}/dataset.jl"
     output:
-         temp(f"data/temp/{TOKEN}/classes_part_{{id}}.yaml")
+         config["classes_yaml_out"]
     run:
          seqs, names = read_fasta(str(input[0]))
-         seq, name = seqs[0], names[0]
+         res = []
+         tmp = []
+         for seq, name in zip(seqs, names):
 
-         windows = ["".join(w) for w in windowed(seq, 8)]
-         seq_tups = jl.load(str(input[1]))
-         kmers = set(set(windows)).intersection(seq_tups.keys())
+            windows = ["".join(w) for w in windowed(seq, 8)]
+            seq_tups = jl.load(str(input[1]))
+            kmers = set(set(windows)).intersection(seq_tups.keys())
 
-         res = {name: []}
-         for start, end in zip(range(0, len(seq)+1), range(8, len(seq)+1)):
-             window = seq[start:end]
-             if window in kmers:
-                 kmers.remove(window)
-                 res[name] += [{"class": 0 if seq_tups[window] == -1 else 1,
-                                "range": [start, end]}]
+            tmp_res = {name: []}
+            for start, end in zip(range(0, len(seq)+1), range(8, len(seq)+1)):
+                window = seq[start:end]
+                if window in kmers:
+                    # avoid duplicated entries
+                    if window in tmp:
+                        continue
+                    tmp += [window]
+                    kmers.remove(window)
+                    tmp_res[name] += [{"class": 0 if seq_tups[window] == -1 else 1,
+                                       "range": [start, end]}]
+            res += [tmp_res]
 
          with open(str(output), mode="w") as f:
              yaml.safe_dump(res, f)
@@ -124,24 +120,16 @@ rule get_windows:
 rule combine_classes_yaml:
     input:
          config["fasta_complete_out"],
-         expand(f"data/temp/{TOKEN}/classes_part_{{id}}.yaml",
-                id=get_ids())
+         config["classes_yaml_out"]
     output:
-         config["classes_yaml_out"],
          config["classes_idx_out"]
     run:
          seqs, names = read_fasta(str(input[0]))
 
-         res = []
-         for path in list(input[1:]):
-             with open(path) as f:
-                 data = yaml.safe_load(f)
-             res += [data]
+         with open(input[1]) as f:
+            res =yaml.safe_load(f)
 
-         with open(str(output[0]), mode="w") as f:
-             yaml.safe_dump(res, f)
-
-         with open(str(output[1]), mode="w") as f:
+         with open(str(output), mode="w") as f:
              d = dict([(list(e.keys())[0], i) for i, e in enumerate(res)])
              for n in names:
                  f.write(f"{d[n]}\n")
