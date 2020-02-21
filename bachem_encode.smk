@@ -350,12 +350,9 @@ rule utils_collect_encodings_bachem:
 rule utils_collect_encodings_protease:
     input:
          sequence_based_encodings_in=\
-             # [path for path in glob("data/protease_window_length_8/csv/aaindex/*.csv")],
              expand(rules.meta_workflow_sequence_based_encodings.output,
                     normalized_dataset=PROTEASE_ALL),
          structure_based_encodings_in=\
-             # [path for path in glob("data/protease_window_length_8_complete/csv/*.csv")] + \
-             # [path for path in glob("data/protease_window_length_8_complete/csv/*/*.csv")]
              expand(rules.meta_workflow_structure_based_encodings.output,
                     normalized_dataset=PROTEASE_STRUC) + \
              expand(rules.meta_workflow_structure_based_encodings_windowed.output,
@@ -384,7 +381,11 @@ rule plot_empty_datasets_protease:
          snakefile="nodes/plots/empty_datasets/Snakefile",
          configfile="nodes/plots/empty_datasets/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=[ds for ds in DATASETS if "protease" in ds], cores=CORES) as e:
+         with WorkflowExecuter(dict(input),
+                               dict(output),
+                               params.configfile,
+                               datasets=[ds for ds in DATASETS if "protease" in ds],
+                               cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule plot_empty_datasets_bachem:
@@ -397,7 +398,11 @@ rule plot_empty_datasets_bachem:
          snakefile="nodes/plots/empty_datasets/Snakefile",
          configfile="nodes/plots/empty_datasets/config.yaml"
     run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, datasets=[ds for ds in DATASETS if "bachem" in ds], cores=CORES) as e:
+         with WorkflowExecuter(dict(input),
+                               dict(output),
+                               params.configfile,
+                               datasets=[ds for ds in DATASETS if "bachem" in ds],
+                               cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 
