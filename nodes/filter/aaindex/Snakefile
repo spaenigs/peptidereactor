@@ -1,0 +1,58 @@
+from sklearn.decomposition import PCA
+import pandas as pd
+from glob import glob
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         "filtered.txt"
+
+rule filter_low_correlated_indices:
+    input:
+         "apps/iFeature/data/AAindex.txt"
+    output:
+         temp(f"data/temp/{TOKEN}/low_correlated.csv")
+    run:
+         aaindex = pd.read_csv(str(input), sep="\t", index_col=0)
+         aaindex.columns = aaindex.columns[1:].tolist() + ["NaN"]
+         aaindex = aaindex.iloc[:, :-1].transpose()
+
+         X = aaindex.corr()
+
+         pca = PCA(n_components=1)
+         X_new = pca.fit_transform(X)
+
+         # Encodings with a big separation after PCA, should also have a low correlation.
+         # Conversely, encodings with a low separation after PCA should also have a high correlation.
+         encoding_dist = pd.Series([x[0] for x in X_new], index=aaindex.columns)
+         encoding_dist = ((encoding_dist - encoding_dist.min())/(encoding_dist.max()-encoding_dist.min()))
+         encoding_dist[(0.47 < encoding_dist) & (encoding_dist < 0.53)].to_csv(str(output))
+
+rule filter_files:
+    input:
+         f"data/temp/{TOKEN}/low_correlated.csv",
+         config["base_dir_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/filtered.txt")
+    run:
+         aaindex = pd.read_csv(str(input[0]), index_col=0)
+
+         for idx in aaindex.index:
+             for p in glob(str(input[1]) + f"*{idx}*"):
+                 shell(f"cp {p} {config['csv_dir_out']}")
+
+         shell("touch {output}")
+
+
+
+
+
+
+
+
+
+
+
+
+
