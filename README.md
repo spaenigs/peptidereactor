@@ -1,3 +1,9 @@
+# PEPTIDEREACToR
+
+## Overview
+
+![image info](docs/images/encoding_benchmark.svg)
+
 ## Installation
 
 1. Clone this repo: `git clone git@github.com:spaenigs/proteinreactor.git`
