@@ -18,7 +18,7 @@ wildcard_constraints:
 rule all:
     input:
          config["top_encodings_out"],
-         "collected_phi_correlation.txt"
+         f"data/temp/{TOKEN}/collected_phi_correlation.txt"
 
 rule split_datasets:
     input:
@@ -191,7 +191,7 @@ rule collect_phi_correlation:
          expand(f"data/temp/{TOKEN}/phi_correlation_wl_{{window_length}}.csv",
                 window_length=[8,11,13,15,17,20])
     output:
-         "collected_phi_correlation.txt"
+         f"data/temp/{TOKEN}/collected_phi_correlation.txt"
     run:
          for csv_path in list(input):
              shell(f"cp {csv_path} {config['phi_correlation_out']}")
