@@ -12,10 +12,13 @@ TOKEN = config["token"]
 
 ENCODED_CSVS = glob(config["train_dir_in"] + "*.csv")
 
+wildcard_constraints:
+    window_length="\d+"
+
 rule all:
     input:
          config["top_encodings_out"],
-         config["phi_correlation_out"]
+         "collected_phi_correlation.txt"
 
 rule split_datasets:
     input:
@@ -55,11 +58,13 @@ rule repeated_k_fold_cv:
 
 rule collect_and_remove_insignificant:
     input:
-         expand(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp",
-                dataset_and_encoding=[os.path.basename(path).replace(".csv", "")
-                                      for path in ENCODED_CSVS])
+         lambda wildcards:
+            expand(f"data/temp/{TOKEN}/{{dataset_and_encoding}}.tmp",
+                   dataset_and_encoding=[os.path.basename(path).replace(".csv", "")
+                                         for path in ENCODED_CSVS
+                                         if f"window_length_{wildcards.window_length}" in path])
     output:
-         f"data/temp/{TOKEN}/top_encodings.csv"
+         f"data/temp/{TOKEN}/top_encodings_wl_{{window_length}}.tmp.csv"
     run:
          df_res = pd.DataFrame()
          for path in list(input):
@@ -74,17 +79,17 @@ rule collect_and_remove_insignificant:
          df_res.sort_values(by="mean", ascending=False, inplace=True)
 
          # take top 20% of best encodings
-         to_index = int(0.2*df_res.shape[0])
-         # to_index = df_res.shape[0]
+         # to_index = int(0.2*df_res.shape[0])
+         to_index = df_res.shape[0]
          df_res.iloc[:to_index, :].to_csv(str(output))
 
 rule validate:
     input:
-         f"data/temp/{TOKEN}/top_encodings.csv",
+         f"data/temp/{TOKEN}/top_encodings_wl_{{window_length}}.tmp.csv",
          config["val_dir_in"]
     output:
-         config["top_encodings_out"],
-         f"data/temp/{TOKEN}/top_encodings_diversity.csv"
+         f"data/temp/{TOKEN}/top_encodings_wl_{{window_length}}.csv",
+         f"data/temp/{TOKEN}/top_encodings_diversity_wl_{{window_length}}.csv"
     run:
          def get_train_val(dataset, encoding):
              csv_path = [csv_path for csv_path in ENCODED_CSVS
@@ -131,13 +136,26 @@ rule validate:
          df_res.to_csv(str(output[0]))
          df_diversity.to_csv(str(output[1]))
 
+rule collect_top_encodings:
+    input:
+         expand(f"data/temp/{TOKEN}/top_encodings_wl_{{window_length}}.csv",
+                window_length=[8,11,13,15,17,20])
+    output:
+         config["top_encodings_out"]
+    run:
+         df_res = pd.DataFrame()
+         for csv_path in list(input):
+             df_res = pd.concat([df_res, pd.read_csv(csv_path, index_col=0)])
+
+         df_res.to_csv(str(output))
+
 ## now we have approx. 40 encodings left (when we start with 1000)
 
 rule phi_correlation:
     input:
-         f"data/temp/{TOKEN}/top_encodings_diversity.csv"
+         f"data/temp/{TOKEN}/top_encodings_diversity_wl_{{window_length}}.csv"
     output:
-         config["phi_correlation_out"]
+         f"data/temp/{TOKEN}/phi_correlation_wl_{{window_length}}.csv"
     run:
          df = pd.read_csv(str(input), index_col=0)
 
@@ -157,12 +175,25 @@ rule phi_correlation:
 
          # try different k's (k = 3)
          df_res = pd.DataFrame()
+         wl = wildcards.window_length
          for c in combinations(corr_mat.index, 3):
              tmp = [np.abs(corr_mat.loc[i, j]) for i,j in combinations(c, 2)]
              mean_r = np.mean(tmp)
-             df_tmp = pd.DataFrame(list(c) + tmp + [mean_r] + [False if all([i != 0 for i in tmp]) else True])
+             df_tmp = pd.DataFrame({wl: list(c) + tmp + [mean_r] + [False if all([i != 0 for i in tmp]) else True]})
              df_res = pd.concat([df_res, df_tmp.transpose()])
 
          df_res.columns = ["e1", "e2", "e3", "phi_1", "phi_2", "phi_3", "mean_phi", "phi_zero?"]
          df_res.index = range(df_res.shape[0])
          df_res.to_csv(str(output))
+
+rule collect_phi_correlation:
+    input:
+         expand(f"data/temp/{TOKEN}/phi_correlation_wl_{{window_length}}.csv",
+                window_length=[8,11,13,15,17,20])
+    output:
+         "collected_phi_correlation.txt"
+    run:
+         for csv_path in list(input):
+             shell(f"cp {csv_path} {config['phi_correlation_out']}")
+
+         shell("touch {output}")
