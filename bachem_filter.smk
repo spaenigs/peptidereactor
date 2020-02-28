@@ -71,7 +71,11 @@ rule collect:
 
          def copy_files(file_list):
              for f in file_list:
-                 shell(f"cp {f} {str(output)}")
+                 # refer to #8
+                 if "complete-disorderb" in f or "complete-sseb" in f:
+                     continue
+                 else:
+                     shell(f"cp {f} {str(output)}")
 
          copy_files(
              glob(str(input[0]) + "*.csv") +
