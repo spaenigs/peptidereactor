@@ -53,6 +53,9 @@ rule filter_curse_of_dimensionality:
          for p in glob(str(input[0]) + "*.csv"):
              if sum([1 if enc_type in p else 0 for enc_type in enc_types]) > 0:
                  continue
+             # refer to #9
+             elif "_lsv_" in p or "_sv_" in p:
+                 continue
              else:
                  df = pd.read_csv(p, index_col=0, engine="c")
                  nrows, ncols = df.shape
