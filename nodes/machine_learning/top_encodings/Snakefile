@@ -65,8 +65,8 @@ rule collect_and_remove_insignificant:
          for path in list(input):
              df_tmp = pd.read_csv(path, index_col=0)
              # TODO adjust threshold (0.5)
-             if df_tmp.iloc[0, -2] < 0.05 and df_tmp.iloc[0, -1] >= 0.3:
-                 df_res = pd.concat([df_res, df_tmp])
+             # if df_tmp.iloc[0, -2] <= 0.05 and df_tmp.iloc[0, -1] >= 0.3:
+             df_res = pd.concat([df_res, df_tmp])
 
          colnames = list(df_res.columns)
          colnames[-2], colnames[-1] = "pvalue", "mean"
@@ -75,6 +75,7 @@ rule collect_and_remove_insignificant:
 
          # take top 20% of best encodings
          to_index = int(0.2*df_res.shape[0])
+         # to_index = df_res.shape[0]
          df_res.iloc[:to_index, :].to_csv(str(output))
 
 rule validate:
@@ -100,7 +101,7 @@ rule validate:
          df_diversity = pd.DataFrame()
          for dataset_and_encoding, series in df.iterrows():
 
-             dataset, encoding = dataset_and_encoding.split("-")
+             dataset, encoding = dataset_and_encoding.split("-", maxsplit=1)
              df_train, df_val = get_train_val(dataset, encoding)
 
              # train
