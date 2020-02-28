@@ -6,7 +6,7 @@ TOKEN = config["token"]
 
 rule all:
     input:
-         "filtered.txt"
+         f"data/temp/{TOKEN}/filtered.txt"
 
 rule filter_low_correlated_indices:
     input:
