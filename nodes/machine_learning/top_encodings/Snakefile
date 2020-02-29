@@ -128,6 +128,7 @@ rule validate:
              df_res = pd.concat([df_res, df_tmp])
 
          # take top 20% of best (validated) encodings
+         # TODO decrease or will run forever!
          to_index = int(0.5*df_res.shape[0])
          # to_index = df_res.shape[0]
          df_res = df_res.iloc[:to_index, :]
