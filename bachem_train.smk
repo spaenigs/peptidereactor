@@ -4,6 +4,8 @@ CORES = config["cores"]
 
 # TODO split protease/bachem into separate workflows
 
+wls = [8] # [8, 11, 13, 15, 17, 20]
+
 rule all:
     input:
          # protease
@@ -19,15 +21,15 @@ rule all:
          # "data/bachem/machine_learning/top_encodings.csv",
          # "data/bachem/machine_learning/phi_correlation/",
          expand("data/bachem/machine_learning/ensemble_results_validated/ensemble_results_validated_wl_{wl}.csv",
-                wl=[8, 11, 13, 15, 17, 20]),
+                wl=wls),
          expand("data/bachem/machine_learning/ensemble_results_validated_tuned_hp/ensemble_results_validated_tuned_hp_wl_{wl}.csv",
-                wl=[8, 11, 13, 15, 17, 20]),
+                wl=wls),
          expand("data/bachem/plots/best_model/best_model_cv_{tuning}_wl_{wl}.png",
                 tuning=[0, 1],
-                wl=[8, 11, 13, 15, 17, 20]),
+                wl=wls),
          expand("data/bachem/models/best_model/best_model_{tuning}_wl_{wl}.joblib",
                 tuning=[0, 1],
-                wl=[8, 11, 13, 15, 17, 20])
+                wl=wls)
 
 # rule machine_learning_hold_out_datasets_bachem:
 #     input:
