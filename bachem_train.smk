@@ -109,7 +109,7 @@ rule machine_learning_best_ensemble_bachem:
     run:
          # TODO handle case if no well-erforming encodings have been found
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}} -n""")
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 # rule machine_learning_best_ensemble_protease:
 #     input:
