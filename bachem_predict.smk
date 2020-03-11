@@ -24,7 +24,7 @@ def get_aaindex():
     return df.index.to_list()
 
 def get_encoding_information():
-    d = joblib.load("data/bachem/models/best_model_0.joblib")
+    d = joblib.load("data/bachem/models/best_model_0_wl_8.joblib")
     all, complete = partition(lambda ds: "complete" in ds, list(d.keys())[:3])
     tmp = {"datasets": [],
            "window_lengths": [],
@@ -32,22 +32,43 @@ def get_encoding_information():
            "full_names": list(d.keys())[:3]}
     res = {"all": tmp, "complete": tmp}
     for dataset, encoding in [name.split("-") for name in all]:
-        res["all"]["window_lengths"] += [int(re.search("(\d+)", dataset).group(0))]
+        wl = int(re.search("(\d+)", dataset).group(0))
+        ds = "bachem/" + dataset.replace("bachem", "bachem_predict")
+        res["all"]["window_lengths"] += [] if wl in res["all"]["window_lengths"] else [wl]
         res["all"]["encoding_names"] += [encoding]
+        res["all"]["datasets"] += [] if ds in res["all"]["datasets"] else [ds]
     for dataset, encoding in [name.split("-") for name in all]:
         res["complete"]["window_lengths"] += [int(re.search("(\d+)", dataset).group(0))]
         res["complete"]["encoding_names"] += [encoding]
+        res["complete"]["datasets"] += [dataset]
     return res
 
 ENCODING_PROFILE = get_encoding_information()
+print(ENCODING_PROFILE)
+
+rule all:
+    input:
+         expand("data/bachem/bachem_predict_window_length_{window_length}/seqs.fasta",
+                window_length=ENCODING_PROFILE["all"]["window_lengths"]),
+         expand("data/bachem/bachem_predict_window_length_{window_length}/classes.txt",
+                window_length=ENCODING_PROFILE["all"]["window_lengths"]),
+         expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/seqs.fasta",
+                window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
+         expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/classes.yaml",
+                window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
+         expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/classes.txt",
+                window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
+         expand("data/{normalized_dataset}/seqs_msa.fasta",
+                normalized_dataset=ENCODING_PROFILE["complete"]["datasets"] + ENCODING_PROFILE["all"]["datasets"]),
+         f"data/bachem_predict/csv/predict/non_empty/all/"
 
 rule utils_sliding_windows:
     input:
          series_in=f"data/bachem/series_predict.yaml"
     output:
-         fastas_out=expand(f"data/bachem_window_length_{{window_length}}/seqs.fasta",
+         fastas_out=expand(f"data/bachem/bachem_predict_window_length_{{window_length}}/seqs.fasta",
                            window_length=ENCODING_PROFILE["all"]["window_lengths"]),
-         classes_out=expand(f"data/bachem_window_length_{{window_length}}/classes.txt",
+         classes_out=expand(f"data/bachem/bachem_predict_window_length_{{window_length}}/classes.txt",
                             window_length=ENCODING_PROFILE["all"]["window_lengths"]),
     params:
          snakefile="nodes/utils/sliding_windows/sliding_windows.smk",
@@ -58,16 +79,16 @@ rule utils_sliding_windows:
 
 rule utils_sliding_windows_complete:
     input:
-         series_in=f"data/bachem/series.yaml"
+         series_in=f"data/bachem/series_predict.yaml"
     output:
          fastas_out=\
-             expand(f"data/bachem_window_length_{{window_length}}_complete/seqs.fasta",
+             expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/seqs.fasta",
                     window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
          classes_out=\
-              expand(f"data/bachem_window_length_{{window_length}}_complete/classes.yaml",
+              expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/classes.yaml",
                      window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
          classes_idx_out=\
-              expand(f"data/bachem_window_length_{{window_length}}_complete/classes.txt",
+              expand(f"data/bachem/bachem_predict_window_length_{{window_length}}_complete/classes.txt",
                      window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
     params:
          snakefile="nodes/utils/sliding_windows/sliding_windows_complete.smk",
@@ -93,11 +114,12 @@ rule util_multiple_sequence_alignment:
 encodings_all = \
     ["asa", "ta", "ssec", "sseb", "disorder", "disorderb", "disorderc",
      "qsar", "electrostatic_hull", "distance_distribution", "delaunay"]
-filered_encodings_all = \
-    [e for e in encodings_all if e in ENCODING_PROFILE["all"]["encoding_names"][0]] + \
-    [e for e in encodings_all if e in ENCODING_PROFILE["all"]["encoding_names"][1]] + \
-    [e for e in encodings_all if e in ENCODING_PROFILE["all"]["encoding_names"][2]]
-if len(filered_encodings_all) > 0:
+filtered_encodings_all = \
+    [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][0])] + \
+    [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][1])] + \
+    [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][2])]
+print(filtered_encodings_all)
+if len(filtered_encodings_all) > 0:
     rule meta_workflow_structure_based_profile:
         input:
              fasta_in="data/{normalized_dataset}/seqs.fasta",
@@ -159,11 +181,12 @@ if len(filered_encodings_all) > 0:
 encodings_complete = \
     ["asa", "ta", "ssec", "sseb", "disorder", "disorderb", "disorderc",
      "qsar", "electrostatic_hull", "distance_distribution", "delaunay"]
-filered_encodings_complete = \
-    [e for e in encodings_complete if e in ENCODING_PROFILE["complete"]["encoding_names"][0]] + \
-    [e for e in encodings_complete if e in ENCODING_PROFILE["complete"]["encoding_names"][1]] + \
-    [e for e in encodings_complete if e in ENCODING_PROFILE["complete"]["encoding_names"][2]]
-if len(filered_encodings_complete) > 0:
+filtered_encodings_complete = \
+    [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][0])] + \
+    [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][1])] + \
+    [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][2])]
+print(filtered_encodings_complete)
+if len(filtered_encodings_complete) > 0:
     rule meta_workflow_structure_based_profile_windowed:
         input:
              fasta_in="data/{normalized_dataset}/seqs.fasta",
@@ -228,11 +251,11 @@ encodings_seq = ["zscale", "tpc", "gtpc", "gdpc", "gaac", "dpc", "dde", "ctdt", 
                  "aac", "ctriad", "blomap", "egaac", "aaindex", "fft", "waac", "flgc", "fldpc", "ngram", "cgr",
                  "distance_frequency", "cksaap", "cksaagp", "socnumber", "qsorder", "nmbroto", "moran", "ksctriad",
                  "geary", "eaac", "apaac", "paac", "psekraac"]
-filered_encodings_seq = \
-    [e for e in encodings_seq if e in ENCODING_PROFILE["complete"]["encoding_names"][0]] + \
-    [e for e in encodings_seq if e in ENCODING_PROFILE["complete"]["encoding_names"][1]] + \
-    [e for e in encodings_seq if e in ENCODING_PROFILE["complete"]["encoding_names"][2]]
-if len(filered_encodings_seq) > 0:
+filtered_encodings_seq = \
+    [e for e in encodings_seq if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][0])] + \
+    [e for e in encodings_seq if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][1])] + \
+    [e for e in encodings_seq if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][2])]
+if len(filtered_encodings_seq) > 0:
     rule meta_workflow_sequence_based_encodings:
         input:
              fasta_in="data/{normalized_dataset}/seqs.fasta",
@@ -439,21 +462,21 @@ rule utils_collect_encodings:
          sequence_based_encodings_in=\
              expand(rules.meta_workflow_sequence_based_encodings.output,
                     normalized_dataset=ENCODING_PROFILE["all"]["datasets"]) \
-                 if len(filered_encodings_seq) > 0 else [],
+                 if len(filtered_encodings_seq) > 0 else [],
          structure_based_encodings_in=\
              expand(rules.meta_workflow_structure_based_encodings.output,
                     normalized_dataset=ENCODING_PROFILE["all"]["datasets"]) \
-                 if len(filered_encodings_all) > 0 else [] + \
+                 if len(filtered_encodings_all) > 0 else [] + \
              expand(rules.meta_workflow_structure_based_encodings_windowed.output,
                     normalized_dataset=ENCODING_PROFILE["complete"]["datasets"]) \
-                 if len(filered_encodings_complete) > 0 else []
+                 if len(filtered_encodings_complete) > 0 else []
     output:
          sequence_based_encodings_out=\
-             directory(f"data/bachem/csv/sequence_based/"),
+             directory(f"data/bachem_predict/csv/predict/sequence_based/"),
          structure_based_encodings_out=\
-             directory(f"data/bachem/csv/structure_based/"),
+             directory(f"data/bachem_predict/csv/predict/structure_based/"),
          csv_dir_out=\
-             directory(f"data/bachem/csv/non_empty/all/")
+             directory(f"data/bachem_predict/csv/predict/non_empty/all/")
     params:
          snakefile="nodes/utils/collect_encodings/Snakefile",
          configfile="nodes/utils/collect_encodings/config.yaml"
@@ -461,4 +484,39 @@ rule utils_collect_encodings:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-# rule predict:
+rule predict:
+    input:
+         "data/bachem/models/best_model/best_model_0_wl_{window_length}.joblib",
+         f"data/bachem_predict/csv/predict/non_empty/all/"
+    output:
+         "data/temp/bachem_predict/final_predictions_0_wl_{window_length}.yaml"
+    run:
+         from glob import glob
+
+         # {name_1: brf_encoding_1, name_2: brf_encoding_2, name_3: brf_encoding_3, "predict_fn": predict_fn}
+         model = joblib.load(str(input[0]))
+         ensemble_predict_fn = model["predict_fn"]
+
+         encoding_name_1, encoding_name_2, encoding_name_3 = \
+             list(model.keys())[:-1]
+
+         # y_pred_encoding_3 = brf_encoding_3.predict(X_encoding_3_val)
+
+         # for encoding_name in list(model.keys())[:-1]:
+         def predict_weak_learner(encoding_name):
+            csv_path = glob(str(input[1]) + f"*{encoding_name}*")[0]
+            df = pd.read_csv(csv_path, index_col=0)
+            X = df.iloc[:,:1].values
+            return model[encoding_name].predict(X)
+
+         y_preds_1 = predict_weak_learner(encoding_name_1)
+         y_preds_2 = predict_weak_learner(encoding_name_2)
+         y_preds_3 = predict_weak_learner(encoding_name_3)
+
+         final_y_pred = ensemble_predict_fn(y_preds_1, y_preds_2, y_preds_3)
+
+
+
+
+
+
