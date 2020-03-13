@@ -24,23 +24,27 @@ def get_aaindex():
     return df.index.to_list()
 
 def get_encoding_information():
-    d = joblib.load("data/bachem/models/best_model_0_wl_8.joblib")
-    all, complete = partition(lambda ds: "complete" in ds, list(d.keys())[:3])
     tmp = {"datasets": [],
            "window_lengths": [],
            "encoding_names": [],
-           "full_names": list(d.keys())[:3]}
+           "full_names": []}
     res = {"all": tmp, "complete": tmp}
-    for dataset, encoding in [name.split("-") for name in all]:
-        wl = int(re.search("(\d+)", dataset).group(0))
-        ds = "bachem/" + dataset.replace("bachem", "bachem_predict")
-        res["all"]["window_lengths"] += [] if wl in res["all"]["window_lengths"] else [wl]
-        res["all"]["encoding_names"] += [encoding]
-        res["all"]["datasets"] += [] if ds in res["all"]["datasets"] else [ds]
-    for dataset, encoding in [name.split("-") for name in all]:
-        res["complete"]["window_lengths"] += [int(re.search("(\d+)", dataset).group(0))]
-        res["complete"]["encoding_names"] += [encoding]
-        res["complete"]["datasets"] += [dataset]
+    for wl in [8, 11]:
+        d = joblib.load(f"data/bachem/models/best_model_0_wl_{wl}.joblib")
+        res["all"]["full_names"] += list(d.keys())[:3]
+        res["complete"]["full_names"] += list(d.keys())[:3]
+        print(list(d.keys()))
+        all, complete = partition(lambda ds: "complete" in ds, list(d.keys())[:3])
+        for dataset, encoding in [name.split("-") for name in all]:
+            wl = int(re.search("(\d+)", dataset).group(0))
+            ds = "bachem/" + dataset.replace("bachem", "bachem_predict")
+            res["all"]["window_lengths"] += [] if wl in res["all"]["window_lengths"] else [wl]
+            res["all"]["encoding_names"] += [encoding]
+            res["all"]["datasets"] += [] if ds in res["all"]["datasets"] else [ds]
+        for dataset, encoding in [name.split("-") for name in all]:
+            res["complete"]["window_lengths"] += [int(re.search("(\d+)", dataset).group(0))]
+            res["complete"]["encoding_names"] += [encoding]
+            res["complete"]["datasets"] += [dataset]
     return res
 
 ENCODING_PROFILE = get_encoding_information()
@@ -60,7 +64,7 @@ rule all:
                 window_length=ENCODING_PROFILE["complete"]["window_lengths"]),
          expand("data/{normalized_dataset}/seqs_msa.fasta",
                 normalized_dataset=ENCODING_PROFILE["complete"]["datasets"] + ENCODING_PROFILE["all"]["datasets"]),
-         f"data/bachem_predict/csv/predict/non_empty/all/"
+         # f"data/bachem_predict/csv/predict/non_empty/all/"
 
 rule utils_sliding_windows:
     input:
@@ -118,7 +122,6 @@ filtered_encodings_all = \
     [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][0])] + \
     [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][1])] + \
     [e for e in encodings_all if re.search("^" + e, ENCODING_PROFILE["all"]["encoding_names"][2])]
-print(filtered_encodings_all)
 if len(filtered_encodings_all) > 0:
     rule meta_workflow_structure_based_profile:
         input:
@@ -185,7 +188,6 @@ filtered_encodings_complete = \
     [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][0])] + \
     [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][1])] + \
     [e for e in encodings_complete if re.search("^" + e, ENCODING_PROFILE["complete"]["encoding_names"][2])]
-print(filtered_encodings_complete)
 if len(filtered_encodings_complete) > 0:
     rule meta_workflow_structure_based_profile_windowed:
         input:
@@ -493,16 +495,12 @@ rule predict:
     run:
          from glob import glob
 
-         # {name_1: brf_encoding_1, name_2: brf_encoding_2, name_3: brf_encoding_3, "predict_fn": predict_fn}
          model = joblib.load(str(input[0]))
          ensemble_predict_fn = model["predict_fn"]
 
          encoding_name_1, encoding_name_2, encoding_name_3 = \
              list(model.keys())[:-1]
 
-         # y_pred_encoding_3 = brf_encoding_3.predict(X_encoding_3_val)
-
-         # for encoding_name in list(model.keys())[:-1]:
          def predict_weak_learner(encoding_name):
             csv_path = glob(str(input[1]) + f"*{encoding_name}*")[0]
             df = pd.read_csv(csv_path, index_col=0)
@@ -514,6 +512,19 @@ rule predict:
          y_preds_3 = predict_weak_learner(encoding_name_3)
 
          final_y_pred = ensemble_predict_fn(y_preds_1, y_preds_2, y_preds_3)
+
+
+
+
+
+rule collect_models:
+    input:
+        expand("data/temp/bachem_predict/final_predictions_0_wl_{window_length}.yaml",
+               window_length=[8,11])
+    output:
+        "data/temp/bachem_predict/final_predictions_0_complete.yaml"
+    run:
+        pass
 
 
 
