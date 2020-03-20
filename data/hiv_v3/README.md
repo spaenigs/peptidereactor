@@ -7,5 +7,5 @@
      
 ##### References:
 
-     Dybowski J.N., Heider D., Hoffmann D. PLoS Computational Biology
-     2010, 6(4): e1000743.
+     Dybowski J.N., Heider D., Hoffmann D., Prediction of co-receptor usage of HIV-1 from genotype.
+     PLoS Computational Biology 2010, 6(4): e1000743.
