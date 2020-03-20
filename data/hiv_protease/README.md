@@ -1,8 +1,14 @@
 # HIV-1 protease cleavage Data Set
 
-https://archive.ics.uci.edu/ml/datasets/HIV-1+protease+cleavage
+##### Description
 
-### Reference
+    From [1]: The data contains lists of octamers (8 amino acids) and a flag (-1 or 1) depending on whether 
+    HIV-1 protease will cleave in the central position (between amino acids 4 and 5
 
-Thorsteinn Rögnvaldsson, Liwen You and Daniel Garwicz, 'State of the art prediction of HIV-1 protease cleavage sites' Bioinformatics (2015) 31 (8): 1204-1210. doi: 10.1093/bioinformatics/btu810, First published online: December 9, 2014
+    [1] https://archive.ics.uci.edu/ml/datasets/HIV-1+protease+cleavage
+
+##### Reference
+
+    Rögnvaldsson T., You L., Garwicz D. Bioinformatics 2015, 
+    31 (8): 1204-1210. doi: 10.1093/bioinformatics/btu810
 
