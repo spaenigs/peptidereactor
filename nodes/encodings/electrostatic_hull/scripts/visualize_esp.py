@@ -21,11 +21,11 @@ from Bio.PDB import PDBParser
 from pymol.cgo import *
 from pymol import cmd
 
-# cmd.load("/media/spaenigs/4B1DB7375F3291A1/eb/data/temp/096e1693/HAntifreeze.pqr")
+# cmd.load("/media/spaenigs/4B1DB7375F3291A1/peptidereactor/data/temp/096e1693/HAntifreeze.pqr")
 cmd.load("FULL_PATH_TO_PQR")
-# cmd.load("/media/spaenigs/4B1DB7375F3291A1/eb/data/temp/096e1693/HAntifreeze.esp.dx")
+# cmd.load("/media/spaenigs/4B1DB7375F3291A1/peptidereactor/data/temp/096e1693/HAntifreeze.esp.dx")
 cmd.load("FULL_PATH_TO_ESP_DX")
-# points = pd.read_csv("/media/spaenigs/4B1DB7375F3291A1/eb/data/temp/096e1693/HAntifreeze_6.eh.csv")
+# points = pd.read_csv("/media/spaenigs/4B1DB7375F3291A1/peptidereactor/data/temp/096e1693/HAntifreeze_6.eh.csv")
 points = pd.read_csv("FULL_PATH_TO_POINTS")
 
 # w = 0.06 # cylinder width

@@ -9,14 +9,14 @@ from gridData import Grid
 from pymol.cgo import *
 from pymol import cmd
 
-cmd.load("/home/spaenigs/PycharmProjects/eb/data/temp/096e1693/HAntifreeze.pqr")
-cmd.load("/home/spaenigs/PycharmProjects/eb/data/temp/096e1693/HAntifreeze.esp.dx")
-points = pd.read_csv("/home/spaenigs/PycharmProjects/eb/data/temp/096e1693/HAntifreeze_6.eh.csv")
+cmd.load("/home/spaenigs/PycharmProjects/peptidereactor/data/temp/096e1693/HAntifreeze.pqr")
+cmd.load("/home/spaenigs/PycharmProjects/peptidereactor/data/temp/096e1693/HAntifreeze.esp.dx")
+points = pd.read_csv("//data/temp/096e1693/HAntifreeze_6.eh.csv")
 
 # structure = PDBParser()\
 #     .get_structure("test", "FULL_PATH_TO_PDB")
 
-g = Grid("/home/spaenigs/PycharmProjects/eb/data/temp/096e1693/HAntifreeze.esp.dx")
+g = Grid("/home/spaenigs/PycharmProjects/peptidereactor/data/temp/096e1693/HAntifreeze.esp.dx")
 sphere_list = []
 for x in range(0, 225, 5):
     for y in range(0, 225, 5):
