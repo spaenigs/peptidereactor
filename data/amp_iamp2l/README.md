@@ -2,7 +2,8 @@
 
 ##### Description
 
-    The benchmark dataset of [1]. Downloaded from http://www.jci-bioinfo.cn/iAMP/Supp-S1.pdf. Also used in [2] and [3].
+    The benchmark dataset of [1]. Downloaded from http://www.jci-bioinfo.cn/iAMP/Supp-S1.pdf. Also used in [2], [3]
+    and [4].
     
 ##### Reference
 
@@ -14,3 +15,6 @@
     [3] Boone, K., Camarda, K., Spencer, P. et al. Antimicrobial peptide similarity and classification through 
         rough set theory using physicochemical boundaries. BMC Bioinformatics (2018), 19 (469):
         https://doi.org/10.1186/s12859-018-2514-6
+    [4] Veltri, D., Kamath U. and Shehu A., Improving Recognition of Antimicrobial Peptides and Target Selectivity 
+        through Machine Learning and Genetic Programming. IEEE/ACM Transactions on Computational Biology and 
+        Bioinformatics (2017), 14 (2)
