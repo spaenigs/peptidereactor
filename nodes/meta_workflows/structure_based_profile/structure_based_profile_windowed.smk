@@ -2,7 +2,7 @@ import os, sys
 
 sys.path.append(os.getcwd())
 
-from proteinreactor.workflow_executer import WorkflowExecuter
+from peptidereactor.workflow_executer import WorkflowExecuter
 
 TOKEN = config["token"]
 CORES = config["cores"]

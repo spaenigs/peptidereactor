@@ -2,7 +2,7 @@ import os, sys
 
 sys.path.append(os.getcwd())
 
-from proteinreactor.workflow_executer import WorkflowExecuter
+from peptidereactor.workflow_executer import WorkflowExecuter
 
 DATASET = "bachem"
 DATASETS = ["bachem_window_length_8"]

@@ -1,4 +1,4 @@
-from proteinreactor.workflow_executer import WorkflowExecuter
+from peptidereactor.workflow_executer import WorkflowExecuter
 
 CORES = config["cores"]
 

@@ -1,4 +1,4 @@
-from proteinreactor.workflow_executer import WorkflowExecuter, MetaWorkflowExecuter
+from peptidereactor.workflow_executer import WorkflowExecuter, MetaWorkflowExecuter
 from more_itertools import partition
 import joblib
 import re
