@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-docker build -t encoding_benchmark apps/ --force-rm=true
+docker build -t peptidereactor apps/ --force-rm=true
 
 if [ $? -eq 127 ]; then
   echo "Please install docker first (requires sudo privileges): ./apps/install_docker_[ce|io]"

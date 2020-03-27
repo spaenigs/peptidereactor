@@ -16,14 +16,14 @@ RUN chmod -R 777 iFeature/data/
 ADD environment.yaml environment.yaml
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
-    && echo "conda activate encoding_benchmark" >> ~/.bashrc
+    && echo "conda activate peptidereactor" >> ~/.bashrc
 
-ENV PATH /opt/conda/envs/encoding_benchmark/bin:$PATH
+ENV PATH /opt/conda/envs/peptidereactor/bin:$PATH
 
 RUN echo $PATH
 RUN conda env list
 
-RUN chmod -R 777 /opt/conda/envs/encoding_benchmark/lib/modeller-9.23/modlib/modeller/
+RUN chmod -R 777 /opt/conda/envs/peptidereactor/lib/modeller-9.23/modlib/modeller/
 
 VOLUME /snakemake
 WORKDIR /snakemake

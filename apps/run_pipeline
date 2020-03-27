@@ -2,14 +2,14 @@
 
 smk_args=$@
 
-if docker image inspect encoding_benchmark > /dev/null 2>&1; then
+if docker image inspect peptidereactor > /dev/null 2>&1; then
   docker run -v $PWD:/snakemake \
            -v $PWD/data:/snakemake/data \
            -v $DB_DIR:/snakemake/db_tmp \
            -u `id -u $USER` \
-           encoding_benchmark $smk_args
+           peptidereactor $smk_args
   rm -rf db_tmp/
 else
-  echo "Image for encoding_benchmark not found. Please create image first: ./apps/build_image"
+  echo "Image for peptidereactor not found. Please create image first: ./apps/build_image"
   exit 1
 fi

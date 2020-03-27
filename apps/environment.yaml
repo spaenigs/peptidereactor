@@ -1,4 +1,4 @@
-name: encoding_benchmark
+name: peptidereactor
 channels:
   - bioconda
   - anaconda
