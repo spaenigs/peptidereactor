@@ -2,7 +2,7 @@
 
 ## Overview
 
-![image info](docs/images/encoding_benchmark.svg)
+![image info](docs/images/peptidereactor.svg)
 
 ## Installation
 
@@ -22,19 +22,19 @@
 ### Save/load docker image
 
 ```shell script
-docker save encoding_benchmark > encoding_benchmark.tar
-docker load < docker/encoding_benchmark.tar
+docker save peptidereactor > peptidereactor.tar
+docker load < docker/peptidereactor.tar
 ```
 
 ### Override entrypoint
 e.g.
 ```shell script
-docker run --entrypoint "ls" encoding_benchmark -l /
-docker run --entrypoint "wget" encoding_benchmark http://raptorx.uchicago.edu/
+docker run --entrypoint "ls" peptidereactor -l /
+docker run --entrypoint "wget" peptidereactor http://raptorx.uchicago.edu/
 ```
 or even access it interactively
 ```shell script
-docker run -it --entrypoint "/bin/bash" encoding_benchmark
+docker run -it --entrypoint "/bin/bash" peptidereactor
 ```
 
 ## Pipeline
@@ -42,7 +42,7 @@ docker run -it --entrypoint "/bin/bash" encoding_benchmark
 ### Create DAG of meta jobs
 
 ```shell script
-./apps/run_pipeline -s encoding_benchmark.smk \ 
+./apps/run_pipeline -s peptidereactor.smk \ 
                     --config dataset=neuropeptides_ds3 \ 
                     --dag | dot -Tpdf > dag.pdf
 ```
@@ -71,7 +71,7 @@ or set the maximum dimension manually:
 ```
 Finally, execute the pipeline:
 ```shell script
-./apps/run_pipeline -s encoding_benchmark.smk --config dataset=neuropeptides_ds1
+./apps/run_pipeline -s peptidereactor.smk --config dataset=neuropeptides_ds1
 ```
 
 #### Run pipelines isolated
@@ -180,7 +180,7 @@ and `config["sdfs_out"]`.
     ```
 5) Add all necessary external dependencies to `apps/environment.yaml`, in this case `openbabel`:
     ```yaml
-    name: encoding_benchmark
+    name: peptidereactor
     channels:
       ...
       - openbabel
@@ -194,7 +194,7 @@ and `config["sdfs_out"]`.
     ```shell script
     ./apps/delete_container
     ```
-    Afterwards, rebuild the `encoding_benchmark` docker container with 
+    Afterwards, rebuild the `peptidereactor` docker container with 
     ```shell script
     ./apps/build_container
     ``` 
