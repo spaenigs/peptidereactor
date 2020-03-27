@@ -18,3 +18,5 @@
     [4] Veltri, D., Kamath U. and Shehu A., Improving Recognition of Antimicrobial Peptides and Target Selectivity 
         through Machine Learning and Genetic Programming. IEEE/ACM Transactions on Computational Biology and 
         Bioinformatics (2017), 14 (2)
+    [5] Lin W., Xu D., Imbalanced multi-label learning for identifying antimicrobial peptides and their functional 
+        types. Bioinformatics (2016), 32 (24): https://doi.org/10.1093/bioinformatics/btw560
