@@ -4,9 +4,6 @@ sys.path.append(os.getcwd())
 
 from peptidereactor.workflow_executer import WorkflowExecuter
 
-DATASET = "bachem"
-DATASETS = ["bachem_window_length_8"]
-DATASETS_COMPLETE = [n + "_complete" for n in DATASETS]
 CORES = int(config["cores"])
 TOKEN = config["token"]
 
@@ -24,17 +21,17 @@ rule all:
          config["distance_distribution_out"],
          config["delaunay_out"]
 
-rule utils_validate_sequence_names:
-    input:
-         fasta_in=config["fasta_in"]
-    output:
-         fasta_out=temp(f"data/temp/{TOKEN}/seqs_validated.fasta")
-    params:
-         snakefile="nodes/utils/validate_sequence_names/Snakefile",
-         configfile="nodes/utils/validate_sequence_names/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+# rule utils_validate_sequence_names:
+#     input:
+#          fasta_in=config["fasta_in"]
+#     output:
+#          fasta_out=temp(f"data/temp/{TOKEN}/seqs_validated.fasta")
+#     params:
+#          snakefile="nodes/utils/validate_sequence_names/Snakefile",
+#          configfile="nodes/utils/validate_sequence_names/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule encoding_asa_windowed:
     input:
