@@ -1,4 +1,4 @@
-name: peptidereactor
+name: peptidereactor-env
 channels:
   - bioconda
   - anaconda

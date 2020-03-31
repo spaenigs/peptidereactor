@@ -1,9 +1,8 @@
-db/
-psipred/
-spineXpublic/
-VSL2/
-RaptorX/
-Interpol/
+../db/
+../psipred/
+../spineXpublic/
+../VSL2/
+../RaptorX/
 build_image
 delete_container
 install_docker_ce

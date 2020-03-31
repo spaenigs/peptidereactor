@@ -13,17 +13,17 @@ RUN apt-get update && apt-get install -y pdb2pqr apbs
 ADD iFeature/ iFeature/
 RUN chmod -R 777 iFeature/data/
 
-ADD environment.yaml environment.yaml
+ADD conda/environment.yaml environment.yaml
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
-    && echo "conda activate peptidereactor" >> ~/.bashrc
+    && echo "conda activate peptidereactor-env" >> ~/.bashrc
 
-ENV PATH /opt/conda/envs/peptidereactor/bin:$PATH
+ENV PATH /opt/conda/envs/peptidereactor-env/bin:$PATH
 
 RUN echo $PATH
 RUN conda env list
 
-RUN chmod -R 777 /opt/conda/envs/peptidereactor/lib/modeller-9.23/modlib/modeller/
+RUN chmod -R 777 /opt/conda/envs/peptidereactor-env/lib/modeller-9.23/modlib/modeller/
 
 VOLUME /snakemake
 WORKDIR /snakemake
