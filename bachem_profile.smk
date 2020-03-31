@@ -71,7 +71,7 @@ rule utils_sliding_windows:
     input:
          series_in=f"data/bachem/series.yaml"
     output:
-         fastas_out=expand(f"data/bachem_window_length_{{window_length}}/seqs.fasta", window_length=WINDOW_LENGTHS),
+         fastas_out=temp(expand(f"data/bachem_window_length_{{window_length}}/seqstmp.fasta", window_length=WINDOW_LENGTHS)),
          classes_out=expand(f"data/bachem_window_length_{{window_length}}/classes.txt", window_length=WINDOW_LENGTHS),
     params:
          snakefile="nodes/utils/sliding_windows/sliding_windows.smk",
@@ -84,7 +84,7 @@ rule utils_sliding_windows_complete:
     input:
          series_in=f"data/bachem/series.yaml"
     output:
-         fastas_out=expand(f"data/bachem_window_length_{{window_length}}_complete/seqs.fasta", window_length=WINDOW_LENGTHS),
+         fastas_out=temp(expand(f"data/bachem_window_length_{{window_length}}_complete/seqstmp.fasta", window_length=WINDOW_LENGTHS)),
          classes_out=expand(f"data/bachem_window_length_{{window_length}}_complete/classes.yaml", window_length=WINDOW_LENGTHS),
          classes_idx_out=expand(f"data/bachem_window_length_{{window_length}}_complete/classes.txt", window_length=WINDOW_LENGTHS),
     params:
@@ -98,7 +98,7 @@ rule utils_protein_dataset_creation:
     input:
          dataset_in="data/protease/impensData.txt",
     output:
-         fasta_out="data/protease_window_length_8/seqs.fasta",
+         fasta_out=temp("data/protease_window_length_8/seqstmp.fasta"),
          classes_out="data/protease_window_length_8/classes.txt"
     params:
          snakefile="nodes/utils/protein_dataset_creation/protein_dataset_creation.smk",
@@ -122,6 +122,19 @@ rule utils_protein_dataset_creation_complete:
          configfile="nodes/utils/protein_dataset_creation/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+
+rule utils_map_sequence_names:
+    input:
+         fasta_in="data/{normalized_dataset}/seqstmp.fasta"
+    output:
+         fasta_out="data/{normalized_dataset}/seqs.fasta",
+         maps_out="data/{normalized_dataset}/misc/maps.yaml"
+    params:
+         snakefile="nodes/utils/map_sequence_names/Snakefile",
+         configfile="nodes/utils/map_sequence_names/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES, dataset="bachem") as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule util_multiple_sequence_alignment:
