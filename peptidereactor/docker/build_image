@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+docker build -t peptidereactor-img peptidereactor/ --force-rm=true
+
+if [ $? -eq 127 ]; then
+  echo "Please install docker first (requires sudo privileges): ./peptidereactor/docker/install_docker_[ce|io]"
+fi
