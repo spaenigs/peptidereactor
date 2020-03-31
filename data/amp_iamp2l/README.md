@@ -2,8 +2,8 @@
 
 ##### Description
 
-    The benchmark dataset of [1]. Downloaded from http://www.jci-bioinfo.cn/iAMP/Supp-S1.pdf. Also used in [2], [3]
-    and [4].
+    The benchmark dataset of [1]. Downloaded from http://www.jci-bioinfo.cn/iAMP/Supp-S1.pdf. Also used in [2], [3], [4],
+    [5] and [6].
     
 ##### Reference
 
@@ -20,3 +20,5 @@
         Bioinformatics (2017), 14 (2)
     [5] Lin W., Xu D., Imbalanced multi-label learning for identifying antimicrobial peptides and their functional 
         types. Bioinformatics (2016), 32 (24): https://doi.org/10.1093/bioinformatics/btw560
+    [6] Veltri D., Kamath U., Shehu S., Deep learning improves antimicrobial peptide recognition. 
+        Bioinformatics (2018), 34 (16): https://doi.org/10.1093/bioinformatics/bty179
