@@ -1,5 +1,4 @@
 from modlamp.core import read_fasta, save_fasta
-from more_itertools import chunked
 import yaml
 
 rule all:
