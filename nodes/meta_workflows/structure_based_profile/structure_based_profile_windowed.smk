@@ -17,29 +17,29 @@ rule all:
          config["classes_anno_pdbs_idx_out"],
          config["pdb_out"]
 
-rule utils_validate_sequence_names:
-    input:
-         fasta_in=config["fasta_in"]
-    output:
-         fasta_out=temp(f"data/temp/{TOKEN}/seqs_validated.fasta")
-    params:
-         snakefile="nodes/utils/validate_sequence_names/Snakefile",
-         configfile="nodes/utils/validate_sequence_names/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+# rule utils_validate_sequence_names:
+#     input:
+#          fasta_in=config["fasta_in"]
+#     output:
+#          fasta_out=temp(f"data/temp/{TOKEN}/seqs_validated.fasta")
+#     params:
+#          snakefile="nodes/utils/validate_sequence_names/Snakefile",
+#          configfile="nodes/utils/validate_sequence_names/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule utils_validate_sequence_names_msa:
-    input:
-         fasta_in=config["fasta_msa_in"]
-    output:
-         fasta_out=temp(f"data/temp/{TOKEN}/seqs_msa_validated.fasta")
-    params:
-         snakefile="nodes/utils/validate_sequence_names/Snakefile",
-         configfile="nodes/utils/validate_sequence_names/config.yaml"
-    run:
-         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+# rule utils_validate_sequence_names_msa:
+#     input:
+#          fasta_in=config["fasta_msa_in"]
+#     output:
+#          fasta_out=temp(f"data/temp/{TOKEN}/seqs_msa_validated.fasta")
+#     params:
+#          snakefile="nodes/utils/validate_sequence_names/Snakefile",
+#          configfile="nodes/utils/validate_sequence_names/config.yaml"
+#     run:
+#          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+#              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
 rule util_secondary_structure_profile:
     input:
