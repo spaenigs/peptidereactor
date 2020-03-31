@@ -6,7 +6,7 @@ NORMALIZED_DATASETS = expand("{dataset}_{id}", dataset=DATASETS, id=["ds1"]) #, 
 CORES = 4
 
 def get_aaindex():
-    df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
+    df = pd.read_csv("peptidereactor/iFeature/data/AAindex.txt", sep="\t", index_col=0)
     df.columns = df.columns[1:].tolist() + ["NaN"]
     df = df.iloc[:, :-1]
     return df.index.to_list()
@@ -633,7 +633,7 @@ rule encoding_fft:
 rule encoding_waac:
     input:
          csv_in="data/{normalized_dataset}/csv/aac.csv",
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
+         aaindex_in="peptidereactor/iFeature/data/AAindex.tsv"
     output:
          csv_out=expand("data/{{normalized_dataset}}/csv/waac/waac_{aaindex}.csv",
                         aaindex=get_aaindex())
@@ -647,7 +647,7 @@ rule encoding_waac:
 rule encoding_flgc:
     input:
          csv_in="data/{normalized_dataset}/csv/aac.csv",
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
+         aaindex_in="peptidereactor/iFeature/data/AAindex.tsv"
     output:
          csv_out=expand("data/{{normalized_dataset}}/csv/flgc/flgc_{aaindex}.csv",
                         aaindex=get_aaindex())
@@ -661,7 +661,7 @@ rule encoding_flgc:
 rule encoding_fldpc:
     input:
          csv_in="data/{normalized_dataset}/csv/dpc.csv",
-         aaindex_in="apps/iFeature/data/AAindex.tsv"
+         aaindex_in="peptidereactor/iFeature/data/AAindex.tsv"
     output:
          csv_out=expand("data/{{normalized_dataset}}/csv/fldpc/fldpc_{aaindex}.csv",
                         aaindex=get_aaindex())

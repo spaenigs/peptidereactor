@@ -10,7 +10,7 @@ rule all:
 
 rule filter_low_correlated_indices:
     input:
-         "apps/iFeature/data/AAindex.txt"
+         "peptidereactor/iFeature/data/AAindex.txt"
     output:
          temp(f"data/temp/{TOKEN}/low_correlated.csv")
     run:

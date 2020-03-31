@@ -20,7 +20,7 @@ rule encode:
          seqs, names = read_fasta(str(input[0]))
          fastas = [[n, s] for s, n in zip(seqs, names)]
 
-         # adapted from apps/iFeature/codes/DisorderB.py
+         # adapted from peptidereactor/iFeature/codes/DisorderB.py
          enco = {"enco_seqs": {}}
          for name, sequence in fastas:
 

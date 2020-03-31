@@ -42,7 +42,7 @@ docker run -it --entrypoint "/bin/bash" peptidereactor
 ### Create DAG of meta jobs
 
 ```shell script
-./apps/run_pipeline -s peptidereactor.smk \ 
+./peptidereactor/run_pipeline -s peptidereactor.smk \ 
                     --config dataset=neuropeptides_ds3 \ 
                     --dag | dot -Tpdf > dag.pdf
 ```
@@ -50,7 +50,7 @@ docker run -it --entrypoint "/bin/bash" peptidereactor
 ### Split datasets, if necessary
 
 ```shell script
-./apps/run_pipeline -s create_datasets.smk --config dataset=neuropeptides
+./peptidereactor/run_pipeline -s create_datasets.smk --config dataset=neuropeptides
 ```
 
 ### Encoding benchmark
@@ -62,22 +62,22 @@ mkdir data/neuropeptides_ds1/profile
 Make sure, that the parameter-based encodings are set (or set them manually). See, e.g., 
 `apps/iFeature/codes/ksctriad.py` for details.
 ```shell script
-./apps/run_pipeline -s maximum_window_length.smk --config dataset=neuropeptides_ds1
+./peptidereactor/run_pipeline -s maximum_window_length.smk --config dataset=neuropeptides_ds1
 ```
 Moreover, ngram-based encodings require a predetermined dimension. Either run the respective rule 
 or set the maximum dimension manually:
 ```shell script
-./apps/run_pipeline -s maximum_dim_size.smk --config dataset=neuropeptides_ds1
+./peptidereactor/run_pipeline -s maximum_dim_size.smk --config dataset=neuropeptides_ds1
 ```
 Finally, execute the pipeline:
 ```shell script
-./apps/run_pipeline -s peptidereactor.smk --config dataset=neuropeptides_ds1
+./peptidereactor/run_pipeline -s peptidereactor.smk --config dataset=neuropeptides_ds1
 ```
 
 #### Run pipelines isolated
 
 ```shell script
-./apps/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \
+./peptidereactor/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \
 data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file
 --config dataset="neuropeptides_ds3" \
          fasta_in="data/neuropeptides_ds3/seqs.fasta" \    
@@ -192,11 +192,11 @@ and `config["sdfs_out"]`.
     ```
     First, if necessary, remove redundant containers with 
     ```shell script
-    ./apps/delete_container
+    ./peptidereactor/delete_container
     ```
     Afterwards, rebuild the `peptidereactor` docker container with 
     ```shell script
-    ./apps/build_container
+    ./peptidereactor/build_container
     ``` 
     
 6) Implement the algorithm in the `Snakefile` (see #4) and call it in the meta workflow as follows:

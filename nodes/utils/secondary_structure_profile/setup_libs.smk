@@ -33,9 +33,9 @@ rule unzip_libs:
     input:
          f"data/temp/{TOKEN}/{{target}}.tar.gz"
     output:
-         "apps/{target}/{target}_moved.txt"
+         "peptidereactor/{target}/{target}_moved.txt"
     shell:
          """
-         tar xzf {input} -C apps/;
+         tar xzf {input} -C peptidereactor/;
          touch {output};
          """

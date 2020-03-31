@@ -18,7 +18,7 @@ CORES = config["cores"]
 # [ ] 5) predict in model
 
 def get_aaindex():
-    df = pd.read_csv("apps/iFeature/data/AAindex.txt", sep="\t", index_col=0)
+    df = pd.read_csv("peptidereactor/iFeature/data/AAindex.txt", sep="\t", index_col=0)
     df.columns = df.columns[1:].tolist() + ["NaN"]
     df = df.iloc[:, :-1]
     return df.index.to_list()

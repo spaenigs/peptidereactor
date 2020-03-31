@@ -46,15 +46,15 @@ rule to_fasta:
 rule build_feature:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
-         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+         expand("peptidereactor/RaptorX/databases/{database}/{database}.moved.txt",
                 database=["nr70", "nr90"]),
-         "apps/RaptorX/setup.pl"
+         "peptidereactor/RaptorX/setup.pl"
     output:
          PROFILE_DIR + "{seq_name}.tgt"
     shell:
          """
          touch {output};
-         export OLDWD=$PWD; cd apps/RaptorX/;
+         export OLDWD=$PWD; cd peptidereactor/RaptorX/;
          ./buildFeature -i $OLDWD/{input[0]} -o $OLDWD/{output} -c 1 || \
             echo "No alignments found for {wildcards.seq_name}";
          cd - 1> /dev/null;
@@ -63,7 +63,7 @@ rule build_feature:
 rule search_template_database:
     input:
          PROFILE_DIR + "{seq_name}.tgt",
-         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+         expand("peptidereactor/RaptorX/databases/{database}/{database}.moved.txt",
                 database=["TPL_BC40", "TPL_Remain"])
     output:
          PROFILE_DIR + "{seq_name}.rank"
@@ -71,7 +71,7 @@ rule search_template_database:
          f"""
          touch {{output}};
          if [ -s {{input[0]}} ]; then
-            export OLDWD=$PWD; cd apps/RaptorX/;
+            export OLDWD=$PWD; cd peptidereactor/RaptorX/;
             ./CNFsearch -a 1 -q {{wildcards.seq_name}} -g $OLDWD/{PROFILE_DIR} -o $OLDWD/{{output}}
             cd - 1> /dev/null;
          else
@@ -107,7 +107,7 @@ rule align_to_template:
          f"""
          if [ -s {{input}} ]; then
             export BEST_HIT=`head -n 1 {{input}}`;
-            export OLDWD=$PWD; cd apps/RaptorX/; 
+            export OLDWD=$PWD; cd peptidereactor/RaptorX/; 
             ./CNFalign_lite -q {{wildcards.seq_name}} \
                             -t $BEST_HIT \
                             -l databases/TPL_BC100/ \
@@ -125,9 +125,9 @@ rule generate_structure:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.fasta",
          f"data/temp/{TOKEN}/{{seq_name}}.raptorx.cnfpred",
-         expand("apps/RaptorX/databases/{database}/{database}.moved.txt",
+         expand("peptidereactor/RaptorX/databases/{database}/{database}.moved.txt",
                 database=["pdb_BC40", "pdb_Remain"]),
-         "apps/RaptorX/modeller/config.py"
+         "peptidereactor/RaptorX/modeller/config.py"
     output:
          TARGET_DIR + "{seq_name}.pdb"
     shell:
@@ -138,7 +138,7 @@ rule generate_structure:
                 perl -ne 'print $1 if /.*? r\W([\-\.\d\w\/]*)/')
             export full_path=$base_path/modlib/modeller/
             cp {input[4]} $full_path;  
-            export OLDWD=$PWD; cd apps/RaptorX/;
+            export OLDWD=$PWD; cd peptidereactor/RaptorX/;
             ./build3Dmodel -i $OLDWD/{input[0]} \
                            -q {wildcards.seq_name} \
                            -d databases/pdb_BC100/ \
@@ -184,4 +184,4 @@ rule remove_non_hits:
                  f.write(f"{c}\n")
 
 onsuccess:
-    shell("rm -r apps/RaptorX/tmp/")
+    shell("rm -r peptidereactor/RaptorX/tmp/")

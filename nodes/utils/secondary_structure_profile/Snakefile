@@ -35,7 +35,7 @@ rule split_input_data:
 rule generate_pssm_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
-         "apps/db/uniref90/uniref90.db"
+         "peptidereactor/db/uniref90/uniref90.db"
     output:
          PROFILE_DIR + "{seq_name}.pssm",
          PROFILE_DIR + "{seq_name}.asn.pssm"
@@ -72,7 +72,7 @@ rule generate_psipred_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
          PROFILE_DIR + "{seq_name}.asn.pssm",
-         "apps/psipred/psipred_moved.txt"
+         "peptidereactor/psipred/psipred_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.ss2",
          PROFILE_DIR + "{seq_name}.horiz",
@@ -80,13 +80,13 @@ rule generate_psipred_profile:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.mtx")
     shell:
          """
-         export datadir=apps/psipred/data;
+         export datadir=peptidereactor/psipred/data;
          if [ -s {input[1]} ]
          then
-             ./apps/psipred/bin/chkparse '{input[1]}' > '{output[3]}';
-             ./apps/psipred/bin/psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
+             ./peptidereactor/psipred/bin/chkparse '{input[1]}' > '{output[3]}';
+             ./peptidereactor/psipred/bin/psipred '{output[3]}' $datadir/weights.dat $datadir/weights.dat2 $datadir/weights.dat3 \
                  > '{output[2]}';    
-             ./apps/psipred/bin/psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
+             ./peptidereactor/psipred/bin/psipass2 $datadir/weights_p2.dat 1 1.0 1.0 '{output[0]}' '{output[2]}' \
                  > '{output[1]}';
          else
              touch '{output[0]}'
@@ -101,7 +101,7 @@ rule generate_vsl2_profile:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
          PROFILE_DIR + "{seq_name}.asn.pssm",
          PROFILE_DIR + "{seq_name}.ss2",
-         "apps/VSL2/VSL2_moved.txt"
+         "peptidereactor/VSL2/VSL2_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.dis",
          PROFILE_DIR + "{seq_name}.flat"
@@ -113,7 +113,7 @@ rule generate_vsl2_profile:
          shell("""
              if [ -s {input[1]} ] 
              then
-                 java -Duser.country=US -Duser.language=en -jar apps/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
+                 java -Duser.country=US -Duser.language=en -jar peptidereactor/VSL2/VSL2.jar -p:'{input[1]}' -s:'{output[1]}' -i:'{input[2]}' \
                      > '{output[0]}'
              else
                  touch '{output[0]}'
@@ -125,13 +125,13 @@ rule generate_spx_profile:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib",
          PROFILE_DIR + "{seq_name}.mat",
-         "apps/spineXpublic/spineXpublic_moved.txt"
+         "peptidereactor/spineXpublic/spineXpublic_moved.txt"
     output:
          PROFILE_DIR + "{seq_name}.spXout",
          temp(f"data/temp/{TOKEN}/protein-list-file_{{seq_name}}.txt")
     shell:
          f"""
-         export spineXcodir=apps/spineXpublic;
+         export spineXcodir=peptidereactor/spineXpublic;
          echo '{{wildcards.seq_name}}' > '{{output[1]}}';
          if [ -s {{input[1]}} ]
          then

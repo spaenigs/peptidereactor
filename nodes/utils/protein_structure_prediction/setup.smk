@@ -31,7 +31,7 @@ rule init_raptorx:
     input:
          f"data/temp/{TOKEN}/CNFsearch_download_link.txt"
     output:
-         "apps/RaptorX/setup.pl",
+         "peptidereactor/RaptorX/setup.pl",
          temp(f"data/temp/{TOKEN}/CNFsearch.zip")
     priority:
          50
@@ -41,16 +41,16 @@ rule init_raptorx:
             -O data/temp/{TOKEN}/CNFsearch.zip \
             -q --show-progress --progress=bar:force:noscroll;   
          unzip -q data/temp/{TOKEN}/CNFsearch.zip -d data/temp/{TOKEN}/; 
-         mv data/temp/{TOKEN}/CNFsearch*_complete/* apps/RaptorX/;   
+         mv data/temp/{TOKEN}/CNFsearch*_complete/* peptidereactor/RaptorX/;   
          rm -r data/temp/{TOKEN}/CNFsearch*_complete/;
-         export OLDWD=$PWD; cd apps/RaptorX/; ./setup.pl; cd $OLDWD;
+         export OLDWD=$PWD; cd peptidereactor/RaptorX/; ./setup.pl; cd $OLDWD;
          """
 
 rule init_modeller:
     input:
          config["license_key_in"]
     output:
-         "apps/RaptorX/modeller/config.py"
+         "peptidereactor/RaptorX/modeller/config.py"
     priority:
          50
     shell:
@@ -71,7 +71,7 @@ rule download_databases:
     input:
          f"data/temp/{TOKEN}/{{database}}_download_link.txt"
     output:
-         "apps/RaptorX/databases/archives/{database}.tar.gz"
+         "peptidereactor/RaptorX/databases/archives/{database}.tar.gz"
     priority:
          40
     threads:
@@ -83,9 +83,9 @@ rule download_databases:
 
 rule unzip_databases:
     input:
-         "apps/RaptorX/databases/archives/{database}.tar.gz"
+         "peptidereactor/RaptorX/databases/archives/{database}.tar.gz"
     output:
-         "apps/RaptorX/databases/{database}/{database}.unzipped.txt"
+         "peptidereactor/RaptorX/databases/{database}/{database}.unzipped.txt"
     priority:
          30
     threads:
@@ -93,17 +93,17 @@ rule unzip_databases:
     run:
          db = wildcards.database
          if db in ["nr70", "nr90"]:
-             target_dir = f"apps/RaptorX/databases/" + db
+             target_dir = f"peptidereactor/RaptorX/databases/" + db
          else:
-             target_dir = f"apps/RaptorX/databases/"
+             target_dir = f"peptidereactor/RaptorX/databases/"
          shell(f"""tar -zxf {{input}} -C {target_dir};
                    touch {str(output)}""")
 
 rule move_databases:
     input:
-         "apps/RaptorX/databases/{database}/{database}.unzipped.txt"
+         "peptidereactor/RaptorX/databases/{database}/{database}.unzipped.txt"
     output:
-         "apps/RaptorX/databases/{database}/{database}.moved.txt"
+         "peptidereactor/RaptorX/databases/{database}/{database}.moved.txt"
     priority:
          20
     run:
@@ -112,18 +112,18 @@ rule move_databases:
 
          if "Remain" in db:
              target = db.replace("Remain", "BC100")
-             target_dir = f"apps/RaptorX/databases/{target}/"
+             target_dir = f"peptidereactor/RaptorX/databases/{target}/"
              shell(f"mkdir -p {target_dir}")
          elif "nr" in db:
-             target_dir = "apps/RaptorX/databases/NR_new/"
-             shell("mkdir -p apps/RaptorX/databases/NR_new")
+             target_dir = "peptidereactor/RaptorX/databases/NR_new/"
+             shell("mkdir -p peptidereactor/RaptorX/databases/NR_new")
          else:
              move_files = False
              print(f"Got {db}. Nothing to do.")
 
          if move_files:
-            shell(f"""for file in `ls -1 apps/RaptorX/databases/{db}/`; do
-                            mv apps/RaptorX/databases/{db}/$file {target_dir};
+            shell(f"""for file in `ls -1 peptidereactor/RaptorX/databases/{db}/`; do
+                            mv peptidereactor/RaptorX/databases/{db}/$file {target_dir};
                       done""")
 
          shell("touch {output}")
