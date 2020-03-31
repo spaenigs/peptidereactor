@@ -20,7 +20,7 @@ class TestClassAssignments(unittest.TestCase):
         target_file = "tests/csv/zscale.csv"
         fasta_in, classes_in = "tests/seqs.fasta", "tests/classes.txt"
         shell(f"""
-        ./apps/run_pipeline -s nodes/encodings/zscale/Snakefile {target_file} \
+        ./peptidereactor/run_pipeline -s nodes/encodings/zscale/Snakefile {target_file} \
             --config token={TOKEN} fasta_in={fasta_in} classes_in={classes_in} csv_out={target_file} \
             --quiet
         """)

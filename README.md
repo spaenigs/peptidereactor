@@ -8,14 +8,14 @@
 
 1. Clone this repo: `git clone git@github.com:spaenigs/proteinreactor.git`
 2. Install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html). 
-3. Create conda environment: `conda env create --file apps/environment.yaml`
+3. Create conda environment: `conda env create --file peptidereactor/environment.yaml`
 4. Install docker: 
-    - Ubuntu: `./apps/install_docker_io`
-    - Other distros: `./apps/install_docker_ce` 
-5. Build image: `./apps/build_image`
+    - Ubuntu: `./peptidereactor/install_docker_io`
+    - Other distros: `./peptidereactor/install_docker_ce` 
+5. Build image: `./peptidereactor/build_image`
 6. Set required download links. See `nodes/utils/protein_structure_prediction/README.md` and
 `nodes/utils/secondary_structure_profile/README.md` for further instructions.
-7. Run the pipeline via `./apps/run_pipeline -s eb.smk --config cores=4 --quiet`
+7. Run the pipeline via `./peptidereactor/run_pipeline -s eb.smk --config cores=4 --quiet`
 
 ## Docker
 
@@ -60,7 +60,7 @@ Create the profile dir, if not existing yet.
 mkdir data/neuropeptides_ds1/profile 
 ```
 Make sure, that the parameter-based encodings are set (or set them manually). See, e.g., 
-`apps/iFeature/codes/ksctriad.py` for details.
+`peptidereactor/iFeature/codes/ksctriad.py` for details.
 ```shell script
 ./peptidereactor/run_pipeline -s maximum_window_length.smk --config dataset=neuropeptides_ds1
 ```
@@ -138,7 +138,7 @@ sub-workflows or nodes, respectively.
 
 3) In case one would like to process, e.g., `data/neuropeptides/csv/aaindex/aaindex_ANDN920101.csv` 
 in a subsequent sub-workflow, __make sure to use the same file name as input__.
-4) Run the meta-workflow as follows: `./apps/run_pipeline -s meta_workflow.smk --config dataset=neuropeptides`
+4) Run the meta-workflow as follows: `./peptidereactor/run_pipeline -s meta_workflow.smk --config dataset=neuropeptides`
 
 ## Nodes
 
@@ -178,7 +178,7 @@ and `config["sdfs_out"]`.
             done
             """
     ```
-5) Add all necessary external dependencies to `apps/environment.yaml`, in this case `openbabel`:
+5) Add all necessary external dependencies to `peptidereactor/environment.yaml`, in this case `openbabel`:
     ```yaml
     name: peptidereactor
     channels:

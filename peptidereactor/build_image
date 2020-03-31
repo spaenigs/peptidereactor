@@ -3,5 +3,5 @@
 docker build -t peptidereactor peptidereactor/ --force-rm=true
 
 if [ $? -eq 127 ]; then
-  echo "Please install docker first (requires sudo privileges): ./apps/install_docker_[ce|io]"
+  echo "Please install docker first (requires sudo privileges): ./peptidereactor/install_docker_[ce|io]"
 fi

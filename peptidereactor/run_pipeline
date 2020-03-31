@@ -10,6 +10,6 @@ if docker image inspect peptidereactor > /dev/null 2>&1; then
            peptidereactor $smk_args
   rm -rf db_tmp/
 else
-  echo "Image for peptidereactor not found. Please create image first: ./apps/build_image"
+  echo "Image for peptidereactor not found. Please create image first: ./peptidereactor/build_image"
   exit 1
 fi
