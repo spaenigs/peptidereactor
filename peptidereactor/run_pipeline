@@ -2,12 +2,12 @@
 
 smk_args=$@
 
-if docker image inspect peptidereactor > /dev/null 2>&1; then
+if docker image inspect peptidereactor-img > /dev/null 2>&1; then
   docker run -v $PWD:/snakemake \
            -v $PWD/data:/snakemake/data \
            -v $DB_DIR:/snakemake/db_tmp \
            -u `id -u $USER` \
-           peptidereactor $smk_args
+           peptidereactor-img $smk_args
   rm -rf db_tmp/
 else
   echo "Image for peptidereactor not found. Please create image first: ./peptidereactor/build_image"
