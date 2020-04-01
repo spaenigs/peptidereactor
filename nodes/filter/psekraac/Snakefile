@@ -1,0 +1,137 @@
+from snakemake.io import glob_wildcards
+from itertools import combinations, product
+from pathos.multiprocessing import ProcessingPool as Pool
+import pandas as pd
+from scipy import interpolate, stats
+import numpy as np
+from sklearn.manifold import TSNE
+
+TOKEN = config["token"]
+
+def generate_input_files(window_length, type):
+    base_dir = config["base_dir_in"]
+    tmp = glob_wildcards(f"{base_dir}"
+                         f"pds_window_length_{window_length}-"
+                         f"psekraac_type{type}_"
+                         f"subtype-{{subtype}}_"
+                         f"raactype-{{raactype}}_"
+                         f"ktuple-{{ktuple}}_"
+                         f"lambda-{{lambda_}}.csv")
+    subtypes = set(tmp.subtype)
+    raactypes = [int(rt) for rt in set(tmp.raactype)]
+    ktuples = [int(kt) for kt in set(tmp.ktuple)]
+    lambdas = [int(l) for l in set(tmp.lambda_)]
+    res = expand(f"{base_dir}pds_window_length_{window_length}-psekraac_type{type}_"
+                  f"subtype-{{subtype}}_raactype-{{raactype}}_ktuple-{{ktuple}}_lambda-{{lambda_}}.csv",
+                  subtype=subtypes, raactype=raactypes, ktuple=ktuples, lambda_=lambdas)
+    return res
+
+rule all:
+    input:
+         f"data/temp/{TOKEN}/moved.txt"
+
+rule correlation:
+    input:
+         lambda wildcards: generate_input_files(wildcards.window_length, wildcards.type)
+    output:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix_tmp.csv"
+    threads:
+         1000
+    run:
+         def interpolate_to(X: np.array, dim: int):
+             ydim = X.shape[1]
+             x = np.arange(0, ydim if ydim >= 2 else ydim + 1)
+             func = interpolate.interp1d(x, X, kind="linear")
+             return func(np.linspace(0, ydim - 1, dim))
+
+         # TODO https://deepgraph.readthedocs.io/en/latest/
+
+         # maybe use kruskal wallis?
+         def f(csv_paths):
+             csv_path_1, csv_path_2 = csv_paths
+             df1 = pd.read_csv(csv_path_1, index_col=0)
+             df2 = pd.read_csv(csv_path_2, index_col=0)
+             to_dim = int(np.ceil(np.mean([df1.shape[1], df2.shape[1]])))
+             ds1_interpolated, ds2_interpolated = interpolate_to(df1, to_dim), interpolate_to(df2, to_dim)
+             corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
+             return pd.DataFrame({"e1": [csv_path_1], "e2": [csv_path_2], "R": [corr]})
+
+         # TODO parse cores
+         p = Pool(8)
+         csv_paths = list(input)
+         df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
+         df_res.to_csv(str(output))
+
+rule corr_matrix:
+    input:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix_tmp.csv",
+         lambda wildcards: generate_input_files(wildcards.window_length, wildcards.type)
+    output:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix.csv"
+    run:
+          df = pd.read_csv(str(input[0]), index_col=0)
+          df.set_index(["e1", "e2"], inplace=True)
+
+          csv_paths = list(input[1:])
+          csv_products = list(zip(*product(csv_paths, repeat=2)))
+          df_res = pd.DataFrame({"e1": csv_products[0], "e2": csv_products[1], "R": 0.0})
+          df_res["R"] = df_res.apply(lambda row: 1.0 if row[0] == row[1] else row[2], axis=1)
+          df_res.set_index(["e1", "e2"], inplace=True)
+
+          for i in df.index:
+              df_res.loc[i, "R"] = df.loc[i, "R"]
+
+          matrix = df_res.reset_index().pivot(index="e1", columns="e2", values="R")
+
+          # move all values to lower side
+          matrix_tmp = np.tril(np.triu(matrix, 1).transpose() + matrix.values)
+          # copy lower part to upper part (matrix is now symmetric)
+          matrix_tmp = np.tril(matrix_tmp, -1) + np.tril(matrix_tmp).transpose()
+          # 1 - abs(values) to get distance matrix, 0 == equal
+          matrix = pd.DataFrame(1 - np.abs(matrix_tmp), index=matrix.index, columns=matrix.columns)
+          matrix.to_csv(str(output))
+
+rule run_pca:
+    input:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix.csv"
+    output:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_pca.csv"
+    run:
+         matrix = pd.read_csv(str(input), index_col=0)
+
+         embedding = TSNE(n_components=2, metric="precomputed")
+         X_transformed = embedding.fit_transform(matrix)
+
+         df_for_cls = pd.DataFrame(X_transformed, index=matrix.index, columns=["x1", "x2"])
+         df_for_cls.to_csv(str(output))
+
+rule clustering:
+    input:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_pca.csv"
+    output:
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_plot.png",
+         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_filtered.csv"
+    script:
+         "scripts/clustering.R"
+
+rule collect:
+    input:
+          plots=\
+              expand(f"data/temp/{TOKEN}/{{window_length}}_{{type}}_plot.png",
+                     window_length=config["window_lengths"],
+                     type=["1", "2", "3A", "3B", "4", "5", "6A", "6B", "6C", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]),
+          csvs=\
+             expand(f"data/temp/{TOKEN}/{{window_length}}_{{type}}_filtered.csv",
+                    window_length=config["window_lengths"],
+                    type=["1", "2", "3A", "3B", "4", "5", "6A", "6B", "6C", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"])
+    output:
+          f"data/temp/{TOKEN}/moved.txt"
+    run:
+          for p in list(input.plots):
+              shell(f"cp {p} {config['plot_dir_out']}")
+
+          for p in list(input.csvs):
+              source_file = pd.read_csv(p, index_col=0).iloc[0, 0]
+              shell(f"cp {source_file} {config['csv_dir_out']}")
+
+          shell(f"touch {str(output)}")
