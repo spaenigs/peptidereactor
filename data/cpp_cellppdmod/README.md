@@ -2,7 +2,7 @@
 
 ##### Description 
 
-    The dataset is taken from [1] and download from https://webs.iiitd.edu.in/raghava/cellppdmod/download.php. 
+    The dataset is taken from [1] and downloaded from https://webs.iiitd.edu.in/raghava/cellppdmod/download.php. 
     
 ##### Reference
 
