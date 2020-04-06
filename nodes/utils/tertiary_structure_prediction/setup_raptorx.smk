@@ -4,7 +4,7 @@ TOKEN = config["token"]
 
 rule download_index_html:
     input:
-         config["download_link_in"]
+         config["raptorx_download_link_in"]
     output:
          temp(f"data/temp/{TOKEN}/index.html")
     run:
