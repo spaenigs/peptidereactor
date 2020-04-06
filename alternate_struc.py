@@ -108,13 +108,13 @@ def myIter(rows, query):
         yield pdb_id, chain_id, best_hit, start, end
 
 
-seqs, _ = read_fasta("short_query.fa")
+seqs, _ = read_fasta("short_query.fasta")
 query = seqs[0]
 
 header = ["qseqid", "sacc", "sstart", "send", "evalue"]
 
 cline = NcbiblastpCommandline(
-    task="blastp-short", db="db/pdb/pdb.db", query="short_query.fa", outfmt="10 " + " ".join(header)
+    task="blastp-short", db="db/pdb/pdb.db", query="short_query.fasta", outfmt="10 " + " ".join(header)
 )
 
 stdout, stderr = cline()
