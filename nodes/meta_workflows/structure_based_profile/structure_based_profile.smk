@@ -48,9 +48,9 @@ rule util_protein_structure_prediction:
          fasta_in=config["fasta_in"],
          classes_in=config["classes_in"],
          download_link_in=\
-             "nodes/utils/protein_structure_prediction/download_links/raptorx_download_link.txt",
+             "nodes/utils/tertiary_structure_prediction/download_links/raptorx_download_link.txt",
          license_key_in=\
-             "nodes/utils/protein_structure_prediction/download_links/modeller_license_key.txt"
+             "nodes/utils/tertiary_structure_prediction/download_links/modeller_license_key.txt"
     output:
          fasta_out=config["fasta_anno_pdbs_out"],
          classes_out=config["classes_anno_pdbs_out"],
@@ -58,8 +58,8 @@ rule util_protein_structure_prediction:
     priority:
          1000
     params:
-         snakefile="nodes/utils/protein_structure_prediction/Snakefile",
-         configfile="nodes/utils/protein_structure_prediction/config.yaml",
+         snakefile="nodes/utils/tertiary_structure_prediction/Snakefile",
+         configfile="nodes/utils/tertiary_structure_prediction/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")

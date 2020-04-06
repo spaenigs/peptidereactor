@@ -77,7 +77,7 @@ Finally, execute the pipeline:
 #### Run pipelines isolated
 
 ```shell script
-./peptidereactor/run_pipeline -s nodes/utils/protein_structure_prediction/Snakefile \
+./peptidereactor/run_pipeline -s nodes/utils/tertiary_structure_prediction/Snakefile \
 data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file
 --config dataset="neuropeptides_ds3" \
          fasta_in="data/neuropeptides_ds3/seqs.fasta" \    

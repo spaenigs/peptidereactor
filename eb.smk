@@ -352,17 +352,17 @@ rule util_protein_structure_prediction:
     input:
          fasta_in="data/{normalized_dataset}/seqs.fasta",
          classes_in="data/{normalized_dataset}/classes.txt",
-         download_link_in="nodes/utils/protein_structure_prediction/" + \
+         download_link_in="nodes/utils/tertiary_structure_prediction/" + \
                           "download_links/raptorx_download_link.txt",
-         license_key_in="nodes/utils/protein_structure_prediction/" + \
+         license_key_in="nodes/utils/tertiary_structure_prediction/" + \
                         "download_links/modeller_license_key.txt"
     output:
          fasta_out="data/{normalized_dataset}/annotated_pdbs_seqs.fasta",
          classes_out="data/{normalized_dataset}/annotated_pdbs_classes.txt",
          pdbs_out=directory("data/{normalized_dataset}/pdb/")
     params:
-         snakefile="nodes/utils/protein_structure_prediction/Snakefile",
-         configfile="nodes/utils/protein_structure_prediction/config.yaml",
+         snakefile="nodes/utils/tertiary_structure_prediction/Snakefile",
+         configfile="nodes/utils/tertiary_structure_prediction/config.yaml",
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
