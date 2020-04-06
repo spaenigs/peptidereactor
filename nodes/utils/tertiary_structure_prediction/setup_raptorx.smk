@@ -48,7 +48,7 @@ rule init_raptorx:
 
 rule init_modeller:
     input:
-         config["license_key_in"]
+         config["modeller_license_key_in"]
     output:
          "peptidereactor/RaptorX/modeller/config.py"
     priority:
