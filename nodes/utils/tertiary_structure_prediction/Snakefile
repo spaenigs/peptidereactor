@@ -10,7 +10,7 @@ TARGET_DIR = os.path.dirname(TARGET_PDBS[0]) + "/" \
 PROFILE_DIR = TARGET_DIR.replace("pdb", "profile")
 
 include:
-    "setup.smk"
+       "setup_raptorx.smk"
 
 wildcard_constraints:
     seq_name="[A-Za-z0-9_]+"
