@@ -5,7 +5,7 @@ from modlamp.core import read_fasta
 
 url = 'http://www.rcsb.org/pdb/rest/search'
 
-get_query = lambda morif: f"""
+get_query = lambda motif: f"""
 <?xml version="1.0" encoding="UTF-8"?>
 <orgPdbQuery>
 <queryType>org.pdb.query.simple.MotifQuery</queryType>
@@ -14,13 +14,16 @@ get_query = lambda morif: f"""
 </orgPdbQuery>
 """
 
-seqs, names = read_fasta("data/hiv_protease/seqs.fasta")
+seqs, names = read_fasta("short_query.fasta")
 
 cnt = 0
 for motif in seqs:
+    print(motif)
     queryText = get_query(motif)
     result = requests.post(url, data=queryText, headers={'Content-Type': 'application/x-www-form-urlencoded'}).text
+    print(result)
     ids = [t.split(":")[0] for t in result.rstrip().split("\n")]
+    print(ids)
     if ids[0] == "null":
         cnt += 1
 
