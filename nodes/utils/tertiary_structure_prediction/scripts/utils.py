@@ -8,23 +8,36 @@ from io import StringIO
 import pandas as pd
 from modlamp.core import read_fasta
 import warnings
-
+import gzip
+import shutil
 
 warnings.simplefilter('ignore', BiopythonWarning)
 
 
+def unzip(path):
+    if path.endswith(".gz"):
+        new_path = path.replace(".gz", "")
+        with gzip.open(path) as f_in, \
+                open(new_path, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+            return new_path
+    return path
+
+
 def get_structure(pdb_id):
-    pdb_dir = "data/temp/pdbs/"
+    pdb_dir = "peptidereactor/db/pdbs/"
     # try to download as pdb file first
     pdb_path = PDBList()\
         .retrieve_pdb_file(pdb_id, pdir=pdb_dir, file_format="pdb")
     if os.path.exists(pdb_path):
+        pdb_path = unzip(pdb_path)
         parser = PDBParser()
         structure = parser.get_structure(pdb_id, pdb_path)
     else:
         # if fails, try cif format (default format)
-        cif_path = PDBList() \
-            .retrieve_pdb_file(pdb_id, pdir=pdb_dir)
+        # huge pdb entries are in this format and zipped if too large
+        cif_path = PDBList().retrieve_pdb_file(pdb_id, pdir=pdb_dir)
+        cif_path = unzip(cif_path)
         parser = MMCIFParser()
         structure = parser.get_structure(pdb_id, cif_path)
     return structure
@@ -45,6 +58,7 @@ def get_seq_from_fasta(pdb_id, chain_id):
 
 def get_seq_from_pdb(chain):
     seq_from_pdb = seq1("".join([residue.get_resname() for residue in chain]))
+    seq_from_pdb = re.search("^X*(.*?)X*$", seq_from_pdb).group(1)
     seq_from_pdb_ics = [residue.get_id()[1] for residue in chain]
     return seq_from_pdb, seq_from_pdb_ics
 
@@ -83,42 +97,60 @@ def pdb_get_fasta(id):
 
 
 def get_candidate_structures(path_to_fasta, path_to_hits):
+
     seqs, names = read_fasta(path_to_fasta)
     query = seqs[0]
-    query_len = len(query)
+
     df = pd.read_csv(path_to_hits)
-    print(df)
     df_res = pd.DataFrame()
     for name, series in df.iterrows():
-        # TODO sequence part is missing
+
         pdb_id, chain_id = series['sacc'].split("_")
+
+        # skip this protein, since no program can handle these ids
+        if len(chain_id) > 1:
+            continue
+
         blast_start, blast_end = series[["sstart", "send"]]
         structure = get_structure(pdb_id)
         chain = get_chain(structure, chain_id)
+
         seq_from_fasta = get_seq_from_fasta(pdb_id, chain_id)
         seq_from_pdb, seq_from_pdb_ics = get_seq_from_pdb(chain)
-        blast_hit = seq_from_fasta[blast_start:blast_end]
-        idx_start = seq_from_pdb.find(query)
-        best_hit = query
-        # if non-standard amino acids in sequence
-        if idx_start == -1:
-            hits = []
-            for hit in re.finditer(f"[({query})X]{{{query_len}}}(?=[YEDINFGACMRHLSPWQKVT])",
-                                   seq_from_pdb):
-                hits += [dict(hit=hit.group(), idx_start=hit.start())]
-            # use section with least nr. of "X"
-            if len(hits) > 0:
-                best_hit_dict = sorted(hits, key=lambda d: len([c for c in d["hit"] if c == "X"]))[0]
-                best_hit = best_hit_dict["hit"]
-                idx_start = best_hit_dict["idx_start"]
+        blast_hit = seq_from_fasta[blast_start-1:blast_end]
+
+        if "missing_residues" in structure.header:
+            missing_residues = \
+                [seq1(e["res_name"])
+                 for e in structure.header["missing_residues"]]
+            # check next pdb, if desired motif is within the missing part
+            if "".join(missing_residues).find(blast_hit) != -1:
+                continue
+
+        pattern = \
+            "".join([f"[{aa}|X]" for aa in blast_hit])
+        hits = \
+            [{"hit": hit.group(), "idx_start": hit.start()}
+             for hit in re.finditer(pattern, seq_from_pdb)]
+
+        # use section with least nr. of "X"
+        if len(hits) > 0:
+            best_hit_dict = \
+                sorted(hits, key=lambda d: len([c for c in d["hit"] if c == "X"]))[0]
+            best_hit = best_hit_dict["hit"]
+            idx_start = best_hit_dict["idx_start"]
+        else:
+            continue
+
         start = seq_from_pdb_ics[idx_start]
-        end = start + query_len - 1
-        # the desired section is missing in the pdb:
-        if idx_start == -1:
-            start, end = -1, -1
-            best_hit = "X" * query_len
+        end = start + len(blast_hit) - 1
+
         print((query, blast_hit, best_hit))
+
         df_tmp = pd.DataFrame(
-            {"pdb_id": [pdb_id], "chain_id": [chain_id], "best_hit": [best_hit], "start": [start], "end": [end]})
+            {"pdb_id": [pdb_id], "chain_id": [chain_id], "best_hit": [best_hit],
+             "start": [start], "end": [end]})
+
         df_res = pd.concat([df_res, df_tmp])
+
     return df_res
