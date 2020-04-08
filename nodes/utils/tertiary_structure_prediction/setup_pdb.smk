@@ -1,18 +1,33 @@
+"""
+url_all_ids = \
+            "https://www.rcsb.org/pdb/rest/customReport.csv?pdbids=*" + \
+            "&customReportColumns=structureId,sequence&format=csv&service=wsfile"
+
+response = requests.get(url)
+ids_handle = response.content.decode()
+df_ids = pd.read_csv(StringIO(ids_handle), dtype={"structureId": str})
+df_ids["structureId"] = df_ids["structureId"].apply(lambda id: id.lower())
+df_ids.loc[pd.isna(df_ids["sequence"]) != True, :]
+
+
+"""
+
+# TODO add rsync and gunzip env yaml
+
 rule download_db:
-    input:
-         config["pdb_fasta_download_link_in"]
     output:
          "peptidereactor/db/pdb/pdb.fasta.gz"
     priority:
          50
     threads:
          1000
-    shell:
-         """
-         wget $(head -n 1 {input[0]}) \
-            -O {output} \
+    run:
+         url = "ftp://ftp.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt.gz"
+         shell(f"""
+         wget {url} \
+            -O {{output}} \
             -q --show-progress --progress=bar:force:noscroll;
-         """
+         """)
 
 rule unzip_db:
     input:
