@@ -14,17 +14,27 @@ import shutil
 warnings.simplefilter('ignore', BiopythonWarning)
 
 
-def unzip(path):
-    if path.endswith(".gz"):
-        new_path = path.replace(".gz", "")
-        with gzip.open(path) as f_in, \
-                open(new_path, 'wb') as f_out:
-            shutil.copyfileobj(f_in, f_out)
-            return new_path
-    return path
+def filter_fasta_for_chain(seqs, names, pdb_id, chain_id):
+    full_id = f"{pdb_id.upper()}:{chain_id}"
+    res = \
+        [(seq, name) for seq, name in zip(seqs, names) if full_id in name]
+    if len(res) == 0:
+        return "", ""
+    seq, name = res[0]
+    return seq, name
 
 
 def get_structure(pdb_id):
+
+    def unzip(path):
+        if path.endswith(".gz"):
+            new_path = path.replace(".gz", "")
+            with gzip.open(path) as f_in, \
+                    open(new_path, 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+                return new_path
+        return path
+
     pdb_dir = "peptidereactor/db/pdbs/"
     # try to download as pdb file first
     pdb_path = PDBList()\
@@ -49,11 +59,19 @@ def get_chain(structure, chain_id):
 
 def get_seq_from_fasta(pdb_id, chain_id):
     print((pdb_id, chain_id))
-    fasta_handle = os.popen(f"blastdbcmd -db peptidereactor/db/pdb/pdb.db -entry {pdb_id}") \
-        .read().rstrip()
-    return \
-        [str(r.seq) for r in SeqIO.parse(StringIO(fasta_handle), "fasta")
-         if f"_{chain_id}" in r.id][0]
+    fasta_handle = \
+        os.popen(f"blastdbcmd -db peptidereactor/db/pdb/pdb.db -entry {pdb_id}") \
+            .read().rstrip()
+    # in case we hit a brand new pdb entry:
+    if fasta_handle == "":
+        seqs, names = pdb_get_fasta(pdb_id)
+        seq, name = \
+            filter_fasta_for_chain(seqs, names, pdb_id, chain_id)
+        return seq
+    else:
+        return \
+            [str(r.seq) for r in SeqIO.parse(StringIO(fasta_handle), "fasta")
+             if f"_{chain_id}" in r.id][0]
 
 
 def get_seq_from_pdb(chain):
@@ -84,9 +102,9 @@ def pdb_motif_search(motif):
     return ids[:5] if len(ids) >= 5 else ids
 
 
-def pdb_get_fasta(id):
+def pdb_get_fasta(pdb_id):
     url = f"https://www.rcsb.org/pdb/download/downloadFastaFiles.do?" + \
-          f"structureIdList={id}&compressionType=uncompressed"
+          f"structureIdList={pdb_id}&compressionType=uncompressed"
     response = requests.get(url)
     fasta_handle = response.content.decode()
     seqs, names = [], []
@@ -148,7 +166,7 @@ def get_candidate_structures(path_to_fasta, path_to_hits):
         print((query, blast_hit, best_hit))
 
         df_tmp = pd.DataFrame(
-            {"pdb_id": [pdb_id], "chain_id": [chain_id], "best_hit": [best_hit],
+            {"pdb_id": [str(pdb_id)], "chain_id": [chain_id], "best_hit": [best_hit],
              "start": [start], "end": [end]})
 
         df_res = pd.concat([df_res, df_tmp])
