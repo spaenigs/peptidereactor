@@ -1,14 +1,15 @@
-import datetime
-import re
-import time
-
-import pandas as pd
-import requests
-from io import StringIO
-
 from Bio import SeqIO
 from modlamp.core import save_fasta, read_fasta
 from more_itertools import chunked
+from io import StringIO
+
+import pandas as pd
+
+import datetime
+import re
+
+from nodes.utils.tertiary_structure_prediction.scripts.utils \
+    import get_response
 
 TOKEN = config["token"]
 
@@ -16,18 +17,7 @@ wildcard_constraints:
     full_id="\w{4}_\w{1,4}",
     type="in|ex"
 
-def get_response(url):
-    response = requests.get(url)
-    cnt = 20
-    while cnt != 0:
-        if response.status_code == 200:
-            return response.content.decode()
-        else:
-            time.sleep(1)
-            cnt -= 1
-    raise IOError(f"Some issues with PDB now. Try again later...\n(URL: {url}")
-
-rule all:
+rule setup_pdb:
     input:
          expand("peptidereactor/db/pdb/{type}_structure/pdb.db",
                 type=["in", "ex"])
@@ -53,45 +43,32 @@ rule get_ids:
             "&format=csv&service=wsfile"
 
          ids_handle = get_response(url)
-
          df_res = pd.read_csv(StringIO(ids_handle))
-         print(df_res.shape)
 
          # remove enties \wo sequences
          df_res = df_res.loc[pd.isna(df_res["sequence"]) != True, :]
-         print(df_res.shape)
-
          # remove dna sequences
          df_res = df_res.loc[ (pd.isna(df_res["uniprotAcc"]) != True)
                             & [False if len(re.findall("[ATGCX]+", s)) == 1 else True for s in df_res["sequence"]]
                             , :]
-         print(df_res.shape)
-
          # remove sequences with len < 4
          df_res = df_res.loc[[len(s) > 3 for s in df_res["sequence"]], :]
-         print(df_res.shape)
-
          # dropping ALL duplicate sequences
          df_res.drop_duplicates(subset ="sequence", inplace = True)
-         print(df_res.shape)
-
          # remove all sequences which not have been added to the seqatoms db yet
          seqatoms_db_version = datetime.date(2020, 3, 23)
          df_res["releaseDate"] = df_res["releaseDate"]\
              .apply(lambda d: datetime.date(*[int(di) for di in d.split("-")]))
          df_res = df_res.loc[df_res["releaseDate"] < seqatoms_db_version]
-         print(df_res.shape)
-
+         # skip obsolete structures
          current_ids = get_current_ids()
          df_res = df_res.loc[df_res["structureId"].isin(current_ids), :]
-         print(df_res.shape)
 
          # convert to correct chain id: 'NA'
          df_res.loc[pd.isna(df_res["chainId"]), "chainId"] = "NA"
 
-         res = [f"{s['structureId'].upper()}_{s['chainId']}" for _, s in df_res.iterrows()]
-
          with open(str(output), "a") as f:
+             res = [f"{s['structureId'].upper()}_{s['chainId']}" for _, s in df_res.iterrows()]
              for r in res:
                  f.write(f"{r}\n")
                  f.flush()
@@ -100,7 +77,7 @@ rule download_sequences:
     input:
          f"data/temp/{TOKEN}/full_ids.txt"
     output:
-         f"peptidereactor/db/pdb/pdb_masked.fasta"
+         f"data/temp/{TOKEN}/pdb_masked.fasta"
     run:
          with open(str(input)) as f:
              full_ids = [l.rstrip() for l in f.readlines()]
@@ -122,7 +99,7 @@ rule download_sequences:
              seqs_tmp, names_tmp = [], []
              for r in SeqIO.parse(StringIO(fasta_handle), "fasta"):
                  seqs_tmp += [str(r.seq)]
-                 names_tmp += [r.id]
+                 names_tmp += [r.id.replace("pdbsa|", "")]
 
              return seqs_tmp, names_tmp
 
@@ -133,6 +110,28 @@ rule download_sequences:
              names += names_chunk
 
          save_fasta(str(output), seqs, names)
+
+rule remove_duplicates:
+    input:
+         f"data/temp/{TOKEN}/pdb_masked.fasta"
+    output:
+         "peptidereactor/db/pdb/pdb_masked.fasta"
+    run:
+         seqs, names = read_fasta(str(input))
+
+         seqs_res, names_res = [], []
+         all_names, cnt = [], 1
+         for seq, name in zip(seqs, names):
+             # makeblastdb is case insensitive: 1FNT_C == 1FNT_c
+             if name.upper() in all_names:
+                 name += "_not_by_pdb_" + str(cnt)
+                 cnt += 1
+             if seq not in seqs_res:
+                 seqs_res += [seq]
+                 names_res += [name]
+                 all_names += [name.upper()]
+
+         save_fasta(str(output), seqs_res, names_res)
 
 rule group_sequences:
     input:
@@ -155,11 +154,6 @@ rule group_sequences:
          cnt = 1
          for seq, name in zip(seqs, names):
 
-             # makeblastdb is case insensitive: 1FNT_C == 1FNT_c
-             if name.upper() in all_names:
-                 name += "_not_by_pdb_" + str(cnt)
-                 cnt += 1
-
              seq_in_structure_lst = re.findall("([A-Z]+)", seq)
              seq_in_tmp = concat_seq_parts(seq_in_structure_lst)
              if len(seq_in_tmp) != 0:
@@ -177,7 +171,6 @@ rule group_sequences:
          save_fasta(str(output[0]), seqs_in, names_in)
          save_fasta(str(output[1]), seqs_ex, names_ex)
 
-# TODO only keep in_structure
 rule make_db:
     input:
          "peptidereactor/db/pdb/{type}_structure/pdb.fasta"
