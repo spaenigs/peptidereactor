@@ -1,0 +1,33 @@
+import os
+
+TOKEN = config["token"]
+
+TARGET_FILES = config["cifs_out"]
+if type(TARGET_FILES) == list:
+    TARGET_DIR = os.path.dirname(TARGET_FILES[0]) + "/"
+else:
+    TARGET_DIR = os.path.dirname(TARGET_FILES) + "/"
+
+rule all:
+    input:
+         TARGET_FILES
+
+rule download:
+    output:
+         TARGET_DIR + "{id}.cif"
+    shell:
+        """
+        set +e # escape strict mode to handle rsync error
+        id={wildcards.id};
+        folder_id="${{id:1:2}}";
+        target_dir=$(dirname {output});
+        rsync -rlpt -v -z -q --delete --port=33444 \
+            rsync.rcsb.org::ftp_data/structures/divided/mmCIF/$folder_id/$id.cif.gz \
+            $target_dir #2> /dev/null;
+        if [ "$?" -eq "0" ]; then
+            gunzip {output}.gz
+        else
+            echo "########## $id ####### $? "
+            touch {output} 
+        fi
+        """
