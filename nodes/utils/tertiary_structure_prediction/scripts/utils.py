@@ -1,9 +1,13 @@
+from Bio import BiopythonWarning
 from Bio.PDB import MMCIFParser, Dice
 from Bio.SeqUtils import seq1
 
 import time
 import requests
 import re
+import warnings
+
+warnings.simplefilter('ignore', BiopythonWarning)
 
 
 def get_response(url):
