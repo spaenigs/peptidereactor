@@ -1,4 +1,4 @@
-# Antitubercular peptides vs. non-ATB.
+# Linear B-cell epitopes vs. non-BCE
 
 ##### Description
 
