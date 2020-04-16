@@ -31,7 +31,7 @@ rule split_input_data:
     input:
          config["fasta_in"]
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.fasta")
     run:
          seqs, names = read_fasta(str(input[0]))
          seq_tuples = dict((name, seq) for name, seq in zip(names, seqs))
@@ -44,7 +44,7 @@ rule motif_search:
          "peptidereactor/db/pdb/in_structure/pdb.fasta",
          "peptidereactor/db/pdb/in_structure/pdb.db"
     output:
-         f"data/temp/{TOKEN}/motse_result_{{seq_name}}.csv"
+         temp(f"data/temp/{TOKEN}/motse_result_{{seq_name}}.csv")
     run:
          seqs, names = read_fasta(str(input[0]))
          seq, name = seqs[0], names[0]
@@ -76,12 +76,12 @@ rule utils_download_cif_files:
     input:
          f"data/temp/{TOKEN}/motse_result_{{seq_name}}.csv"
     output:
-         f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt"
+         temp(f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt")
     params:
          snakefile="nodes/utils/download_cifs/Snakefile",
          configfile="nodes/utils/download_cifs/config.yaml"
     threads:
-        1000
+         1000
     run:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id": str})
          if not df.empty:
