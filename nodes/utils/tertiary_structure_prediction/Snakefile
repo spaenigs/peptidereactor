@@ -1,18 +1,27 @@
-from peptidereactor.workflow_executer import WorkflowExecuter
 from glob import glob
-import os
 from modlamp.core import read_fasta, save_fasta
+
+import os
+import sys
+
+sys.path.append(".")
+
+from peptidereactor.workflow_executer \
+    import WorkflowExecuter
 
 CORES = config["cores"]
 TOKEN = config["token"]
+
+# TODO add temp() to sub-workflows
 
 
 def filter_fasta(fasta_path, pdb_dir):
     seqs, names = read_fasta(fasta_path)
     seqs_to_keep, names_to_keep = [], []
     for seq, name in zip(seqs, names):
-        file_path = [path for path in glob(pdb_dir + "*.csv") if seq in path][0]
-        if os.path.getsize(file_path) > 0:
+        file_path = \
+            [path for path in glob(pdb_dir + "*.pdb") if seq in path][0]
+        if os.path.getsize(file_path) == 0:
             seqs_to_keep += [seq]
             names_to_keep += [name]
     return seqs_to_keep, names_to_keep
@@ -28,61 +37,65 @@ rule filter_sequence_lengths:
     input:
          config["fasta_in"]
     output:
-         "for_short_seqs",
-         "for_long_seqs"
+         f"data/temp/{TOKEN}/short_seqs.fasta",
+         f"data/temp/{TOKEN}/long_seqs.fasta"
     run:
-         seqs, names = read_fasta(str(input))
-         short_seqs, short_seqs_names = [], []
-         long_seqs, long_seqs_names = [], []
+         seqs, names = read_fasta(input[0])
 
+         short_seqs, short_seqs_names, \
+            long_seqs, long_seqs_names = \
+                 [], [], [], []
+         for seq, name in zip(seqs, names):
+             # seq len < 40: use blast and motif search
+             # seq len > 40: use raptorx
+             if len(seq) <= 40:
+                 short_seqs += [seq]
+                 short_seqs_names += [name]
+             else:
+                 long_seqs += [seq]
+                 long_seqs_names += [name]
+
+         save_fasta(output[0], short_seqs, short_seqs_names)
+         save_fasta(output[1], long_seqs, long_seqs_names)
 
 rule blast_search:
     input:
-         fasta_in=config["fasta_in"]
+         fasta_in=f"data/temp/{TOKEN}/short_seqs.fasta"
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_blast_search/")
     params:
-        snakefile="nodes/utils/tertiary_structure_prediction/blast_search.smk",
-        configfile="nodes/utils/tertiary_structure_prediction/blast_search_config.yaml"
+         snakefile="nodes/utils/tertiary_structure_prediction/blast_search.smk",
+         configfile="nodes/utils/tertiary_structure_prediction/blast_search_config.yaml"
     run:
-        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule filter_blast:
+rule filter_structures_not_found_by_blast:
     input:
-         config["fasta_in"],
+         f"data/temp/{TOKEN}/short_seqs.fasta",
          f"data/temp/{TOKEN}/pdbs_blast_search/"
     output:
-         f"data/temp/{TOKEN}/blast_search_seqs.fasta"
+         f"data/temp/{TOKEN}/blast_search_empty_structures_seqs.fasta"
     run:
-        seqs, names = filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
-        save_fasta(str(output), seqs, names)
+         seqs, names = \
+             filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
+         save_fasta(str(output), seqs, names)
 
 rule motif_search:
     input:
-         fasta_in=f"data/temp/{TOKEN}/blast_search_seqs.fasta"
+         fasta_in=f"data/temp/{TOKEN}/blast_search_empty_structures_seqs.fasta"
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_motif_search/")
     params:
-        snakefile="nodes/utils/tertiary_structure_prediction/motif_search.smk",
-        configfile="nodes/utils/tertiary_structure_prediction/motif_search_config.yaml"
+         snakefile="nodes/utils/tertiary_structure_prediction/motif_search.smk",
+         configfile="nodes/utils/tertiary_structure_prediction/motif_search_config.yaml"
     run:
-        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
-rule filter_motif:
-    input:
-        f"data/temp/{TOKEN}/blast_search_seqs.fasta",
-        f"data/temp/{TOKEN}/pdbs_motif_search/"
-    output:
-        f"data/temp/{TOKEN}/motif_search_seqs.fasta"
-    run:
-        seqs, names = filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
-        save_fasta(str(output), seqs, names)
 
 rule raptorx_search:
     input:
-         fasta_in=f"data/temp/{TOKEN}/motif_search_seqs.fasta"
+         fasta_in=f"data/temp/{TOKEN}/long_seqs.fasta"
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_raptorx_search/")
     params:
@@ -92,32 +105,42 @@ rule raptorx_search:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule filter_raptorx:
+rule collect:
     input:
-        f"data/temp/{TOKEN}/motif_search_seqs.fasta",
-        f"data/temp/{TOKEN}/pdbs_raptorx_search/"
-    output:
-        config["fasta_out"],
-        config["classes_out"],
-    run:
-        seqs, names = filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
-        save_fasta(str(output), seqs, names)
-
-rule copy_pdb_files:
-    input:
+         config["fasta_in"],
+         config["classes_in"],
          f"data/temp/{TOKEN}/pdbs_blast_search/",
          f"data/temp/{TOKEN}/pdbs_motif_search/",
          f"data/temp/{TOKEN}/pdbs_raptorx_search/"
     output:
-         directory(config["pdbs_out"])
+         directory(config["pdbs_out"]),
+         config["fasta_out"],
+         config["classes_out"]
     run:
-         def get_file_paths(dir):
-             return glob(dir + "*.csv")
+         seqs, names = read_fasta(input[0])
+         with open(input[1]) as f:
+             classes = [l.rstrip for l in f.readlines()]
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
 
          paths = \
-            get_file_paths(str(input[0])) + \
-            get_file_paths(str(input[1])) + \
-            get_file_paths(str(input[0]))
+            glob(input[2] + "*.csv") + \
+            glob(input[3] + "*.csv") + \
+            glob(input[4] + "*.csv")
 
-         for file_path in paths:
-             shell(f"cp {file_path} {str(output)}")
+         annotated_seqs, annotated_names, annotated_classes = [],[], []
+         for pdb_path in paths:
+             if os.path.getsize(pdb_path) > 0:
+                 seq_name = os.path.basename(pdb_path).replace(".pdb", "")
+                 shell(f"cp {pdb_path} {output[0]}")
+                 annotated_names += [seq_name]
+                 annotated_seqs += [seq_tuples[seq_name][0]]
+                 annotated_classes += [seq_tuples[seq_name][1]]
+
+         save_fasta(output[1], annotated_seqs, annotated_names)
+
+         with open(output[2], mode="a") as f:
+             for c in annotated_classes:
+                 f.write(f"{c}\n")
+                 f.flush()
+
