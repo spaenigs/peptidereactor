@@ -27,7 +27,7 @@ TARGET_DIR = config["pdbs_out"]
 rule all:
     input:
         expand(TARGET_DIR + "{seq_name}.pdb",
-               seq_name=read_fasta(config["fasta_in"])[1][:5])
+               seq_name=read_fasta(config["fasta_in"])[1])
 
 rule split_input_data:
     input:
@@ -60,7 +60,7 @@ rule motif_search:
 
          df_res = pd.DataFrame()
          for r in SeqIO.parse(StringIO(handle), "fasta"):
-             pdb_id, chain_id = r.id.split("_")
+             pdb_id, chain_id = r.id.split("_not_by_pdb_")[0].split("_")
              if len(chain_id) > 1:
                  continue
              start = str(r.seq).find(seq)
@@ -99,7 +99,7 @@ rule dump_cleaved_structure:
     output:
          TARGET_DIR + "{seq_name}.pdb"
     run:
-         df = pd.read_csv(str(input[0]), dtype={"sacc_id":str})
+         df = pd.read_csv(str(input[0]), dtype={"sacc_id":str, "sacc_chain": str})
          if df.empty:
              shell("touch {output}")
          else:
