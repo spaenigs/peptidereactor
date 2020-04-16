@@ -7,6 +7,7 @@ if docker image inspect peptidereactor-img > /dev/null 2>&1; then
            -v $PWD/data:/snakemake/data \
            -v $DB_DIR:/snakemake/db_tmp \
            -u `id -u $USER` \
+           --network="host" \
            peptidereactor-img $smk_args
   rm -rf db_tmp/
 else

@@ -8,6 +8,7 @@ channels:
   - omnia
   - rdkit
   - mordred-descriptor
+  - plotly
 dependencies:
   - biopython=1.74
   - numpy=1.17.1
@@ -27,7 +28,10 @@ dependencies:
   - imbalanced-learn
   - pathos
   - more-itertools
+  - plotly
+  - graphviz
   - pip:
     - modlamp
     - joblib
+    - pydevd-pycharm # https://github.com/JetBrains-Research/snakecharm/issues/137
     - -e iFeature
