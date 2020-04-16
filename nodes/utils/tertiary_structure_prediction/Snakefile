@@ -12,15 +12,13 @@ from peptidereactor.workflow_executer \
 CORES = config["cores"]
 TOKEN = config["token"]
 
-# TODO add temp() to sub-workflows
-
 
 def filter_fasta(fasta_path, pdb_dir):
     seqs, names = read_fasta(fasta_path)
     seqs_to_keep, names_to_keep = [], []
     for seq, name in zip(seqs, names):
         file_path = \
-            [path for path in glob(pdb_dir + "*.pdb") if seq in path][0]
+            [path for path in glob(pdb_dir + "*.pdb") if name in path][0]
         if os.path.getsize(file_path) == 0:
             seqs_to_keep += [seq]
             names_to_keep += [name]
@@ -47,10 +45,10 @@ rule filter_sequence_lengths:
                  [], [], [], []
          for seq, name in zip(seqs, names):
              # seq len < 40: use blast and motif search
-             # seq len > 40: use raptorx
              if len(seq) <= 40:
                  short_seqs += [seq]
                  short_seqs_names += [name]
+             # seq len > 40: use raptorx
              else:
                  long_seqs += [seq]
                  long_seqs_names += [name]
