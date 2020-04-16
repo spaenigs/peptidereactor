@@ -1,4 +1,4 @@
-from Bio import BiopythonWarning
+from Bio import BiopythonWarning, SeqIO
 from Bio.PDB import MMCIFParser, Dice
 from Bio.SeqUtils import seq1
 
@@ -42,3 +42,14 @@ def dump_structure_slice(pdb_id, chain_id, motif, cif_dir, out_file):
     end_on_indices = start_on_indices + len(motif) - 1
     start, end = indices[start_on_indices], indices[end_on_indices]
     Dice.extract(structure, chain_id, start, end, out_file)
+
+
+def get_seq_names(path_to_fasta):
+    values = list(zip(*[(str(record.seq), record.id)
+                        for record in SeqIO.parse(path_to_fasta, "fasta")]))
+    if len(values) == 0:
+        return []
+    else:
+        _, names = values
+        return names
+

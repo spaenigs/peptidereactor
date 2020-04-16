@@ -13,21 +13,19 @@ sys.path.append(".")
 from peptidereactor.workflow_executer import \
     WorkflowExecuter
 from nodes.utils.tertiary_structure_prediction.scripts.utils \
-    import dump_structure_slice
+    import dump_structure_slice, get_seq_names
 
 include:
     "setup_pdb.smk"
 
 TOKEN = config["token"]
-
 CIFS_DIR = "peptidereactor/db/cifs/"
-
 TARGET_DIR = config["pdbs_out"]
 
 rule all:
     input:
         expand(TARGET_DIR + "{seq_name}.pdb",
-               seq_name=read_fasta(config["fasta_in"])[1])
+               seq_name=get_seq_names(config["fasta_in"]))
 
 rule split_input_data:
     input:

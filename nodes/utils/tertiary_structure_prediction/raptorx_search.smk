@@ -1,7 +1,15 @@
-import joblib as jl
 from snakemake.io import expand
 from modlamp.core import read_fasta, save_fasta
+
+import joblib as jl
+
 import os
+import sys
+
+sys.path.append(".")
+
+from nodes.utils.tertiary_structure_prediction.scripts.utils \
+    import get_seq_names
 
 TOKEN = config["token"]
 TARGET_PDBS = config["pdbs_out"]
@@ -150,12 +158,13 @@ rule generate_structure:
          fi
          """
 
+
 rule remove_non_hits:
     input:
          config["fasta_in"],
          config["classes_in"],
          expand(TARGET_DIR + "{seq_name}.pdb",
-                seq_name=read_fasta(config["fasta_in"])[1])
+                seq_name=get_seq_names(config["fasta_in"]))
     output:
          config["fasta_out"],
          config["classes_out"]
