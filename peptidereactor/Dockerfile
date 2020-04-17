@@ -7,14 +7,15 @@ RUN echo "deb http://security.debian.org/debian-security jessie/updates main" >>
 RUN apt-get update && apt-get install -y unzip gzip
 RUN apt-get update && apt-get install -y r-base r-base-dev
 RUN apt-get update && apt-get install -y rsync
-RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr', 'pROC'), repos = 'https://cran.uni-muenster.de/')"
-
 RUN apt-get update && apt-get install -y pdb2pqr apbs
+RUN apt-get update && apt-get install -y dssp
+
+RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr', 'pROC'), repos = 'https://cran.uni-muenster.de/')"
 
 ADD iFeature/ iFeature/
 RUN chmod -R 777 iFeature/data/
 
-ADD conda/environment.yaml environment.yaml
+ADD environment.yaml environment.yaml
 RUN conda update -y conda \
     && conda env create -f environment.yaml \
     && echo "conda activate peptidereactor-env" >> ~/.bashrc
