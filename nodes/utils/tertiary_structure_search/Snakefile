@@ -3,58 +3,25 @@ from modlamp.core import read_fasta, save_fasta
 
 import os
 import sys
+import re
 
 sys.path.append(".")
 
 from peptidereactor.workflow_executer \
     import WorkflowExecuter
 
+from nodes.utils.tertiary_structure_search.scripts.dssp_parser \
+    import *
+
 CORES = config["cores"]
 TOKEN = config["token"]
-
-
-def filter_fasta(fasta_path, pdb_dir):
-    seqs, names = read_fasta(fasta_path)
-    seqs_to_keep, names_to_keep = [], []
-    for seq, name in zip(seqs, names):
-        file_path = \
-            [path for path in glob(pdb_dir + "*.pdb") if name in path][0]
-        if os.path.getsize(file_path) == 0:
-            seqs_to_keep += [seq]
-            names_to_keep += [name]
-    return seqs_to_keep, names_to_keep
-
 
 rule all:
     input:
          config["fasta_out"],
          config["classes_out"],
-         config["pdbs_out"]
-
-rule filter_sequence_lengths:
-    input:
-         config["fasta_in"]
-    output:
-         f"data/temp/{TOKEN}/short_seqs.fasta",
-         f"data/temp/{TOKEN}/long_seqs.fasta"
-    run:
-         seqs, names = read_fasta(input[0])
-
-         short_seqs, short_seqs_names, \
-            long_seqs, long_seqs_names = \
-                 [], [], [], []
-         for seq, name in zip(seqs, names):
-             # seq len < 40: use blast and motif search
-             if len(seq) <= 40:
-                 short_seqs += [seq]
-                 short_seqs_names += [name]
-             # seq len > 40: use raptorx
-             else:
-                 long_seqs += [seq]
-                 long_seqs_names += [name]
-
-         save_fasta(output[0], short_seqs, short_seqs_names)
-         save_fasta(output[1], long_seqs, long_seqs_names)
+         config["pdbs_out"],
+         config["profiles_out"]
 
 rule blast_search:
     input:
@@ -75,8 +42,19 @@ rule filter_structures_not_found_by_blast:
     output:
          f"data/temp/{TOKEN}/blast_search_empty_structures_seqs.fasta"
     run:
+         def filter_fasta(fasta_path, pdb_dir):
+             seqs, names = read_fasta(fasta_path)
+             seqs_to_keep, names_to_keep = [], []
+             for seq, name in zip(seqs, names):
+                 file_path = \
+                     [path for path in glob(pdb_dir + "*.pdb") if name in path][0]
+                 if os.path.getsize(file_path) == 0:
+                     seqs_to_keep += [seq]
+                     names_to_keep += [name]
+             return seqs_to_keep, names_to_keep
+
          seqs, names = \
-             filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
+            filter_fasta(fasta_path=str(input[0]), pdb_dir=str(input[1]))
          save_fasta(str(output), seqs, names)
 
 rule motif_search:
@@ -91,25 +69,12 @@ rule motif_search:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-rule raptorx_search:
-    input:
-         fasta_in=f"data/temp/{TOKEN}/long_seqs.fasta"
-    output:
-         pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_raptorx_search/")
-    params:
-        snakefile="nodes/utils/tertiary_structure_prediction/raptorx_search.smk",
-        configfile="nodes/utils/tertiary_structure_prediction/raptorx_search_config.yaml"
-    run:
-        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
 rule collect:
     input:
          config["fasta_in"],
          config["classes_in"],
          f"data/temp/{TOKEN}/pdbs_blast_search/",
-         f"data/temp/{TOKEN}/pdbs_motif_search/",
-         f"data/temp/{TOKEN}/pdbs_raptorx_search/"
+         f"data/temp/{TOKEN}/pdbs_motif_search/"
     output:
          directory(config["pdbs_out"]),
          config["fasta_out"],
@@ -123,8 +88,7 @@ rule collect:
 
          paths = \
             glob(input[2] + "*.csv") + \
-            glob(input[3] + "*.csv") + \
-            glob(input[4] + "*.csv")
+            glob(input[3] + "*.csv")
 
          annotated_seqs, annotated_names, annotated_classes = [],[], []
          for pdb_path in paths:
@@ -142,3 +106,18 @@ rule collect:
                  f.write(f"{c}\n")
                  f.flush()
 
+rule generate_secondary_structure_profile:
+    input:
+         config["pdbs_out"]
+    output:
+         directory(config["profiles_out"])
+    run:
+        profile_dir, dssp_dir = output[0], f"data/temp/{TOKEN}/dssps/"
+        for pdb_path in glob(f"{input[0]}/*.pdb"):
+             pdb_id = re.findall(".*?/(\w+)\.pdb", pdb_path)[0]
+             path_to_dssp = f"{dssp_dir}/{pdb_id}.dssp"
+             shell(f"mkdssp -i {pdb_path} -o {path_to_dssp}")
+             path_to_dis = f"{profile_dir}/{pdb_id}.dis"
+             path_to_spXout = f"{profile_dir}/{pdb_id}.spXout"
+             generate_disorder_profile(path_to_dssp, path_to_dis)
+             generate_spinex_profile(path_to_dssp, path_to_spXout)

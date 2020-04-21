@@ -2,7 +2,7 @@ import warnings
 from io import StringIO
 from glob import glob
 from Bio import SeqIO, BiopythonWarning
-from Bio.PDB import MMCIFParser
+from Bio.PDB import MMCIFParser, PDBList
 from Bio.SeqUtils import seq1
 
 import re
@@ -11,7 +11,15 @@ warnings.simplefilter('ignore', BiopythonWarning)
 
 rule all:
     input:
-         "in_structure.fasta"
+         "peptidereactor/db/pdb/in_structure/pdb.db"
+
+rule download_pdb:
+    output:
+         directory("peptidereactor/db/cifs/")
+    run:
+         # attention: runs 3 to 4 days for whole pdb!
+         pl = PDBList(pdb=output[0])
+         pl.flat_tree = True
 
 rule parse_cif_file:
     input:
@@ -41,15 +49,26 @@ rule parse_cif_file:
 
 rule collect:
     input:
+         "peptidereactor/db/cifs/",
          expand("data/temp/fastas_from_cifs/{id}.fasta",
                 id=[re.findall(".*?/(\w+)\.cif", path)[0]
                     for path in glob("peptidereactor/db/cifs/*.cif")])
     output:
-         "in_structure.fasta"
+         "peptidereactor/db/pdb/in_structure/pdb.fasta"
     run:
          with open(output[0], "a") as f_out:
-            for path in list(input):
+            for path in input[1:]:
                 with open(path) as f_in:
                     records = SeqIO.parse(f_in, "fasta")
                     SeqIO.write(records, f_out, "fasta")
 
+rule make_db:
+    input:
+         "peptidereactor/db/pdb/in_structure/pdb.fasta"
+    output:
+         "peptidereactor/db/pdb/in_structure/pdb.db"
+    shell:
+         """
+         makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids -blastdb_version 5
+         touch {output}
+         """
