@@ -8,7 +8,7 @@ import sys
 
 sys.path.append(".")
 
-from nodes.utils.tertiary_structure_prediction.scripts.utils \
+from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_seq_names
 
 TOKEN = config["token"]

@@ -8,7 +8,7 @@ import pandas as pd
 import datetime
 import re
 
-from nodes.utils.tertiary_structure_prediction.scripts.utils \
+from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_response
 
 TOKEN = config["token"]
