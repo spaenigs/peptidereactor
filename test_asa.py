@@ -5,6 +5,10 @@ name = "test"
 sequence = "KECV"
 fastas = [[name, sequence]]
 
+name2 = "dssp"
+sequence2 = "AALALEYG"
+fastas2 = [[name2, sequence2]]
+
 print("############ ASA ####################")
 
 encodings = []
@@ -50,6 +54,36 @@ for k, v in dssp[0].items():
     code.append(v[2])
 
 encodings.append(code)
+
+print(encodings)
+
+###
+
+encodings = []
+header = ['#']
+for p in range(1, len(fastas[0][1])+1):
+    header.append('ASA.F' + str(p))
+encodings.append(header)
+
+with open('Seq_4.spXout') as f:
+    records = f.readlines()[1:]
+
+for i in fastas2:
+
+    code = [name2]
+    proteinSeq = ''
+    asaValue = []
+    for line in records:
+        array = line.strip().split() if line.strip() != '' else None # a single line of spxout file
+        proteinSeq = proteinSeq + array[1] # the amino acids from spxout file, aggregated to a peptide sequence
+        asaValue.append(array[10]) # the actual asa value
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        for p in range(pos, pos + len(sequence2)):
+            code.append(asaValue[p])
+    encodings.append(code)
 
 print(encodings)
 
@@ -102,6 +136,39 @@ for k, v in dssp[0].items():
     code.append(v[4])
 
 encodings.append(code)
+
+print(encodings)
+
+###
+
+encodings = []
+header = ['#']
+for p in range(1, len(fastas[0][1])+1):
+    header.append('TA.F' + str(p) + '.phi')
+    header.append('TA.F' + str(p) + '.psi')
+encodings.append(header)
+
+for i in fastas2:
+    name2, sequence2 = i[0], i[1]
+    code = [name2]
+
+    with open('Seq_4.spXout') as f:
+        records = f.readlines()[1:]
+
+    proteinSeq = ''
+    asaValue = []
+    for line in records:
+        array = line.strip().split() if line.strip() != '' else None
+        proteinSeq = proteinSeq + array[1]
+        asaValue.append(array[3:5])
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        for p in range(pos, pos+len(sequence2)):
+            code.append(asaValue[p][0])
+            code.append(asaValue[p][1])
+    encodings.append(code)
 
 print(encodings)
 
@@ -170,6 +237,35 @@ encodings.append(code)
 
 print(encodings)
 
+###
+
+encodings = []
+header = ['#', 'H', 'E', 'C']
+encodings.append(header)
+
+for i in fastas2:
+    name2, sequence2 = i[0], i[1]
+    code = [name2]
+
+    with open('Seq_4.spXout') as f:
+        records = f.readlines()[1:]
+
+    proteinSeq = ''
+    SSE = []
+    for line in records:
+        array = line.strip().split() if line.rstrip() != '' else None
+        proteinSeq = proteinSeq + array[1]
+        SSE.append(array[2])
+
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        code = code + calculateSSE(pos, pos+len(sequence2), SSE)
+    encodings.append(code)
+
+print(encodings)
+
 print("############ SSEB ####################")
 
 encodings = []
@@ -228,6 +324,40 @@ encodings.append(code)
 
 print(encodings)
 
+###
+
+encodings = []
+header = ['#']
+for p in range(1, len(fastas[0][1])+1):
+    for ss in ('H', 'E', 'C'):
+            header.append('Pos'+str(p)+'.'+ss)
+encodings.append(header)
+
+for i in fastas2:
+    name2, sequence2 = i[0], i[1]
+    code = [name2]
+
+    with open('Seq_4.spXout') as f:
+        records = f.readlines()[1:]
+
+    proteinSeq = ''
+    SSE = []
+    myDict = {'H':[0, 0, 1], 'E':[0, 1, 0], 'C':[1, 0, 0]}
+    for line in records:
+        array = line.strip().split() if line.rstrip() != '' else None
+        proteinSeq = proteinSeq + array[1]
+        SSE.append(array[2])
+
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        for p in range(pos, pos + len(sequence2)):
+            code = code + myDict[SSE[p]]
+    encodings.append(code)
+
+print(encodings)
+
 print("############ DISORDER B ####################")
 
 encodings = []
@@ -276,11 +406,6 @@ header = ['#']
 for p in range(1, 2*len(fastas[0][1])+1):
     header.append('disorderB.F' + str(p))
 
-encodings = []
-header = ['#']
-for p in range(1, len(fastas[0][1])+1):
-    for ss in ('H', 'E', 'C'):
-            header.append('Pos'+str(p)+'.'+ss)
 encodings.append(header)
 
 code = [name]
@@ -293,6 +418,47 @@ for k, v in dssp[0].items():
         code += myDict["O"]
 
 encodings.append(code)
+
+print(encodings)
+
+###
+
+encodings = []
+header = ['#']
+for p in range(1, 2*len(fastas[0][1])+1):
+    header.append('disorderB.F' + str(p))
+
+encodings.append(header)
+for i in fastas2:
+    name2, sequence2 = i[0], i[1]
+    code = [name2]
+
+    with open("Seq_4.dis") as f:
+        records = f.readlines()
+
+    tag = 0
+    for i in range(len(records)):
+        if re.search('^-------', records[i]):
+            tag = i
+            break
+    records = records[tag+1:-1]
+
+    proteinSeq = ''
+    disValue = []
+    myDict = {'D':[0, 1], 'O':[1, 0]}
+    for line in records:
+        array = line.rstrip().split() if line.rstrip() != '' else None
+        key = array[3] if array[3] == 'D' else 'O'
+        proteinSeq = proteinSeq + array[1]
+        disValue.append(key)
+
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        for p in range(pos, pos+len(sequence2)):
+            code = code + myDict[disValue[p]]
+    encodings.append(code)
 
 print(encodings)
 
@@ -358,5 +524,42 @@ seq_len = len(dssp[0].keys())
 code += [D/seq_len, O/seq_len]
 
 encodings.append(code)
+
+print(encodings)
+
+###
+
+encodings = []
+header = ['#', 'disorder-content', 'order-content']
+encodings.append(header)
+
+for i in fastas2:
+    name2, sequence2 = i[0], i[1]
+    code = [name2]
+
+    with open("Seq_4.dis") as f:
+        records = f.readlines()
+
+    tag = 0
+    for i in range(len(records)):
+        if re.search('^-------', records[i]):
+            tag = i
+            break
+    records = records[tag + 1:-1]
+
+    proteinSeq = ''
+    disValue = []
+    for line in records:
+        array = line.rstrip().split() if line.rstrip() != '' else None
+        key = array[3] if array[3] == 'D' else 'O'
+        proteinSeq = proteinSeq + array[1]
+        disValue.append(key)
+
+    pos = proteinSeq.find(sequence2)
+    if pos == -1:
+        print('Warning: could not find the peptide in proteins.\n\n')
+    else:
+        code = code + calculateDicorderContent(pos, pos + len(sequence2), disValue)
+    encodings.append(code)
 
 print(encodings)
