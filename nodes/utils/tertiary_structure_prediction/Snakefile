@@ -18,7 +18,7 @@ TARGET_DIR = os.path.dirname(TARGET_PDBS[0]) + "/" \
 PROFILE_DIR = TARGET_DIR.replace("pdb", "profile")
 
 include:
-       "setup_raptorx.smk"
+       "setup.smk"
 
 wildcard_constraints:
     seq_name="[A-Za-z0-9_]+"
@@ -157,7 +157,6 @@ rule generate_structure:
             touch {output};
          fi
          """
-
 
 rule remove_non_hits:
     input:

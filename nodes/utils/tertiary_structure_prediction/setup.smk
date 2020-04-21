@@ -1,5 +1,3 @@
-import os
-
 TOKEN = config["token"]
 
 rule download_index_html:
