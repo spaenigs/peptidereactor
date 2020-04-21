@@ -22,13 +22,13 @@ rule util_secondary_structure_profile:
          fasta_msa_in=config["fasta_msa_in"],
          classes_in=config["classes_in"],
          uniprot90_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/uniprot90_download_link.txt",
+             "nodes/utils/secondary_structure_prediction/download_links/uniprot90_download_link.txt",
          psipred_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/psipred_download_link.txt",
+             "nodes/utils/secondary_structure_prediction/download_links/psipred_download_link.txt",
          spineXpublic_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/spineXpublic_download_link.txt",
+             "nodes/utils/secondary_structure_prediction/download_links/spineXpublic_download_link.txt",
          VSL2_download_link_in=\
-             "nodes/utils/secondary_structure_profile/download_links/VSL2_download_link.txt"
+             "nodes/utils/secondary_structure_prediction/download_links/VSL2_download_link.txt"
     output:
          fasta_anno_out=config["fasta_anno_out"],
          fasta_anno_msa_out=config["fasta_anno_msa_out"],
@@ -37,8 +37,8 @@ rule util_secondary_structure_profile:
     priority:
          1000
     params:
-         snakefile="nodes/utils/secondary_structure_profile/Snakefile",
-         configfile="nodes/utils/secondary_structure_profile/config.yaml"
+         snakefile="nodes/utils/secondary_structure_prediction/Snakefile",
+         configfile="nodes/utils/secondary_structure_prediction/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
              shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")

@@ -328,13 +328,13 @@ rule util_secondary_structure_profile:
          fasta_in="data/{normalized_dataset}/seqs.fasta",
          fasta_msa_in="data/{normalized_dataset}/seqs_msa.fasta",
          classes_in="data/{normalized_dataset}/classes.txt",
-         uniprot90_download_link_in="nodes/utils/secondary_structure_profile/" + \
+         uniprot90_download_link_in="nodes/utils/secondary_structure_prediction/" + \
                                     "download_links/uniprot90_download_link.txt",
-         psipred_download_link_in="nodes/utils/secondary_structure_profile/" + \
+         psipred_download_link_in="nodes/utils/secondary_structure_prediction/" + \
                                   "download_links/psipred_download_link.txt",
-         spineXpublic_download_link_in="nodes/utils/secondary_structure_profile/" + \
+         spineXpublic_download_link_in="nodes/utils/secondary_structure_prediction/" + \
                                        "download_links/spineXpublic_download_link.txt",
-         VSL2_download_link_in="nodes/utils/secondary_structure_profile/" + \
+         VSL2_download_link_in="nodes/utils/secondary_structure_prediction/" + \
                                "download_links/VSL2_download_link.txt"
     output:
          fasta_anno_out="data/{normalized_dataset}/annotated_seqs.fasta",
@@ -342,8 +342,8 @@ rule util_secondary_structure_profile:
          classes_anno="data/{normalized_dataset}/annotated_classes.txt",
          profiles_out=directory("data/{normalized_dataset}/profile/")
     params:
-         snakefile="nodes/utils/secondary_structure_profile/Snakefile",
-         configfile="nodes/utils/secondary_structure_profile/config.yaml"
+         snakefile="nodes/utils/secondary_structure_prediction/Snakefile",
+         configfile="nodes/utils/secondary_structure_prediction/config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile):
              shell(f"""snakemake -s {{params.snakefile}} --cores {CORES} --configfile {{params.configfile}}""")
