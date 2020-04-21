@@ -11,6 +11,8 @@ import re
 from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_response
 
+# TODO adopt to local pdb database
+
 TOKEN = config["token"]
 
 wildcard_constraints:
