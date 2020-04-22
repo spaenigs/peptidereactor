@@ -16,7 +16,7 @@ rule map_names:
          seqs, _ = read_fasta(str(input))
 
          with open(str(input)) as f:
-             names = [l.rstrip() for l in f.readlines() if l.startswith(">")]
+             names = [l.rstrip().replace(">", "") for l in f.readlines() if l.startswith(">")]
 
          names_new = [f"Seq_{i}" for i in range(1, len(names)+1)]
 
