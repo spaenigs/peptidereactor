@@ -84,13 +84,14 @@ class WorkflowSetter:
         for r in self.rule_definitions:
             scaffold += r
 
-        with open("tmp.smk", mode="w") as f:
+        with open(self.snakefile, mode="w") as f:
             f.write(scaffold)
 
     def add(self, rule_definition):
         self.rule_definitions += [rule_definition]
 
-    def __init__(self, cores=1, key_target_rule="out"):
+    def __init__(self, cores=1, key_target_rule="out", snakefile = "peptidereactor.smk"):
         self.rule_definitions = []
         self.cores = cores
         self.key_target_rule = key_target_rule
+        self.snakefile = snakefile
