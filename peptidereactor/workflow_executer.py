@@ -5,6 +5,7 @@ import secrets
 import os
 from shutil import rmtree
 
+import textwrap
 
 class WorkflowExecuter:
 
@@ -60,3 +61,36 @@ class MetaWorkflowExecuter(WorkflowExecuter):
     def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
         super().__init__(input_files, output_files, path_to_configfile, cores, **kwargs)
         self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores}"
+
+
+class WorkflowSetter:
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        scaffold = textwrap.dedent(
+            f"""\
+                from peptidereactor.workflow_executer import WorkflowExecuter
+                
+                CORES = {self.cores}
+                
+                rule all:
+                    input:
+                         config['{self.key_target_rule}']        
+
+            """)
+
+        for r in self.rule_definitions:
+            scaffold += r
+
+        with open("tmp.smk", mode="w") as f:
+            f.write(scaffold)
+
+    def add(self, rule_definition):
+        self.rule_definitions += [rule_definition]
+
+    def __init__(self, cores=1, key_target_rule="out"):
+        self.rule_definitions = []
+        self.cores = cores
+        self.key_target_rule = key_target_rule
