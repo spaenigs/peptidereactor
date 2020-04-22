@@ -1,0 +1,38 @@
+cksaagp:
+  - 1
+  - 31
+
+ngram_a2:
+  - 1
+  - 5
+  - 20
+  - 50
+  - 100
+  - 200
+  - 300
+
+ngram_a3:
+  - 1
+  - 5
+  - 20
+  - 50
+  - 100
+  - 200
+  - 300
+
+ngram_s3:
+  - 1
+  - 5
+  - 20
+  - 50
+  - 100
+  - 200
+  - 300
+
+delaunay:
+  - average_distance
+  - total_distance
+  - cartesian_product
+  - number_instances
+  - frequency_instances
+
