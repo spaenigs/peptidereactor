@@ -20,12 +20,12 @@ rule all:
     input:
          config["fasta_out"],
          config["classes_out"],
-         config["pdbs_out"],
-         config["profiles_out"]
+         config["pdb_dir"],
+         config["profile_dir"]
 
 rule blast_search:
     input:
-         fasta_in=f"data/temp/{TOKEN}/short_seqs.fasta"
+         fasta_in=config["fasta_in"]
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_blast_search/")
     params:
@@ -37,7 +37,7 @@ rule blast_search:
 
 rule filter_structures_not_found_by_blast:
     input:
-         f"data/temp/{TOKEN}/short_seqs.fasta",
+         config["fasta_in"],
          f"data/temp/{TOKEN}/pdbs_blast_search/"
     output:
          f"data/temp/{TOKEN}/blast_search_empty_structures_seqs.fasta"
@@ -76,7 +76,7 @@ rule collect:
          f"data/temp/{TOKEN}/pdbs_blast_search/",
          f"data/temp/{TOKEN}/pdbs_motif_search/"
     output:
-         directory(config["pdbs_out"]),
+         directory(config["pdb_dir"]),
          config["fasta_out"],
          config["classes_out"]
     run:
@@ -108,9 +108,9 @@ rule collect:
 
 rule generate_secondary_structure_profile:
     input:
-         config["pdbs_out"]
+         config["pdb_dir"]
     output:
-         directory(config["profiles_out"])
+         directory(config["profile_dir"])
     run:
         profile_dir, dssp_dir = output[0], f"data/temp/{TOKEN}/dssps/"
         for pdb_path in glob(f"{input[0]}/*.pdb"):
