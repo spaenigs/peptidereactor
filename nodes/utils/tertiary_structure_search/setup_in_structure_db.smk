@@ -13,13 +13,13 @@ rule all:
     input:
          "peptidereactor/db/pdb/in_structure/pdb.db"
 
-rule download_pdb:
-    output:
-         directory("peptidereactor/db/cifs/")
-    run:
-         # attention: runs 3 to 4 days for whole pdb!
-         pl = PDBList(pdb=output[0])
-         pl.flat_tree = True
+# rule download_pdb:
+#     output:
+#          directory("peptidereactor/db/cifs/")
+#     run:
+#          attention: runs 3 to 4 days for whole pdb!
+         # pl = PDBList(pdb=output[0])
+         # pl.flat_tree = True
 
 rule parse_cif_file:
     input:
@@ -27,10 +27,10 @@ rule parse_cif_file:
     output:
          "data/temp/fastas_from_cifs/{id}.fasta"
     run:
-         parser = MMCIFParser()
          id = wildcards.id
 
          try:
+             parser = MMCIFParser()
              structure = parser.get_structure(id, input[0])
 
              for chain in list(structure.get_models())[0]:
@@ -43,21 +43,20 @@ rule parse_cif_file:
                      fasta_handle = f"{header}\n{seq}"
                      SeqIO.write(SeqIO.parse(StringIO(fasta_handle), "fasta"), f, "fasta")
 
-         except KeyError as ke:
-             print(f"Key {ke} missing in {id}")
+         except Exception as e:
+             print(f"Key {e} missing in {id}")
              shell("touch {output}")
 
 rule collect:
     input:
-         "peptidereactor/db/cifs/",
          expand("data/temp/fastas_from_cifs/{id}.fasta",
                 id=[re.findall(".*?/(\w+)\.cif", path)[0]
-                    for path in glob("peptidereactor/db/cifs/*.cif")])
+                    for path in glob("peptidereactor/db/cifs/*.cif")][:80])
     output:
          "peptidereactor/db/pdb/in_structure/pdb.fasta"
     run:
          with open(output[0], "a") as f_out:
-            for path in input[1:]:
+            for path in list(input):
                 with open(path) as f_in:
                     records = SeqIO.parse(f_in, "fasta")
                     SeqIO.write(records, f_out, "fasta")
