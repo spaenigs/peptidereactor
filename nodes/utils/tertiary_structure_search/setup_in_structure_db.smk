@@ -51,7 +51,7 @@ rule collect:
     input:
          expand("data/temp/fastas_from_cifs/{id}.fasta",
                 id=[re.findall(".*?/(\w+)\.cif", path)[0]
-                    for path in glob("peptidereactor/db/cifs/*.cif")][:80])
+                    for path in glob("peptidereactor/db/cifs/*.cif")])
     output:
          "peptidereactor/db/pdb/in_structure/pdb.fasta"
     run:
