@@ -10,13 +10,13 @@ class Rule:
 
     _MISC_ENCDOIGNS = \
         ["zscale", "dpc", "tpc", "gtpc", "gdpc", "gaac", "egaac", "dde",
-         "ctdt", "ctdd", "ctdc", "blosum62", "binary", "aaindex", "aac",
-         "fft", "waac", "flgc", "fldpc", "cgr", "ctriad", "blomap",
-         "distance_frequency"]
+         "ctdt", "ctdd", "ctdc", "blosum62", "binary", "aac", "blomap",
+         "ctriad"]
 
     _PARAM_BASED_ENCODINGS = \
         ["ksctriad", "moran", "nmbroto", "geary", "qsorder", "socnumber",
-         "eaac", "cksaagp", "cksaap", "apaac", "paac"]
+         "eaac", "cksaagp", "cksaap", "apaac", "paac", "aaindex", "waac",
+         "flgc", "fldpc", "fft", "cgr", "distance_frequency"]
 
     _NGRAM_BASED_ENCODINGS = \
         ["ngram_a2", "ngram_a3", "ngram_e2", "ngram_e3", "ngram_s2", "ngram_s3"]
@@ -35,6 +35,11 @@ class Rule:
         tpc_out = f"{csv_dir}tpc.csv"
         rule = encodings.tpc.rule(fasta_in, classes_in, tpc_out)
         return rule, tpc_out
+
+    def get_aaindex(self, csv_dir, fasta_in, classes_in, indices):
+        aaindex_out = self._expand(csv_dir, "aaindex/aaindex_{aaindex}.csv", aaindex=indices)
+        rule = encodings.aaindex.rule(fasta_in, classes_in, aaindex_out)
+        return rule, aaindex_out
 
     def _encodings_for_length_calculation(self, encodings=None):
         all = self._PARAM_BASED_ENCODINGS
@@ -56,7 +61,11 @@ class Rule:
 
     def rule(self, fasta_in, fasta_msa_in, classes_in, path_to_config, misc_dir, csv_dir, exclude=None, include=None):
 
-        target_encodings = ["dde"] + self._PSEKRAAC_BASED_ENCODINGS
+        target_encodings = \
+            self._MISC_ENCDOIGNS + \
+            self._PARAM_BASED_ENCODINGS + \
+            self._PSEKRAAC_BASED_ENCODINGS + \
+            self._NGRAM_BASED_ENCODINGS
 
         if (exclude, type(include)) == (None, list):
             target_encodings = include
@@ -89,47 +98,140 @@ class Rule:
 
         ### misc encodings
 
-        if "zscale" in target_encodings:
-            zscale_out = f"{csv_dir}zscale.csv"
-            rule += encodings.zscale.rule(fasta_in, classes_in, zscale_out)
-            self.target_csvs += [zscale_out]
+        if "aac" in target_encodings:
+            aac_out = f"{csv_dir}aac.csv"
+            rule += encodings.aac.rule(fasta_in, classes_in, aac_out)
+            self.target_csvs += [aac_out]
 
-        if "dpc" in target_encodings:
-            dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
-            rule += dpc_rule
-            self.target_csvs += [dpc_out]
+        if "binary" in target_encodings:
+            binary_out = f"{csv_dir}binary.csv"
+            rule += encodings.binary.rule(fasta_in, classes_in, binary_out)
+            self.target_csvs += [binary_out]
 
-        if "tpc" in target_encodings:
-            tpc_rule, tpc_out = self.get_tpc(csv_dir, fasta_in, classes_in)
-            rule += tpc_rule
-            self.target_csvs += [tpc_out]
+        if "blomap" in target_encodings:
+            blomap_out = f"{csv_dir}blomap.csv"
+            rule += encodings.blomap.rule(fasta_in, classes_in, blomap_out)
+            self.target_csvs += [blomap_out]
 
-        if "gtpc" in target_encodings:
-            gtpc_out = f"{csv_dir}gtpc.csv"
-            rule += encodings.gtpc.rule(fasta_in, classes_in, gtpc_out)
-            self.target_csvs += [gtpc_out]
+        if "blosum62" in target_encodings:
+            blosum62_out = f"{csv_dir}blosum62.csv"
+            rule += encodings.blosum62.rule(fasta_in, classes_in, blosum62_out)
+            self.target_csvs += [blosum62_out]
 
-        if "gdpc" in target_encodings:
-            gdpc_out = f"{csv_dir}gdpc.csv"
-            rule += encodings.gdpc.rule(fasta_in, classes_in, gdpc_out)
-            self.target_csvs += [gdpc_out]
+        if "ctdc" in target_encodings:
+            ctdc_out = f"{csv_dir}ctdc.csv"
+            rule += encodings.ctdc.rule(fasta_in, classes_in, ctdc_out)
+            self.target_csvs += [ctdc_out]
 
-        if "gaac" in target_encodings:
-            gaac_out = f"{csv_dir}gaac.csv"
-            rule += encodings.gaac.rule(fasta_in, classes_in, gaac_out)
-            self.target_csvs += [gaac_out]
+        if "ctdd" in target_encodings:
+            ctdd_out = f"{csv_dir}ctdd.csv"
+            rule += encodings.ctdd.rule(fasta_in, classes_in, ctdd_out)
+            self.target_csvs += [ctdd_out]
 
-        if "egaac" in target_encodings:
-            egaac_out = f"{csv_dir}egaac.csv"
-            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
-            self.target_csvs += [egaac_out]
+        if "ctdt" in target_encodings:
+            ctdt_out = f"{csv_dir}ctdt.csv"
+            rule += encodings.ctdt.rule(fasta_in, classes_in, ctdt_out)
+            self.target_csvs += [ctdt_out]
+
+        if "ctriad" in target_encodings:
+            ctriad_out = f"{csv_dir}ctriad.csv"
+            rule += encodings.ctriad.rule(fasta_in, classes_in, ctriad_out)
+            self.target_csvs += [ctriad_out]
 
         if "dde" in target_encodings:
             dde_out = f"{csv_dir}dde.csv"
             rule += encodings.dde.rule(fasta_in, classes_in, dde_out)
             self.target_csvs += [dde_out]
 
-        ### parammeter-based encodings
+        if "dpc" in target_encodings:
+            dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
+            rule += dpc_rule
+            self.target_csvs += [dpc_out]
+
+        if "egaac" in target_encodings:
+            egaac_out = f"{csv_dir}egaac.csv"
+            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
+            self.target_csvs += [egaac_out]
+
+        if "gaac" in target_encodings:
+            gaac_out = f"{csv_dir}gaac.csv"
+            rule += encodings.gaac.rule(fasta_in, classes_in, gaac_out)
+            self.target_csvs += [gaac_out]
+
+        if "gdpc" in target_encodings:
+            gdpc_out = f"{csv_dir}gdpc.csv"
+            rule += encodings.gdpc.rule(fasta_in, classes_in, gdpc_out)
+            self.target_csvs += [gdpc_out]
+
+        if "gtpc" in target_encodings:
+            gtpc_out = f"{csv_dir}gtpc.csv"
+            rule += encodings.gtpc.rule(fasta_in, classes_in, gtpc_out)
+            self.target_csvs += [gtpc_out]
+
+        if "tpc" in target_encodings:
+            tpc_rule, tpc_out = self.get_tpc(csv_dir, fasta_in, classes_in)
+            rule += tpc_rule
+            self.target_csvs += [tpc_out]
+
+        if "zscale" in target_encodings:
+            zscale_out = f"{csv_dir}zscale.csv"
+            rule += encodings.zscale.rule(fasta_in, classes_in, zscale_out)
+            self.target_csvs += [zscale_out]
+
+        ### parameter-based encodings
+
+        if "aaindex" in target_encodings:
+            aaindex_rule, aaindex_out = self.get_aaindex(csv_dir, fasta_in, classes_in, config["aaindex"])
+            rule += aaindex_rule
+            self.target_csvs += aaindex_out
+
+        if "fft" in target_encodings:
+            aaindex_rule, aaindex_out = self.get_aaindex(csv_dir, fasta_in, classes_in, config["aaindex"])
+            fft_out = self._expand(csv_dir, "fft/fft_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += \
+                aaindex_rule + \
+                encodings.fft.rule(aaindex_out, fft_out)
+            self.target_csvs += fft_out
+
+        if "waac" in target_encodings:
+            aac_out, waac_out = \
+                f"{csv_dir}aac.csv", \
+                self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += \
+                encodings.aac.rule(fasta_in, classes_in, aac_out) + \
+                encodings.waac.rule(aac_out, waac_out)
+            self.target_csvs += waac_out
+
+        if "flgc" in target_encodings:
+            aac_out, flgc_out = \
+                f"{csv_dir}aac.csv", \
+                self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += \
+                encodings.aac.rule(fasta_in, classes_in, aac_out) + \
+                encodings.flgc.rule(aac_out, flgc_out)
+            self.target_csvs += flgc_out
+
+        if "fldpc" in target_encodings:
+            dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
+            fldpc_out = self._expand(csv_dir, "fldpc/fldpc_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += \
+                dpc_rule + \
+                encodings.fldpc.rule(dpc_out, fldpc_out)
+            self.target_csvs += fldpc_out
+
+        if "cgr" in target_encodings:
+            cgr_out = self._expand(csv_dir, "cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
+                                   resolution=config["cgr"]["resolution"], sf=config["cgr"]["sfactor"])
+            rule += encodings.cgr.rule(fasta_in, classes_in, cgr_out)
+            self.target_csvs += cgr_out
+
+        if "distance_frequency" in target_encodings:
+            distance_frequency_out = self._expand(csv_dir,
+                                                  "distance_frequency/dist_freq_dn_{nterminal}_dc_{cterminal}.csv",
+                                                  nterminal=config["distance_frequency"]["nterminal"],
+                                                  cterminal=config["distance_frequency"]["cterminal"])
+            rule += encodings.distance_frequency.rule(fasta_in, classes_in, distance_frequency_out)
+            self.target_csvs += distance_frequency_out
 
         if "cksaagp" in target_encodings:
             cksaagp_out = self._expand(csv_dir, "cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=range(*config["cksaagp"]))
