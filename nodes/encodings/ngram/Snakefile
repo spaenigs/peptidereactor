@@ -29,11 +29,19 @@ except KeyError:
     exit("Run node utils 'dim_size' beforehand or set dimension manually.")
 
 TOKEN = config["token"]
-TARGET_FILES = config["csv_out"]
-if type(TARGET_FILES) == list:
-    TARGET_DIR = os.path.dirname(TARGET_FILES[0])
+
+CSV_TARGET_FILES = config["csv_out"]
+if type(CSV_TARGET_FILES) == list:
+    CSV_TARGET_DIR = os.path.dirname(CSV_TARGET_FILES[0])
 else:
-    TARGET_DIR = os.path.dirname(TARGET_FILES)
+    CSV_TARGET_DIR = os.path.dirname(CSV_TARGET_FILES)
+
+MISC_TARGET_FILES = config["lsv_out"]
+if type(MISC_TARGET_FILES) == list:
+    MISC_TARGET_DIR = os.path.dirname(MISC_TARGET_FILES[0])
+else:
+    MISC_TARGET_DIR = os.path.dirname(MISC_TARGET_FILES)
+
 
 # Exchange groups (E): M,I,L,V; F,Y,W, S,T,P,A,G; N,D,E,Q; H,R,K and C.
 # see: Wu et al. (1990): PROCANS: a protein classification system using a neural network
@@ -110,9 +118,9 @@ rule svd:
                 f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv",
          config["length_in"]
     output:
-         f"{TARGET_DIR}/ngram_{{type}}{{size}}_{{dim}}.csv",
-         f"{TARGET_DIR}/ngram_{{type}}{{size}}_lsv_{{dim}}.csv",
-         f"{TARGET_DIR}/ngram_{{type}}{{size}}_sv_{{dim}}.csv"
+         f"{CSV_TARGET_DIR}/ngram_{{type}}{{size}}_{{dim}}.csv",
+         f"{MISC_TARGET_DIR}/ngram_{{type}}{{size}}_lsv_{{dim}}.csv",
+         f"{MISC_TARGET_DIR}/ngram_{{type}}{{size}}_sv_{{dim}}.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          dim = int(wildcards.dim)
