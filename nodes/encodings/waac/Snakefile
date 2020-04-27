@@ -22,7 +22,7 @@ rule all:
 rule encode_waac:
     input:
          config["csv_in"],
-         config["aaindex_in"]
+         "peptidereactor/iFeature/data/AAindex.tsv"
     output:
          f"{TARGET_DIR}/waac_{{aaindex}}.csv"
     run:
