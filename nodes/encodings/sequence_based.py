@@ -9,14 +9,13 @@ import nodes.encodings as encodings
 class Rule:
 
     _MISC_ENCDOIGNS = \
-        ["zscale", "dpc", "tpc", "gtpc", "gdpc", "gaac", "egaac", "dde",
-         "ctdt", "ctdd", "ctdc", "blosum62", "binary", "aac", "blomap",
-         "ctriad"]
+        ["zscale", "dpc", "tpc", "gtpc", "gdpc", "gaac", "dde", "ctdt",
+         "ctdd", "ctdc", "blosum62", "binary", "aac", "blomap", "ctriad"]
 
     _PARAM_BASED_ENCODINGS = \
         ["ksctriad", "moran", "nmbroto", "geary", "qsorder", "socnumber",
          "eaac", "cksaagp", "cksaap", "apaac", "paac", "aaindex", "waac",
-         "flgc", "fldpc", "fft", "cgr", "distance_frequency"]
+         "flgc", "fldpc", "fft", "cgr", "distance_frequency", "egaac"]
 
     _NGRAM_BASED_ENCODINGS = \
         ["ngram_a2", "ngram_a3", "ngram_e2", "ngram_e3", "ngram_s2", "ngram_s3"]
@@ -46,11 +45,13 @@ class Rule:
 
     def rule(self, fasta_in, fasta_msa_in, classes_in, path_to_config, misc_dir, csv_dir, exclude=None, include=None):
 
-        target_encodings = \
-            self._MISC_ENCDOIGNS + \
-            self._PARAM_BASED_ENCODINGS + \
-            self._PSEKRAAC_BASED_ENCODINGS + \
-            self._NGRAM_BASED_ENCODINGS
+        # target_encodings = \
+        #     self._MISC_ENCDOIGNS + \
+        #     self._PARAM_BASED_ENCODINGS + \
+        #     self._PSEKRAAC_BASED_ENCODINGS + \
+        #     self._NGRAM_BASED_ENCODINGS
+
+        target_encodings = self._PARAM_BASED_ENCODINGS
 
         if (exclude, type(include)) == (None, list):
             target_encodings = include
@@ -137,11 +138,6 @@ class Rule:
             rule += encodings.dpc.rule(fasta_in, classes_in, dpc_out)
             self.target_csvs += [dpc_out]
 
-        if "egaac" in target_encodings:
-            egaac_out = f"{csv_dir}egaac.csv"
-            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
-            self.target_csvs += [egaac_out]
-
         if "gaac" in target_encodings:
             gaac_out = f"{csv_dir}gaac.csv"
             rule += encodings.gaac.rule(fasta_in, classes_in, gaac_out)
@@ -159,7 +155,7 @@ class Rule:
 
         if "tpc" in target_encodings or "ngram_a3" in target_encodings:
             tpc_out = f"{csv_dir}tpc.csv"
-            rule = encodings.tpc.rule(fasta_in, classes_in, tpc_out)
+            rule += encodings.tpc.rule(fasta_in, classes_in, tpc_out)
             self.target_csvs += [tpc_out]
 
         if "zscale" in target_encodings:
@@ -208,10 +204,65 @@ class Rule:
             rule += encodings.distance_frequency.rule(fasta_in, classes_in, distance_frequency_out)
             self.target_csvs += distance_frequency_out
 
+        if "cksaap" in target_encodings:
+            cksaap_out = self._expand(csv_dir, "cksaap/cksaap_gap_{gap_val}.csv", gap_val=config["cksaap"])
+            rule += encodings.cksaap.rule(fasta_in, classes_in, f"{misc_dir}cksaap.yaml", cksaap_out)
+            self.target_csvs += cksaap_out
+
         if "cksaagp" in target_encodings:
-            cksaagp_out = self._expand(csv_dir, "cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=range(*config["cksaagp"]))
+            cksaagp_out = self._expand(csv_dir, "cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=config["cksaagp"])
             rule += encodings.cksaagp.rule(fasta_in, classes_in, f"{misc_dir}cksaagp.yaml", cksaagp_out)
             self.target_csvs += cksaagp_out
+
+        if "egaac" in target_encodings:
+            egaac_out = self._expand(csv_dir, "egaac/egaac_window_{window_val}.csv", window_val=config["egaac"])
+            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
+            self.target_csvs += egaac_out
+
+        if "socnumber" in target_encodings:
+            socnumber_out = self._expand(csv_dir, "socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=config["socnumber"])
+            rule += encodings.socnumber.rule(fasta_in, classes_in, f"{misc_dir}socnumber.yaml", socnumber_out)
+            self.target_csvs += socnumber_out
+
+        if "qsorder" in target_encodings:
+            qsorder_out = self._expand(csv_dir, "qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=config["qsorder"])
+            rule += encodings.qsorder.rule(fasta_in, classes_in, f"{misc_dir}qsorder.yaml", qsorder_out)
+            self.target_csvs += qsorder_out
+
+        if "nmbroto" in target_encodings:
+            nmbroto_out = self._expand(csv_dir, "nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=config["nmbroto"])
+            rule += encodings.nmbroto.rule(fasta_in, classes_in, f"{misc_dir}nmbroto.yaml", nmbroto_out)
+            self.target_csvs += nmbroto_out
+
+        if "moran" in target_encodings:
+            moran_out = self._expand(csv_dir, "moran/moran_nlag_{nlag_val}.csv", nlag_val=config["moran"])
+            rule += encodings.moran.rule(fasta_in, classes_in, f"{misc_dir}moran.yaml", moran_out)
+            self.target_csvs += moran_out
+
+        if "ksctriad" in target_encodings:
+            ksctriad_out = self._expand(csv_dir, "ksctriad/ksctriad_gap_{gap_val}.csv", gap_val=config["ksctriad"])
+            rule += encodings.ksctriad.rule(fasta_in, classes_in, f"{misc_dir}ksctriad.yaml", ksctriad_out)
+            self.target_csvs += ksctriad_out
+
+        if "geary" in target_encodings:
+            geary_out = self._expand(csv_dir, "geary/geary_nlag_{nlag_val}.csv", nlag_val=config["geary"])
+            rule += encodings.geary.rule(fasta_in, classes_in, f"{misc_dir}geary.yaml", geary_out)
+            self.target_csvs += geary_out
+
+        if "eaac" in target_encodings:
+            eaac_out = self._expand(csv_dir, "eaac/eaac_window_{window_val}.csv", window_val=config["eaac"])
+            rule += encodings.eaac.rule(fasta_in, classes_in, f"{misc_dir}eaac.yaml", eaac_out)
+            self.target_csvs += eaac_out
+
+        if "apaac" in target_encodings:
+            apaac_out = self._expand(csv_dir, "apaac/apaac_lambda_{lambda_val}.csv", lambda_val=config["apaac"])
+            rule += encodings.apaac.rule(fasta_in, classes_in, f"{misc_dir}apaac.yaml", apaac_out)
+            self.target_csvs += apaac_out
+
+        if "paac" in target_encodings:
+            paac_out = self._expand(csv_dir, "paac/paac_lambda_{lambda_val}.csv", lambda_val=config["paac"])
+            rule += encodings.paac.rule(fasta_in, classes_in, f"{misc_dir}paac.yaml", paac_out)
+            self.target_csvs += paac_out
 
         ### psekraac-based encodings
 
