@@ -26,11 +26,6 @@ class Rule:
          [1, 2, 4, 5, ] + list(range(7, 17)) +
          ["3A", "3B", "6A", "6B", "6C"]]
 
-    def get_tpc(self, csv_dir, fasta_in, classes_in):
-        tpc_out = f"{csv_dir}tpc.csv"
-        rule = encodings.tpc.rule(fasta_in, classes_in, tpc_out)
-        return rule, tpc_out
-
     def _encodings_for_length_calculation(self, encodings=None):
         all = self._PARAM_BASED_ENCODINGS
         if encodings == None:
@@ -163,8 +158,8 @@ class Rule:
             self.target_csvs += [gtpc_out]
 
         if "tpc" in target_encodings or "ngram_a3" in target_encodings:
-            tpc_rule, tpc_out = self.get_tpc(csv_dir, fasta_in, classes_in)
-            rule += tpc_rule
+            tpc_out = f"{csv_dir}tpc.csv"
+            rule = encodings.tpc.rule(fasta_in, classes_in, tpc_out)
             self.target_csvs += [tpc_out]
 
         if "zscale" in target_encodings:
