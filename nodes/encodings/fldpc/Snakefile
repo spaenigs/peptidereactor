@@ -21,7 +21,7 @@ rule all:
 
 rule get_cluster:
     input:
-         config["aaindex_in"]
+         "peptidereactor/iFeature/data/AAindex.tsv"
     output:
          temp(f"data/temp/{TOKEN}/fldpc/aaindex_cluster_{{aaindex}}.csv")
     run:
