@@ -32,6 +32,9 @@ rule get_maximum_window_length:
              max_val = shortest_seq_len - 1
          elif wildcards.encoding in ["cksaagp", "cksaap"]:
              max_val = shortest_seq_len - 2
+         elif wildcards.encoding in ["aaindex", "waac", "flgc", "fldpc", "fft",
+                                     "cgr", "distance_frequency", "egaac"]:
+             max_val = -1
          else:
              raise ValueError(f"Unknown encoding: {wildcards.encoding}")
 
