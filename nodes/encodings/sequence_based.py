@@ -26,20 +26,10 @@ class Rule:
          [1, 2, 4, 5, ] + list(range(7, 17)) +
          ["3A", "3B", "6A", "6B", "6C"]]
 
-    def get_dpc(self, csv_dir, fasta_in, classes_in):
-        dpc_out = f"{csv_dir}dpc.csv"
-        rule = encodings.dpc.rule(fasta_in, classes_in, dpc_out)
-        return rule, dpc_out
-
     def get_tpc(self, csv_dir, fasta_in, classes_in):
         tpc_out = f"{csv_dir}tpc.csv"
         rule = encodings.tpc.rule(fasta_in, classes_in, tpc_out)
         return rule, tpc_out
-
-    def get_aaindex(self, csv_dir, fasta_in, classes_in, indices):
-        aaindex_out = self._expand(csv_dir, "aaindex/aaindex_{aaindex}.csv", aaindex=indices)
-        rule = encodings.aaindex.rule(fasta_in, classes_in, aaindex_out)
-        return rule, aaindex_out
 
     def _encodings_for_length_calculation(self, encodings=None):
         all = self._PARAM_BASED_ENCODINGS
@@ -98,7 +88,9 @@ class Rule:
 
         ### misc encodings
 
-        if "aac" in target_encodings:
+        if "aac" in target_encodings \
+                or "waac" in target_encodings \
+                or "flgc" in target_encodings:
             aac_out = f"{csv_dir}aac.csv"
             rule += encodings.aac.rule(fasta_in, classes_in, aac_out)
             self.target_csvs += [aac_out]
@@ -143,9 +135,11 @@ class Rule:
             rule += encodings.dde.rule(fasta_in, classes_in, dde_out)
             self.target_csvs += [dde_out]
 
-        if "dpc" in target_encodings:
-            dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
-            rule += dpc_rule
+        if "dpc" in target_encodings \
+                or "fldpc" in target_encodings \
+                or "ngram_a2" in target_encodings:
+            dpc_out = f"{csv_dir}dpc.csv"
+            rule += encodings.dpc.rule(fasta_in, classes_in, dpc_out)
             self.target_csvs += [dpc_out]
 
         if "egaac" in target_encodings:
@@ -168,7 +162,7 @@ class Rule:
             rule += encodings.gtpc.rule(fasta_in, classes_in, gtpc_out)
             self.target_csvs += [gtpc_out]
 
-        if "tpc" in target_encodings:
+        if "tpc" in target_encodings or "ngram_a3" in target_encodings:
             tpc_rule, tpc_out = self.get_tpc(csv_dir, fasta_in, classes_in)
             rule += tpc_rule
             self.target_csvs += [tpc_out]
@@ -180,48 +174,34 @@ class Rule:
 
         ### parameter-based encodings
 
-        if "aaindex" in target_encodings:
-            aaindex_rule, aaindex_out = self.get_aaindex(csv_dir, fasta_in, classes_in, config["aaindex"])
-            rule += aaindex_rule
+        if "aaindex" in target_encodings or "fft" in target_encodings:
+            aaindex_out = self._expand(csv_dir, "aaindex/aaindex_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.aaindex.rule(fasta_in, classes_in, aaindex_out)
             self.target_csvs += aaindex_out
 
         if "fft" in target_encodings:
-            aaindex_rule, aaindex_out = self.get_aaindex(csv_dir, fasta_in, classes_in, config["aaindex"])
             fft_out = self._expand(csv_dir, "fft/fft_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += \
-                aaindex_rule + \
-                encodings.fft.rule(aaindex_out, fft_out)
+            rule += encodings.fft.rule(aaindex_out, fft_out)
             self.target_csvs += fft_out
 
         if "waac" in target_encodings:
-            aac_out, waac_out = \
-                f"{csv_dir}aac.csv", \
-                self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += \
-                encodings.aac.rule(fasta_in, classes_in, aac_out) + \
-                encodings.waac.rule(aac_out, waac_out)
+            waac_out = self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.waac.rule(aac_out, waac_out)
             self.target_csvs += waac_out
 
         if "flgc" in target_encodings:
-            aac_out, flgc_out = \
-                f"{csv_dir}aac.csv", \
-                self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += \
-                encodings.aac.rule(fasta_in, classes_in, aac_out) + \
-                encodings.flgc.rule(aac_out, flgc_out)
+            flgc_out = self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.flgc.rule(aac_out, flgc_out)
             self.target_csvs += flgc_out
 
         if "fldpc" in target_encodings:
-            dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
             fldpc_out = self._expand(csv_dir, "fldpc/fldpc_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += \
-                dpc_rule + \
-                encodings.fldpc.rule(dpc_out, fldpc_out)
+            rule += encodings.fldpc.rule(dpc_out, fldpc_out)
             self.target_csvs += fldpc_out
 
         if "cgr" in target_encodings:
             cgr_out = self._expand(csv_dir, "cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
-                                   resolution=config["cgr"]["resolution"], sf=config["cgr"]["sfactor"])
+                                   resolution=config["cgr"]["resolution"], sfactor=config["cgr"]["sfactor"])
             rule += encodings.cgr.rule(fasta_in, classes_in, cgr_out)
             self.target_csvs += cgr_out
 
@@ -255,8 +235,6 @@ class Rule:
 
         for t in [i.split("_")[1] for i in target_encodings if "ngram" in i]:
             if t == "a2":
-                dpc_rule, dpc_out = self.get_dpc(csv_dir, fasta_in, classes_in)
-                rule += dpc_rule
                 ngram_a2_out = self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
                 ngram_a2_lsv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv",
                                                 dim=config[f"ngram_{t}"])
@@ -269,8 +247,6 @@ class Rule:
                 self.target_csvs += ngram_a2_out
 
             elif t == "a3":
-                tpc_rule, tpc_out = self.get_tpc(csv_dir, fasta_in, classes_in)
-                rule += tpc_rule
                 ngram_a3_out = self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
                 ngram_a3_lsv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv",
                                                 dim=config[f"ngram_{t}"])
