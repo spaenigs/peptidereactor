@@ -42,8 +42,7 @@ rule dump:
         f"ktuple-{{ktuple_val}}_lambda-{{lambda_val}}.csv",
         config["classes_in"]
     output:
-        f"{TARGET_DIR}/psekraac_type3A_subtype-{{sub_val}}_raactype-{{raac_val}}_" + \
-        f"ktuple-{{ktuple_val}}_lambda-{{lambda_val}}.csv"
+        f"{TARGET_DIR}/t3A_st-{{sub_val}}_rt-{{raac_val}}_ktu-{{ktuple_val}}_la-{{lambda_val}}.csv"
     run:
         with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
