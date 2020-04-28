@@ -18,7 +18,7 @@ def Geary(fastas, props=['CIDH920105', 'BHAR880101', 'CHAM820101', 'CHAM820102',
 		return 0
 
 	AA = 'ARNDCQEGHILKMFPSTWYV'
-	fileAAidx = re.sub('codes$', '', os.path.split(os.path.realpath(__file__))[0]) + r'\data\AAidx.txt' if platform.system() == 'Windows' else 'apps/iFeature/data/AAidx.txt'
+	fileAAidx = re.sub('codes$', '', os.path.split(os.path.realpath(__file__))[0]) + r'\data\AAidx.txt' if platform.system() == 'Windows' else 'peptidereactor/iFeature/data/AAidx.txt'
 	with open(fileAAidx) as f:
 		records = f.readlines()[1:]
 	myDict = {}
