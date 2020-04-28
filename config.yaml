@@ -36,88 +36,36 @@ egaac:
 
 cgr:
   resolution:
-    - 10
-    - 20
-    - 100
-    - 200
+    [10, 20, 100, 200]
   sfactor:
-    - 0.5
-    - 0.8632713
+    [0.5, 0.8632713]
 
 distance_frequency:
   nterminal:
-    - 5
-    - 10
-    - 20
-    - 50
-    - 100
+    [5, 10, 20, 50, 100]
   cterminal:
-    - 5
-    - 10
-    - 20
-    - 50
-    - 100
+    [5, 10, 20, 50, 100]
 
 ngram_a2:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 ngram_a3:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 ngram_e2:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 ngram_e3:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 ngram_s2:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 ngram_s3:
-  - 1
-  - 5
-  - 20
-  - 50
-  - 100
-  - 200
-  - 300
+  [1, 5, 20, 50, 100, 200, 300]
 
 delaunay:
-  - average_distance
-  - total_distance
-  - cartesian_product
-  - number_instances
-  - frequency_instances
+  [average_distance, total_distance, cartesian_product, number_instances, frequency_instances]
 
 psekraac_type1:
   name: "psekraactype1encoder"
