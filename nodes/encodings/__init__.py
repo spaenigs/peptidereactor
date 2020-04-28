@@ -9,8 +9,33 @@ from . import gdpc
 from . import gaac
 from . import egaac
 from . import dde
+from . import ctdt
+from . import ctdd
+from . import ctdc
+from . import blosum62
+from . import binary
+from . import aac
+from . import ctriad
+from . import blomap
 
+from . import aaindex
+from . import fft
+from . import waac
+from . import flgc
+from . import fldpc
+from . import cgr
+from . import distance_frequency
 from . import cksaagp
+from . import socnumber
+from . import qsorder
+from . import nmbroto
+from . import moran
+from . import ksctriad
+from . import geary
+from . import eaac
+from . import cksaap
+from . import apaac
+from . import paac
 
 from . import ngram
 
@@ -35,3 +60,4 @@ from . import psekraac_type6B
 from . import psekraac_type6C
 
 from . import delaunay
+from . import asa
