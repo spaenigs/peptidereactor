@@ -1,4 +1,5 @@
 from snakemake.io import expand
+from functools import partial
 
 import yaml
 
@@ -45,13 +46,11 @@ class Rule:
 
     def rule(self, fasta_in, fasta_msa_in, classes_in, path_to_config, misc_dir, csv_dir, exclude=None, include=None):
 
-        # target_encodings = \
-        #     self._MISC_ENCDOIGNS + \
-        #     self._PARAM_BASED_ENCODINGS + \
-        #     self._PSEKRAAC_BASED_ENCODINGS + \
-        #     self._NGRAM_BASED_ENCODINGS
-
-        target_encodings = self._PARAM_BASED_ENCODINGS
+        target_encodings = \
+            self._MISC_ENCDOIGNS + \
+            self._PARAM_BASED_ENCODINGS + \
+            self._PSEKRAAC_BASED_ENCODINGS + \
+            self._NGRAM_BASED_ENCODINGS
 
         if (exclude, type(include)) == (None, list):
             target_encodings = include
@@ -93,7 +92,7 @@ class Rule:
 
         if "binary" in target_encodings:
             binary_out = f"{csv_dir}binary.csv"
-            rule += encodings.binary.rule(fasta_in, classes_in, binary_out)
+            rule += encodings.binary.rule(fasta_msa_in, classes_in, binary_out)
             self.target_csvs += [binary_out]
 
         if "blomap" in target_encodings:
@@ -170,25 +169,10 @@ class Rule:
             rule += encodings.aaindex.rule(fasta_in, classes_in, aaindex_out)
             self.target_csvs += aaindex_out
 
-        if "fft" in target_encodings:
-            fft_out = self._expand(csv_dir, "fft/fft_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += encodings.fft.rule(aaindex_out, fft_out)
-            self.target_csvs += fft_out
-
-        if "waac" in target_encodings:
-            waac_out = self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += encodings.waac.rule(aac_out, waac_out)
-            self.target_csvs += waac_out
-
-        if "flgc" in target_encodings:
-            flgc_out = self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += encodings.flgc.rule(aac_out, flgc_out)
-            self.target_csvs += flgc_out
-
-        if "fldpc" in target_encodings:
-            fldpc_out = self._expand(csv_dir, "fldpc/fldpc_{aaindex}.csv", aaindex=config["aaindex"])
-            rule += encodings.fldpc.rule(dpc_out, fldpc_out)
-            self.target_csvs += fldpc_out
+        if "apaac" in target_encodings:
+            apaac_out = self._expand(csv_dir, "apaac/apaac_lambda_{lambda_val}.csv", lambda_val=config["apaac"])
+            rule += encodings.apaac.rule(fasta_in, classes_in, f"{misc_dir}apaac.yaml", apaac_out)
+            self.target_csvs += apaac_out
 
         if "cgr" in target_encodings:
             cgr_out = self._expand(csv_dir, "cgr/cgr_res_{resolution}_sf_{sfactor}.csv",
@@ -196,80 +180,97 @@ class Rule:
             rule += encodings.cgr.rule(fasta_in, classes_in, cgr_out)
             self.target_csvs += cgr_out
 
-        if "distance_frequency" in target_encodings:
-            distance_frequency_out = self._expand(csv_dir,
-                                                  "distance_frequency/dist_freq_dn_{nterminal}_dc_{cterminal}.csv",
-                                                  nterminal=config["distance_frequency"]["nterminal"],
-                                                  cterminal=config["distance_frequency"]["cterminal"])
-            rule += encodings.distance_frequency.rule(fasta_in, classes_in, distance_frequency_out)
-            self.target_csvs += distance_frequency_out
+        if "cksaagp" in target_encodings:
+            cksaagp_out = self._expand(csv_dir, "cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=config["cksaagp"])
+            rule += encodings.cksaagp.rule(fasta_in, classes_in, f"{misc_dir}cksaagp.yaml", cksaagp_out)
+            self.target_csvs += cksaagp_out
 
         if "cksaap" in target_encodings:
             cksaap_out = self._expand(csv_dir, "cksaap/cksaap_gap_{gap_val}.csv", gap_val=config["cksaap"])
             rule += encodings.cksaap.rule(fasta_in, classes_in, f"{misc_dir}cksaap.yaml", cksaap_out)
             self.target_csvs += cksaap_out
 
-        if "cksaagp" in target_encodings:
-            cksaagp_out = self._expand(csv_dir, "cksaagp/cksaagp_gap_{gap_val}.csv", gap_val=config["cksaagp"])
-            rule += encodings.cksaagp.rule(fasta_in, classes_in, f"{misc_dir}cksaagp.yaml", cksaagp_out)
-            self.target_csvs += cksaagp_out
-
-        if "egaac" in target_encodings:
-            egaac_out = self._expand(csv_dir, "egaac/egaac_window_{window_val}.csv", window_val=config["egaac"])
-            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
-            self.target_csvs += egaac_out
-
-        if "socnumber" in target_encodings:
-            socnumber_out = self._expand(csv_dir, "socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=config["socnumber"])
-            rule += encodings.socnumber.rule(fasta_in, classes_in, f"{misc_dir}socnumber.yaml", socnumber_out)
-            self.target_csvs += socnumber_out
-
-        if "qsorder" in target_encodings:
-            qsorder_out = self._expand(csv_dir, "qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=config["qsorder"])
-            rule += encodings.qsorder.rule(fasta_in, classes_in, f"{misc_dir}qsorder.yaml", qsorder_out)
-            self.target_csvs += qsorder_out
-
-        if "nmbroto" in target_encodings:
-            nmbroto_out = self._expand(csv_dir, "nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=config["nmbroto"])
-            rule += encodings.nmbroto.rule(fasta_in, classes_in, f"{misc_dir}nmbroto.yaml", nmbroto_out)
-            self.target_csvs += nmbroto_out
-
-        if "moran" in target_encodings:
-            moran_out = self._expand(csv_dir, "moran/moran_nlag_{nlag_val}.csv", nlag_val=config["moran"])
-            rule += encodings.moran.rule(fasta_in, classes_in, f"{misc_dir}moran.yaml", moran_out)
-            self.target_csvs += moran_out
-
-        if "ksctriad" in target_encodings:
-            ksctriad_out = self._expand(csv_dir, "ksctriad/ksctriad_gap_{gap_val}.csv", gap_val=config["ksctriad"])
-            rule += encodings.ksctriad.rule(fasta_in, classes_in, f"{misc_dir}ksctriad.yaml", ksctriad_out)
-            self.target_csvs += ksctriad_out
-
-        if "geary" in target_encodings:
-            geary_out = self._expand(csv_dir, "geary/geary_nlag_{nlag_val}.csv", nlag_val=config["geary"])
-            rule += encodings.geary.rule(fasta_in, classes_in, f"{misc_dir}geary.yaml", geary_out)
-            self.target_csvs += geary_out
+        if "distance_frequency" in target_encodings:
+            distance_frequency_out = \
+                self._expand(csv_dir,
+                             "distance_frequency/dist_freq_dn_{nterminal}_dc_{cterminal}.csv",
+                             nterminal=config["distance_frequency"]["nterminal"],
+                             cterminal=config["distance_frequency"]["cterminal"])
+            rule += encodings.distance_frequency.rule(fasta_in, classes_in, distance_frequency_out)
+            self.target_csvs += distance_frequency_out
 
         if "eaac" in target_encodings:
             eaac_out = self._expand(csv_dir, "eaac/eaac_window_{window_val}.csv", window_val=config["eaac"])
             rule += encodings.eaac.rule(fasta_in, classes_in, f"{misc_dir}eaac.yaml", eaac_out)
             self.target_csvs += eaac_out
 
-        if "apaac" in target_encodings:
-            apaac_out = self._expand(csv_dir, "apaac/apaac_lambda_{lambda_val}.csv", lambda_val=config["apaac"])
-            rule += encodings.apaac.rule(fasta_in, classes_in, f"{misc_dir}apaac.yaml", apaac_out)
-            self.target_csvs += apaac_out
+        if "egaac" in target_encodings:
+            egaac_out = self._expand(csv_dir, "egaac/egaac_window_{window_val}.csv", window_val=config["egaac"])
+            rule += encodings.egaac.rule(fasta_in, classes_in, egaac_out)
+            self.target_csvs += egaac_out
+
+        if "fft" in target_encodings:
+            fft_out = self._expand(csv_dir, "fft/fft_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.fft.rule(aaindex_out, fft_out)
+            self.target_csvs += fft_out
+
+        if "fldpc" in target_encodings:
+            fldpc_out = self._expand(csv_dir, "fldpc/fldpc_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.fldpc.rule(dpc_out, fldpc_out)
+            self.target_csvs += fldpc_out
+
+        if "flgc" in target_encodings:
+            flgc_out = self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.flgc.rule(aac_out, flgc_out)
+            self.target_csvs += flgc_out
+
+        if "geary" in target_encodings:
+            geary_out = self._expand(csv_dir, "geary/geary_nlag_{nlag_val}.csv", nlag_val=config["geary"])
+            rule += encodings.geary.rule(fasta_in, classes_in, f"{misc_dir}geary.yaml", geary_out)
+            self.target_csvs += geary_out
+
+        if "ksctriad" in target_encodings:
+            ksctriad_out = self._expand(csv_dir, "ksctriad/ksctriad_gap_{gap_val}.csv", gap_val=config["ksctriad"])
+            rule += encodings.ksctriad.rule(fasta_in, classes_in, f"{misc_dir}ksctriad.yaml", ksctriad_out)
+            self.target_csvs += ksctriad_out
+
+        if "moran" in target_encodings:
+            moran_out = self._expand(csv_dir, "moran/moran_nlag_{nlag_val}.csv", nlag_val=config["moran"])
+            rule += encodings.moran.rule(fasta_in, classes_in, f"{misc_dir}moran.yaml", moran_out)
+            self.target_csvs += moran_out
+
+        if "nmbroto" in target_encodings:
+            nmbroto_out = self._expand(csv_dir, "nmbroto/nmbroto_nlag_{nlag_val}.csv", nlag_val=config["nmbroto"])
+            rule += encodings.nmbroto.rule(fasta_in, classes_in, f"{misc_dir}nmbroto.yaml", nmbroto_out)
+            self.target_csvs += nmbroto_out
 
         if "paac" in target_encodings:
             paac_out = self._expand(csv_dir, "paac/paac_lambda_{lambda_val}.csv", lambda_val=config["paac"])
             rule += encodings.paac.rule(fasta_in, classes_in, f"{misc_dir}paac.yaml", paac_out)
             self.target_csvs += paac_out
 
+        if "qsorder" in target_encodings:
+            qsorder_out = self._expand(csv_dir, "qsorder/qsorder_nlag_{nlag_val}.csv", nlag_val=config["qsorder"])
+            rule += encodings.qsorder.rule(fasta_in, classes_in, f"{misc_dir}qsorder.yaml", qsorder_out)
+            self.target_csvs += qsorder_out
+
+        if "socnumber" in target_encodings:
+            socnumber_out = self._expand(csv_dir, "socnumber/socnumber_nlag_{nlag_val}.csv", nlag_val=config["socnumber"])
+            rule += encodings.socnumber.rule(fasta_in, classes_in, f"{misc_dir}socnumber.yaml", socnumber_out)
+            self.target_csvs += socnumber_out
+
+        if "waac" in target_encodings:
+            waac_out = self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
+            rule += encodings.waac.rule(aac_out, waac_out)
+            self.target_csvs += waac_out
+
         ### psekraac-based encodings
 
         for t in [i.split("_")[1] for i in target_encodings if "psekraac" in i]:
             psekraac_out = \
                 self._expand(csv_dir,
-                             f"psekraac_{t}/{t.replace('ype', '')}_st-{{sub_val}}_rt-{{raac_val}}_ktu-{{ktuple_val}}_la-{{lambda_val}}.csv",
+                             f"psekraac_{t}/{t.replace('ype', '')}_st-{{sub_val}}_rt-{{raac_val}}_" +
+                             f"ktu-{{ktuple_val}}_la-{{lambda_val}}.csv",
                              sub_val=config[f"psekraac_{t}"]["subtypes"],
                              raac_val=config[f"psekraac_{t}"]["raactypes"],
                              ktuple_val=config[f"psekraac_{t}"]["ktuples"],
@@ -280,40 +281,22 @@ class Rule:
         ### ngram-based encodings
 
         for t in [i.split("_")[1] for i in target_encodings if "ngram" in i]:
+            ngram_out = \
+                self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
+            ngram_lsv_out = \
+                self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv", dim=config[f"ngram_{t}"])
+            ngram_sv_out = \
+                self._expand(misc_dir, f"ngram_{t}/ngram_{t}_sv_{{dim}}.csv", dim=config[f"ngram_{t}"])
+            prule = partial(
+                encodings.ngram.rule, ngram_type=t, length_in=f"{misc_dir}ngram_{t}.yaml",
+                ngram_out=ngram_out, ngram_lsv_out=ngram_lsv_out, ngram_sv_out=ngram_sv_out)
             if t == "a2":
-                ngram_a2_out = self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
-                ngram_a2_lsv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv",
-                                                dim=config[f"ngram_{t}"])
-                ngram_a2_sv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_sv_{{dim}}.csv",
-                                               dim=config[f"ngram_{t}"])
-                rule += \
-                    encodings.ngram.rule(t, csv_in=dpc_out, length_in=f"{misc_dir}ngram_{t}.yaml",
-                                         ngram_out=ngram_a2_out, ngram_lsv_out=ngram_a2_lsv_out,
-                                         ngram_sv_out=ngram_a2_sv_out)
-                self.target_csvs += ngram_a2_out
-
+                rule += prule(csv_in=dpc_out)
             elif t == "a3":
-                ngram_a3_out = self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
-                ngram_a3_lsv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv",
-                                                dim=config[f"ngram_{t}"])
-                ngram_a3_sv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_sv_{{dim}}.csv",
-                                               dim=config[f"ngram_{t}"])
-                rule += \
-                    encodings.ngram.rule(t, csv_in=tpc_out, length_in=f"{misc_dir}ngram_{t}.yaml",
-                                         ngram_out=ngram_a3_out, ngram_lsv_out=ngram_a3_lsv_out,
-                                         ngram_sv_out=ngram_a3_sv_out)
-                self.target_csvs += ngram_a3_out
-
+                rule += prule(csv_in=tpc_out)
             else:
-                ngram_out = self._expand(csv_dir, f"ngram_{t}/ngram_{t}_{{dim}}.csv", dim=config[f"ngram_{t}"])
-                ngram_lsv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_lsv_{{dim}}.csv",
-                                             dim=config[f"ngram_{t}"])
-                ngram_sv_out = self._expand(misc_dir, f"ngram_{t}/ngram_{t}_sv_{{dim}}.csv",
-                                            dim=config[f"ngram_{t}"])
-                rule += \
-                    encodings.ngram.rule(t, fasta_in=fasta_in, classes_in=classes_in,
-                                         length_in=f"{misc_dir}ngram_{t}.yaml", ngram_out=ngram_out,
-                                         ngram_lsv_out=ngram_lsv_out, ngram_sv_out=ngram_sv_out)
+                rule += prule(fasta_in=fasta_in, classes_in=classes_in)
+            self.target_csvs += ngram_out
 
         return rule
 
