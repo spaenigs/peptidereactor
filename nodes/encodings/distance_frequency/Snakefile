@@ -19,7 +19,7 @@ rule encode:
          config["fasta_in"],
          config["classes_in"]
     output:
-         f"{TARGET_DIR}/distance_frequency_dn_{{nterminal}}_dc_{{cterminal}}.csv"
+         f"{TARGET_DIR}/dist_freq_dn_{{nterminal}}_dc_{{cterminal}}.csv"
     run:
          from nodes.encodings.distance_frequency.scripts.distance_frequency \
              import DistanceFrequency
