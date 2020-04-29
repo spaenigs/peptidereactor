@@ -36,6 +36,7 @@ def get_seq_from_pdb(chain):
 def dump_structure_slice(pdb_id, chain_id, motif, cif_dir, out_file):
     parser = MMCIFParser()
     structure = parser.get_structure(pdb_id, cif_dir + f"{pdb_id}.cif")
+    chain_id = str(chain_id)
     chain = get_chain(structure, chain_id)
     seq, indices = get_seq_from_pdb(chain)
     start_on_indices = seq.find(motif)
