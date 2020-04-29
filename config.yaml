@@ -67,6 +67,9 @@ ngram_s3:
 delaunay:
   [average_distance, total_distance, cartesian_product, number_instances, frequency_instances]
 
+electrostatic_hull:
+  [0, 3, 6, 9, 12]
+
 psekraac_type1:
   name: "psekraactype1encoder"
   subtypes: ["g-gap", "lambda-correlation"]
