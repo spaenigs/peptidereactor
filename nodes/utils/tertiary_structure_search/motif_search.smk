@@ -5,10 +5,7 @@ from modlamp.core \
 
 import pandas as pd
 
-import sys
 import os
-
-sys.path.append(".")
 
 from peptidereactor.workflow_executer import \
     WorkflowExecuter
