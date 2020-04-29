@@ -11,7 +11,7 @@ def rule(fasta_in, classes_in, profile_dir, asa_out):
                      classes_in="{classes_in}",
                      profile="{profile_dir}"
                 output:
-                     csv_out="{asa_out}
+                     csv_out="{asa_out}"
                 params:
                      snakefile="nodes/encodings/asa/asa.smk",
                      configfile="nodes/encodings/asa/config.yaml"
