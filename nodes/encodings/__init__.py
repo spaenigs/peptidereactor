@@ -38,6 +38,7 @@ from . import apaac
 from . import paac
 
 from . import ngram
+from . import pssm
 
 from . import psekraac_type1
 from . import psekraac_type2
@@ -59,5 +60,15 @@ from . import psekraac_type6A
 from . import psekraac_type6B
 from . import psekraac_type6C
 
-from . import delaunay
 from . import asa
+from . import ta
+from . import ssec
+from . import sseb
+from . import disorder
+from . import disorderb
+from . import disorderc
+
+from . import delaunay
+from . import distance_distribution
+from . import electrostatic_hull
+from . import qsar
