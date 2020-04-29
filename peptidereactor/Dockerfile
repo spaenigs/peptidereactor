@@ -30,4 +30,6 @@ RUN chmod -R 777 /opt/conda/envs/peptidereactor-env/lib/modeller-9.23/modlib/mod
 VOLUME /snakemake
 WORKDIR /snakemake
 
+ENV PYTHONPATH /snakemake
+
 ENTRYPOINT ["snakemake", "--nolock"]
