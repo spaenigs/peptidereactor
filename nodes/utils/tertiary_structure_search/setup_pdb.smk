@@ -11,8 +11,6 @@ import re
 from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_response
 
-# TODO adopt to local pdb database
-
 TOKEN = config["token"]
 
 wildcard_constraints:
@@ -21,7 +19,7 @@ wildcard_constraints:
 
 rule setup_pdb:
     input:
-         expand("peptidereactor/db/pdb/{type}_structure/pdb.db",
+         expand("peptidereactor/db/pdb/{type}_structure_sa/pdb.db",
                 type=["in", "ex"])
 
 rule get_ids:
@@ -139,8 +137,8 @@ rule group_sequences:
     input:
          f"peptidereactor/db/pdb/pdb_masked.fasta"
     output:
-         "peptidereactor/db/pdb/in_structure/pdb.fasta",
-         "peptidereactor/db/pdb/ex_structure/pdb.fasta"
+         "peptidereactor/db/pdb/in_structure_sa/pdb.fasta",
+         "peptidereactor/db/pdb/ex_structure_sa/pdb.fasta"
     run:
          def concat_seq_parts(seq_lst):
              if len(seq_lst) == 0:
@@ -175,9 +173,9 @@ rule group_sequences:
 
 rule make_db:
     input:
-         "peptidereactor/db/pdb/{type}_structure/pdb.fasta"
+         "peptidereactor/db/pdb/{type}_structure_sa/pdb.fasta"
     output:
-         "peptidereactor/db/pdb/{type}_structure/pdb.db"
+         "peptidereactor/db/pdb/{type}_structure_sa/pdb.db"
     shell:
          """
          makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids -blastdb_version 5
