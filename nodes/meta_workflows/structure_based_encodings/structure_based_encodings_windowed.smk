@@ -1,8 +1,5 @@
-import os, sys
-
-sys.path.append(os.getcwd())
-
-from peptidereactor.workflow_executer import WorkflowExecuter
+from peptidereactor.workflow_executer \
+    import WorkflowExecuter
 
 CORES = int(config["cores"])
 TOKEN = config["token"]
