@@ -1,6 +1,4 @@
-import os, sys
-
-sys.path.append(os.getcwd())
+import os
 
 from peptidereactor.workflow_executer import WorkflowExecuter
 
