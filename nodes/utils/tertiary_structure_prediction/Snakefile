@@ -4,9 +4,6 @@ from modlamp.core import read_fasta, save_fasta
 import joblib as jl
 
 import os
-import sys
-
-sys.path.append(".")
 
 from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_seq_names
