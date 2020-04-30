@@ -1,16 +1,15 @@
 import textwrap
 
 
-def rule(fasta_in, classes_in, fasta_out):
+def rule(fastas_in, fastas_out):
 
     rule = textwrap.dedent(
         f'''\
             rule util_multiple_sequence_alignment:
                 input:
-                     fasta_in="{fasta_in}",
-                     classes_in="{classes_in}"
+                     fastas_in={fastas_in}
                 output:
-                     fasta_out="{fasta_out}"
+                     fastas_out={fastas_out}
                 params:
                      snakefile="nodes/utils/multiple_sequence_alignment/Snakefile",
                      configfile="nodes/utils/multiple_sequence_alignment/config.yaml"
