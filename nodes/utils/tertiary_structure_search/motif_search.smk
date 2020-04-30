@@ -10,7 +10,7 @@ import os
 from peptidereactor.workflow_executer import \
     WorkflowExecuter
 from nodes.utils.tertiary_structure_search.scripts.utils \
-    import dump_structure_slice, get_seq_names
+    import Cif, get_seq_names
 
 include:
     "setup_pdb.smk"
@@ -100,4 +100,12 @@ rule dump_cleaved_structure:
          else:
              pdb_id, chain_id, hit = \
                  df.loc[0, ["sacc_id", "sacc_chain", "sseq"]]
-             dump_structure_slice(pdb_id, chain_id, hit, CIFS_DIR, str(output))
+
+             cif = Cif(pdb_id, chain_id, CIFS_DIR)
+
+             if cif.check_invalid():
+                 cif.remove_invalid(f"data/temp/{TOKEN}/{pdb_id}_{chain_id}.pdb")
+                 if not cif.invalids_removed:
+                     shell("touch {output}")
+
+             cif.dump_slice(hit, output[0])

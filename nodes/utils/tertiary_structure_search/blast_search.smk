@@ -5,19 +5,15 @@ from io import StringIO
 
 import pandas as pd
 
-import sys
-
-sys.path.append(".")
-
 from peptidereactor.workflow_executer \
     import WorkflowExecuter
 from nodes.utils.tertiary_structure_search.scripts.utils \
-    import dump_structure_slice, get_seq_names
+    import get_seq_names, Cif
 
 include:
     "setup_pdb.smk"
 
-TOKEN = config["token"]
+TOKEN = "tyui" # config["token"]
 CIFS_DIR = "peptidereactor/db/cifs/"
 TARGET_DIR = config["pdbs_out"]
 
@@ -30,7 +26,7 @@ rule split_input_data:
     input:
          config["fasta_in"]
     output:
-         temp(f"data/temp/{TOKEN}/{{seq_name}}.fasta")
+         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
     run:
          seqs, names = read_fasta(str(input[0]))
          seq_tuples = dict((name, seq) for name, seq in zip(names, seqs))
@@ -42,7 +38,7 @@ rule blast_search:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
          "peptidereactor/db/pdb/in_structure/pdb.db"
     output:
-         temp(f"data/temp/{TOKEN}/blast_result_{{seq_name}}.csv")
+         f"data/temp/{TOKEN}/blast_result_{{seq_name}}.csv"
     priority:
         1000
     run:
@@ -51,6 +47,9 @@ rule blast_search:
              task="blastp-short",
              db=str(input[1]),
              query=str(input[0]),
+             evalue=200000, # include distinct hits
+             max_target_seqs=1,
+             max_hsps=1,
              outfmt="10 " + " ".join(header))
          stdout, stderr = cline()
 
@@ -73,16 +72,13 @@ rule blast_search:
                  df_res.loc[ [False if len(id) > 1 else True for id in df_res["sacc_chain"]]
                            , :]
 
-         if blast_hits >= 5:
-             df_res.iloc[:5, :].to_csv(str(output))
-         else:
-             df_res.to_csv(str(output))
+         df_res.to_csv(str(output))
 
 rule utils_download_cif_files:
     input:
          f"data/temp/{TOKEN}/blast_result_{{seq_name}}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt")
+         f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt"
     params:
          snakefile="nodes/utils/download_cifs/Snakefile",
          configfile="nodes/utils/download_cifs/config.yaml"
@@ -92,8 +88,8 @@ rule utils_download_cif_files:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id": str})
          if not df.empty:
              cif_files = expand(CIFS_DIR + "{id}.cif", id=df["sacc_id"])
-             with WorkflowExecuter(dict(), dict(cifs_out=cif_files), params.configfile) as e:
-                 shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+             with WorkflowExecuter(dict(), dict(cifs_out=cif_files), params.configfile):
+                 shell(f"""snakemake -s {{params.snakefile}} --configfile {{params.configfile}} --quiet""")
          shell("touch {output}")
 
 rule dump_cleaved_structure:
@@ -104,11 +100,20 @@ rule dump_cleaved_structure:
          TARGET_DIR + "{seq_name}.pdb"
     run:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id":str})
+
          if df.empty:
              shell("touch {output}")
          else:
              pdb_id, chain_id, hit = \
                  df.loc[0, ["sacc_id", "sacc_chain", "sseq"]]
-             dump_structure_slice(pdb_id, chain_id, hit, CIFS_DIR, str(output))
+
+             cif = Cif(pdb_id, chain_id, CIFS_DIR)
+
+             if cif.check_invalid():
+                 cif.remove_invalid(f"data/temp/{TOKEN}/{pdb_id}_{chain_id}.pdb")
+                 if not cif.invalids_removed:
+                     shell("touch {output}")
+
+             cif.dump_slice(hit, output[0])
 
 
