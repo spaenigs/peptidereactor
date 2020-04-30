@@ -1,19 +1,22 @@
 from Bio.PDB import make_dssp_dict
 
+import textwrap
+
 
 def generate_disorder_profile(path_to_dssp, path_to_dis):
-    header = """
-Dummy file to mimic output from VSL2 Predictor of Intrinsically Disordered Regions
-
-Prediction Scores:
-========================================
-NO.     RES.    PREDICTION      DISORDER
-----------------------------------------
-    """
+    header = textwrap.dedent(
+        """\
+            Dummy file to mimic output from VSL2 Predictor of Intrinsically Disordered Regions
+            
+            Prediction Scores:
+            ========================================
+            NO.     RES.    PREDICTION      DISORDER
+            ----------------------------------------
+        """)
     with open(path_to_dis, "w") as f:
         dssp = make_dssp_dict(path_to_dssp)
         for i, (k, v) in enumerate(dssp[0].items(), start=1):
-            print(f"{i} -- {k}:\t{v}")
+            # print(f"{i} -- {k}:\t{v}")
             header += f"{i}\t{v[0]}\t{100.0 if v[1] == '-' else 0.000}\t{'D' if v[1] == '-' else '.'}\n"
         footer = "========================================\n"
         f.write(header + footer)
