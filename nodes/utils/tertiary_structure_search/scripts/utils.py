@@ -1,5 +1,5 @@
 from Bio import BiopythonWarning, SeqIO
-from Bio.PDB import MMCIFParser, Dice
+from Bio.PDB import MMCIFParser, Dice, Select, PDBIO, PDBParser
 from Bio.SeqUtils import seq1
 
 import time
@@ -22,29 +22,6 @@ def get_response(url):
     raise IOError(f"Some issues with PDB now. Try again later...\n(URL: {url}")
 
 
-def get_chain(structure, chain_id):
-    return [chain for chain in list(structure.get_models())[0] if chain.get_id() == chain_id][0]
-
-
-def get_seq_from_pdb(chain):
-    seq_from_pdb = seq1("".join([residue.get_resname() for residue in chain]))
-    seq_from_pdb = re.search("^X*(.*?)X*$", seq_from_pdb).group(1)
-    seq_from_pdb_ics = [residue.get_id()[1] for residue in chain]
-    return seq_from_pdb, seq_from_pdb_ics
-
-
-def dump_structure_slice(pdb_id, chain_id, motif, cif_dir, out_file):
-    parser = MMCIFParser()
-    structure = parser.get_structure(pdb_id, cif_dir + f"{pdb_id}.cif")
-    chain_id = str(chain_id)
-    chain = get_chain(structure, chain_id)
-    seq, indices = get_seq_from_pdb(chain)
-    start_on_indices = seq.find(motif)
-    end_on_indices = start_on_indices + len(motif) - 1
-    start, end = indices[start_on_indices], indices[end_on_indices]
-    Dice.extract(structure, chain_id, start, end, out_file)
-
-
 def get_seq_names(path_to_fasta):
     values = list(zip(*[(str(record.seq), record.id)
                         for record in SeqIO.parse(path_to_fasta, "fasta")]))
@@ -54,3 +31,56 @@ def get_seq_names(path_to_fasta):
         _, names = values
         return names
 
+
+class XDeselect(Select):
+    def accept_residue(self, residue):
+        if residue.get_resname() == 'MSE':
+            return 0
+        else:
+            return 1
+
+
+class Cif:
+
+    def get_chain(self):
+        return [chain for chain in list(self.structure.get_models())[0]
+                if chain.get_id() == self.chain_id][0]
+
+    def get_seq_from_pdb(self):
+        seq_from_pdb = seq1("".join([residue.get_resname() for residue in self.chain]))
+        seq_from_pdb = re.search("^X*(.*?)X*$", seq_from_pdb).group(1)
+        seq_from_pdb_ics = [residue.get_id()[1] for residue in self.chain]
+        return seq_from_pdb, seq_from_pdb_ics
+
+    def check_invalid(self):
+        return True if "X" in self.seq else False
+
+    def remove_invalid(self, out_pdb):
+        io = PDBIO()
+        io.set_structure(self.structure)
+        io.save(out_pdb, XDeselect())
+        try:
+            self.structure = PDBParser().get_structure(self.pdb_id, out_pdb)
+            self.chain = self.get_chain()
+            self.seq, self.indices = self.get_seq_from_pdb()
+            self.invalids_removed = True
+        except Exception as e:
+            self.invalids_removed = False
+
+    def dump_slice(self, motif, out_file):
+        start_on_indices = self.seq.find(motif)
+        end_on_indices = start_on_indices + len(motif) - 1
+        start, end = self.indices[start_on_indices], self.indices[end_on_indices]
+        Dice.extract(self.structure, self.chain_id, start, end, out_file)
+
+    def __init__(self, pdb_id, chain_id, cif_dir, file_type="cif"):
+        self.pdb_id = pdb_id
+        self.chain_id = str(chain_id)
+        if file_type == "cif":
+            self.parser = MMCIFParser()
+        else:
+            self.parser = PDBParser()
+        self.structure = self.parser.get_structure(pdb_id, cif_dir + f"{pdb_id}.{file_type}")
+        self.chain = self.get_chain()
+        self.seq, self.indices = self.get_seq_from_pdb()
+        self.invalids_removed = False
