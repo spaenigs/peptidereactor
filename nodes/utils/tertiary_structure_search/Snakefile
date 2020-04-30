@@ -1,11 +1,9 @@
 from glob import glob
 from modlamp.core import read_fasta, save_fasta
+from Bio.PDB import PDBParser
 
 import os
-import sys
 import re
-
-sys.path.append(".")
 
 from peptidereactor.workflow_executer \
     import WorkflowExecuter
@@ -13,15 +11,17 @@ from peptidereactor.workflow_executer \
 from nodes.utils.tertiary_structure_search.scripts.dssp_parser \
     import *
 
-CORES = config["cores"]
+import nodes.utils.tertiary_structure_search.scripts.utils as u
+
+CORES = workflow.cores
 TOKEN = config["token"]
 
 rule all:
     input:
-         config["fasta_out"],
-         config["classes_out"],
-         config["pdb_dir"],
-         config["profile_dir"]
+         config["fasta_sec_out"],
+         config["classes_sec_out"],
+         config["fasta_ter_out"],
+         config["classes_ter_out"]
 
 rule blast_search:
     input:
@@ -29,8 +29,8 @@ rule blast_search:
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_blast_search/")
     params:
-         snakefile="nodes/utils/tertiary_structure_prediction/blast_search.smk",
-         configfile="nodes/utils/tertiary_structure_prediction/blast_search_config.yaml"
+         snakefile="nodes/utils/tertiary_structure_search/blast_search.smk",
+         configfile="nodes/utils/tertiary_structure_search/blast_search_config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
               shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
@@ -63,61 +63,101 @@ rule motif_search:
     output:
          pdbs_out=directory(f"data/temp/{TOKEN}/pdbs_motif_search/")
     params:
-         snakefile="nodes/utils/tertiary_structure_prediction/motif_search.smk",
-         configfile="nodes/utils/tertiary_structure_prediction/motif_search_config.yaml"
+         snakefile="nodes/utils/tertiary_structure_search/motif_search.smk",
+         configfile="nodes/utils/tertiary_structure_search/motif_search_config.yaml"
     run:
          with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+             shell(f"""{e.snakemake} -s {{params.snakefile}} --configfile {{params.configfile}} --quiet""")
 
-rule collect:
+rule collect_tertiary_structure:
     input:
          config["fasta_in"],
          config["classes_in"],
          f"data/temp/{TOKEN}/pdbs_blast_search/",
          f"data/temp/{TOKEN}/pdbs_motif_search/"
     output:
-         directory(config["pdb_dir"]),
-         config["fasta_out"],
-         config["classes_out"]
+         config["fasta_ter_out"],
+         config["classes_ter_out"]
     run:
          seqs, names = read_fasta(input[0])
          with open(input[1]) as f:
-             classes = [l.rstrip for l in f.readlines()]
+             classes = [l.rstrip() for l in f.readlines()]
 
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
 
          paths = \
-            glob(input[2] + "*.csv") + \
-            glob(input[3] + "*.csv")
+            glob(input[2] + "*.pdb") + \
+            glob(input[3] + "*.pdb")
 
          annotated_seqs, annotated_names, annotated_classes = [],[], []
          for pdb_path in paths:
              if os.path.getsize(pdb_path) > 0:
                  seq_name = os.path.basename(pdb_path).replace(".pdb", "")
-                 shell(f"cp {pdb_path} {output[0]}")
+                 shell(f"cp {pdb_path} {config['pdb_dir']}")
                  annotated_names += [seq_name]
                  annotated_seqs += [seq_tuples[seq_name][0]]
                  annotated_classes += [seq_tuples[seq_name][1]]
 
-         save_fasta(output[1], annotated_seqs, annotated_names)
+         save_fasta(output[0], annotated_seqs, annotated_names)
 
-         with open(output[2], mode="a") as f:
+         with open(output[1], mode="a") as f:
              for c in annotated_classes:
                  f.write(f"{c}\n")
                  f.flush()
 
-rule generate_secondary_structure_profile:
+rule collect_secondary_structure:
     input:
-         config["pdb_dir"]
+         config["pdb_dir"],
+         config["profile_dir"],
+         config["fasta_ter_out"],
+         config["classes_ter_out"]
     output:
-         directory(config["profile_dir"])
+         directory(f"data/temp/{TOKEN}/dssps/"),
+         config["fasta_sec_out"],
+         config["classes_sec_out"]
     run:
-        profile_dir, dssp_dir = output[0], f"data/temp/{TOKEN}/dssps/"
-        for pdb_path in glob(f"{input[0]}/*.pdb"):
+         pdb_dir, profile_dir, dssp_dir = input[0], input[1], output[0]
+
+         # import pydevd_pycharm
+         # pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
+
+         seqs, names = read_fasta(str(input[2]))
+         with open(str(input[3])) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+
+         def get_seq(pdb_id, pdb_path):
+             structure = PDBParser().get_structure(pdb_id, pdb_path)
+             if len(list(structure.get_chains())) == 0:
+                import pydevd_pycharm
+                pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
+             chain_id = list(structure.get_chains())[0].get_id()
+
+             cif = u.Cif(pdb_id, chain_id, pdb_dir, file_type="pdb")
+
+             return cif.seq
+
+         seqs_out, names_out, classes_out = [], [], []
+         for pdb_path in glob(pdb_dir + f"/*.pdb"):
              pdb_id = re.findall(".*?/(\w+)\.pdb", pdb_path)[0]
+             seqs_out += [get_seq(pdb_id, pdb_path)]
+             names_out += [pdb_id]
+             classes_out = seq_tuples[pdb_id][1]
              path_to_dssp = f"{dssp_dir}/{pdb_id}.dssp"
-             shell(f"mkdssp -i {pdb_path} -o {path_to_dssp}")
              path_to_dis = f"{profile_dir}/{pdb_id}.dis"
              path_to_spXout = f"{profile_dir}/{pdb_id}.spXout"
-             generate_disorder_profile(path_to_dssp, path_to_dis)
-             generate_spinex_profile(path_to_dssp, path_to_spXout)
+             try:
+                 shell(f"mkdssp -i {pdb_path} -o {path_to_dssp}")
+             except Exception as e:
+                 shell("touch {path_to_dis}")
+                 shell("touch {path_to_spXout}")
+             else:
+                 generate_disorder_profile(path_to_dssp, path_to_dis)
+                 generate_spinex_profile(path_to_dssp, path_to_spXout)
+
+         save_fasta(output[1], seqs_out, names_out)
+
+         with open(output[2], "w") as f:
+             for c in classes_out:
+                 f.write(f"{c}\n")
+                 f.flush()
