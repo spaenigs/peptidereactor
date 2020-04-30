@@ -234,9 +234,6 @@ rule collect_secondary_structure:
 
          def get_seq(pdb_id, pdb_path):
              structure = PDBParser().get_structure(pdb_id, pdb_path)
-             if len(list(structure.get_chains())) == 0:
-                import pydevd_pycharm
-                pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
              chain_id = list(structure.get_chains())[0].get_id()
              cif = Cif(pdb_id, chain_id, PDB_DIR, file_type="pdb")
              return cif.seq
@@ -245,9 +242,6 @@ rule collect_secondary_structure:
          for pdb_path in glob(PDB_DIR + f"/*.pdb"):
              if os.path.getsize(pdb_path) > 4:
                  pdb_id = re.findall(".*?/(\w+)\.pdb", pdb_path)[0]
-                 seqs_out += [get_seq(pdb_id, pdb_path)]
-                 names_out += [pdb_id]
-                 classes_out += [seq_tuples[pdb_id][1]]
                  path_to_dssp = f"{dssp_dir}/{pdb_id}.dssp"
                  path_to_dis = f"{PROFILE_DIR}/{pdb_id}.dis"
                  path_to_spXout = f"{PROFILE_DIR}/{pdb_id}.spXout"
@@ -257,6 +251,9 @@ rule collect_secondary_structure:
                      shell("touch {path_to_dis}")
                      shell("touch {path_to_spXout}")
                  else:
+                     seqs_out += [get_seq(pdb_id, pdb_path)]
+                     names_out += [pdb_id]
+                     classes_out += [seq_tuples[pdb_id][1]]
                      generate_disorder_profile(path_to_dssp, path_to_dis)
                      generate_spinex_profile(path_to_dssp, path_to_spXout)
 
