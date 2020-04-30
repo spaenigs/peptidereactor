@@ -1,52 +1,55 @@
 from Bio import SeqIO
 from Bio.Align.Applications import MuscleCommandline
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
 from modlamp.core import read_fasta, save_fasta
+
+import os
 
 TOKEN = config["token"]
 
+if type(config["fastas_in"]) == list:
+    FASTA_DIR = os.path.dirname(config["fastas_in"][0]) + "/"
+    FASTAS_IN = config["fastas_in"]
+else:
+    FASTA_DIR = os.path.dirname(config["fastas_in"]) + "/"
+    FASTAS_IN = [config["fastas_in"]]
+
+
 rule all:
     input:
-         config["fasta_out"]
-
-rule temp_file:
-    input:
-         config["fasta_in"],
-         config["classes_in"]
-    output:
-        temp(f"data/temp/{TOKEN}/seqs.fasta")
-    run:
-        seqs, names = read_fasta(str(input[0]))
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        input_data = [[[n, s] for n, s in zip(names, seqs)], classes]
-        seq_records = list(map(lambda t: SeqRecord(Seq(t[1]), description=t[0], id=t[0]),
-                               input_data[0]))
-        SeqIO.write(seq_records, str(output), "fasta")
+         config["fastas_out"]
 
 rule multiple_sequence_alignment:
     input:
-         f"data/temp/{TOKEN}/seqs.fasta"
+         f"{FASTA_DIR}{{name}}.fasta"
     output:
-         temp(f"data/temp/{TOKEN}/msa.fasta")
+         temp(f"data/temp/{TOKEN}/{{name}}_msa.tmp")
     run:
-         cline = MuscleCommandline(input=str(input), out=str(output))
+         cline = MuscleCommandline(input=input[0], out=output[0])
          stdout, stderr = cline()
 
 rule dump:
     input:
-         config["fasta_in"],
-         f"data/temp/{TOKEN}/msa.fasta"
+         f"{FASTA_DIR}{{name}}.fasta",
+         f"data/temp/{TOKEN}/{{name}}_msa.tmp"
     output:
-         config["fasta_out"]
+         temp(f"data/temp/{TOKEN}/{{name}}_msa.fasta")
     run:
-         seqs, names = read_fasta(str(input[0]))
+         seqs, names = read_fasta(input[0])
          fastas_aligned = [[str(record.name), str(record.seq)]
-                           for record in sorted(SeqIO.parse(str(input[1]), "fasta"),
+                           for record in sorted(SeqIO.parse(input[1], "fasta"),
                                                 key=lambda record: record.name)]
          d_new = dict((name, tup) for name, tup in fastas_aligned)
          # undo internal sorting from muscle
          seqs_sorted = [d_new[n] for n in names]
-         save_fasta(str(output), seqs_sorted, names)
+         save_fasta(output[0], seqs_sorted, names)
+
+rule collect:
+    input:
+         expand(f"data/temp/{TOKEN}/{{name}}_msa.fasta",
+                name=[os.path.basename(p).replace(".fasta", "") for p in FASTAS_IN])
+    output:
+         config["fastas_out"]
+    run:
+         for src, target in zip(list(input), output):
+             shell(f"cp {src} {target}")
 
