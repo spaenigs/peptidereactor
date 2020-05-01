@@ -14,15 +14,16 @@ warnings.simplefilter('ignore', BiopythonWarning)
 
 rule all:
     input:
+         "peptidereactor/db/pdb/in_structure/pdb.fasta.gz",
          "peptidereactor/db/pdb/in_structure/pdb.db"
 
 # rule download_pdb:
 #     output:
 #          directory("peptidereactor/db/cifs/")
 #     run:
-#          attention: runs 3 to 4 days for whole pdb!
-         # pl = PDBList(pdb=output[0])
-         # pl.flat_tree = True
+#          # attention: runs 3 to 4 days for whole pdb!
+#          pl = PDBList(pdb=output[0])
+#          pl.flat_tree = True
 
 rule parse_cif_file:
     input:
@@ -49,8 +50,7 @@ rule parse_cif_file:
                      header = f">{id.upper()}_{chain.get_id()}"
                      seq = ""
                      for res in chain:
-                         res_name = seq1(res.get_resname())
-                         seq += res_name if res_name != "X" else ""
+                         seq += seq1(res.get_resname())
                      with open(output[0], "a") as f:
                          fasta_handle = f"{header}\n{seq}"
                          SeqIO.write(SeqIO.parse(StringIO(fasta_handle), "fasta"), f, "fasta")
@@ -71,6 +71,14 @@ rule collect:
                 with open(path) as f_in:
                     records = SeqIO.parse(f_in, "fasta")
                     SeqIO.write(records, f_out, "fasta")
+
+rule zip_fasta:
+    input:
+         "peptidereactor/db/pdb/in_structure/pdb.fasta"
+    output:
+         "peptidereactor/db/pdb/in_structure/pdb.fasta.gz"
+    shell:
+         "gzip -c {input} > {output}"
 
 rule make_db:
     input:
