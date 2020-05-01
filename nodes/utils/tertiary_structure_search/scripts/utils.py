@@ -52,21 +52,6 @@ class Cif:
         seq_from_pdb_ics = [residue.get_id()[1] for residue in self.chain]
         return seq_from_pdb, seq_from_pdb_ics
 
-    def check_invalid(self):
-        return True if "X" in self.seq else False
-
-    def remove_invalid(self, out_pdb):
-        io = PDBIO()
-        io.set_structure(self.structure)
-        io.save(out_pdb, XDeselect())
-        try:
-            self.structure = PDBParser().get_structure(self.pdb_id, out_pdb)
-            self.chain = self.get_chain()
-            self.seq, self.indices = self.get_seq_from_pdb()
-            self.invalids_removed = True
-        except Exception as e:
-            self.invalids_removed = False
-
     def dump_slice(self, motif, out_file):
         start_on_indices = self.seq.find(motif)
         end_on_indices = start_on_indices + len(motif) - 1
@@ -83,4 +68,3 @@ class Cif:
         self.structure = self.parser.get_structure(pdb_id, cif_dir + f"{pdb_id}.{file_type}")
         self.chain = self.get_chain()
         self.seq, self.indices = self.get_seq_from_pdb()
-        self.invalids_removed = False
