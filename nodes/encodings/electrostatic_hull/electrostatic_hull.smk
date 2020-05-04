@@ -19,11 +19,25 @@ rule all:
 
 rule assign_charges_and_radii:
     input:
-          PDB_DIR + "{seq_name}.pdb"
+         PDB_DIR + "{seq_name}.pdb"
     output:
-          temp(f"data/temp/{TOKEN}/{{seq_name}}.pqr")
-    shell:
-          "pdb2pqr --whitespace --ff=amber {input} {output} 1> /dev/null;"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.pqr")
+    run:
+         # if wildcards.seq_name == "Seq_277":
+         #     import pydevd_pycharm
+         #     pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
+         # shell("pdb2pqr --whitespace --ff=amber --assign-only {input} {output} 1> /dev/null;")
+         cmd = "pdb2pqr --whitespace XXX --ff=amber {input[0]} {output[0]} 1> /dev/null;"
+         try:
+             shell(cmd.replace("XXX", ""))
+         except Exception as e:
+             try:
+                 # Only assign charges and radii - do not add atoms, debump, or optimize
+                 shell(cmd.replace("XXX", "--assign-only"))
+             except Exception as e2:
+                 # Do no optimization, atom addition, or parameter assignment, just return the original
+                 # PDB file in aligned format. Overrides --ff
+                 shell(cmd.replace("XXX", "--clean"))
 
 rule solvent_accessible_surface:
     input:
@@ -125,7 +139,3 @@ rule dump:
              df.loc[name, "y"] = class_
 
          df.sort_values(by="y").to_csv(str(output))
-
-
-
-
