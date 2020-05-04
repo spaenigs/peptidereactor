@@ -210,17 +210,17 @@ class Rule:
             self.target_csvs += egaac_out
 
         if "fft" in target_encodings:
-            fft_out = self._expand(csv_dir, "fft/fft_{aaindex}.csv", aaindex=config["aaindex"])
+            fft_out = self._expand(csv_dir, "fft/fft_aaindex_{aaindex}.csv", aaindex=config["aaindex"])
             rule += encodings.fft.rule(aaindex_out, fft_out)
             self.target_csvs += fft_out
 
         if "fldpc" in target_encodings:
-            fldpc_out = self._expand(csv_dir, "fldpc/fldpc_{aaindex}.csv", aaindex=config["aaindex"])
+            fldpc_out = self._expand(csv_dir, "fldpc/fldpc_aaindex_{aaindex}.csv", aaindex=config["aaindex"])
             rule += encodings.fldpc.rule(dpc_out, fldpc_out)
             self.target_csvs += fldpc_out
 
         if "flgc" in target_encodings:
-            flgc_out = self._expand(csv_dir, "flgc/flgc_{aaindex}.csv", aaindex=config["aaindex"])
+            flgc_out = self._expand(csv_dir, "flgc/flgc_aaindex_{aaindex}.csv", aaindex=config["aaindex"])
             rule += encodings.flgc.rule(aac_out, flgc_out)
             self.target_csvs += flgc_out
 
@@ -260,7 +260,7 @@ class Rule:
             self.target_csvs += socnumber_out
 
         if "waac" in target_encodings:
-            waac_out = self._expand(csv_dir, "waac/waac_{aaindex}.csv", aaindex=config["aaindex"])
+            waac_out = self._expand(csv_dir, "waac/waac_aaindex_{aaindex}.csv", aaindex=config["aaindex"])
             rule += encodings.waac.rule(aac_out, waac_out)
             self.target_csvs += waac_out
 
