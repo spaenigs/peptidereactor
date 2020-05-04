@@ -1,40 +1,39 @@
 from snakemake.io import glob_wildcards
 from itertools import combinations, product
 from pathos.multiprocessing import ProcessingPool as Pool
-import pandas as pd
 from scipy import interpolate, stats
-import numpy as np
 from sklearn.manifold import TSNE
+
+import pandas as pd
+import numpy as np
+
+import re
+import os
 
 TOKEN = config["token"]
 
-def generate_input_files(window_length, type):
-    base_dir = config["base_dir_in"]
-    tmp = glob_wildcards(f"{base_dir}"
-                         f"pds_window_length_{window_length}-"
-                         f"psekraac_type{type}_"
-                         f"subtype-{{subtype}}_"
-                         f"raactype-{{raactype}}_"
-                         f"ktuple-{{ktuple}}_"
-                         f"lambda-{{lambda_}}.csv")
-    subtypes = set(tmp.subtype)
-    raactypes = [int(rt) for rt in set(tmp.raactype)]
-    ktuples = [int(kt) for kt in set(tmp.ktuple)]
-    lambdas = [int(l) for l in set(tmp.lambda_)]
-    res = expand(f"{base_dir}pds_window_length_{window_length}-psekraac_type{type}_"
-                  f"subtype-{{subtype}}_raactype-{{raactype}}_ktuple-{{ktuple}}_lambda-{{lambda_}}.csv",
-                  subtype=subtypes, raactype=raactypes, ktuple=ktuples, lambda_=lambdas)
+def generate_input_files(psekraac_type):
+    # base_dir = [p for p in BASE_DIR if f"psekraac_type{type}" in p][0]
+    # tmp = \
+    #     glob_wildcards(f"{base_dir}t{psekraac_type}_st-{{subtype}}_rt-{{raactype}}_ktu-{{ktuple}}_la-{{lambda_}}.csv")
+    # res = \
+    #     expand(f"{base_dir}t{psekraac_type}_st-{{subtype}}_rt-{{raactype}}_ktu-{{ktuple}}_la-{{lambda_}}.csv",
+    #            subtype=set(tmp.subtype),
+    #            raactype=[int(rt) for rt in set(tmp.raactype)],
+    #            ktuple=[int(kt) for kt in set(tmp.ktuple)],
+    #            lambda_=[int(l) for l in set(tmp.lambda_)])
+    res = [p for p in config["csv_in"] if f"t{psekraac_type}_st" in p]
     return res
 
 rule all:
     input:
-         f"data/temp/{TOKEN}/moved.txt"
+         f"data/temp/{TOKEN}/psekraac_filtered.txt"
 
 rule correlation:
     input:
-         lambda wildcards: generate_input_files(wildcards.window_length, wildcards.type)
+         lambda wildcards: generate_input_files(wildcards.psekraac_type)
     output:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix_tmp.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv"
     threads:
          1000
     run:
@@ -56,18 +55,17 @@ rule correlation:
              corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
              return pd.DataFrame({"e1": [csv_path_1], "e2": [csv_path_2], "R": [corr]})
 
-         # TODO parse cores
-         p = Pool(8)
+         p = Pool(workflow.cores)
          csv_paths = list(input)
          df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
          df_res.to_csv(str(output))
 
 rule corr_matrix:
     input:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix_tmp.csv",
-         lambda wildcards: generate_input_files(wildcards.window_length, wildcards.type)
+         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv",
+         lambda wildcards: generate_input_files(wildcards.psekraac_type)
     output:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv"
     run:
           df = pd.read_csv(str(input[0]), index_col=0)
           df.set_index(["e1", "e2"], inplace=True)
@@ -85,17 +83,20 @@ rule corr_matrix:
 
           # move all values to lower side
           matrix_tmp = np.tril(np.triu(matrix, 1).transpose() + matrix.values)
+
           # copy lower part to upper part (matrix is now symmetric)
           matrix_tmp = np.tril(matrix_tmp, -1) + np.tril(matrix_tmp).transpose()
+
           # 1 - abs(values) to get distance matrix, 0 == equal
           matrix = pd.DataFrame(1 - np.abs(matrix_tmp), index=matrix.index, columns=matrix.columns)
+
           matrix.to_csv(str(output))
 
 rule run_pca:
     input:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_distance_matrix.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv"
     output:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_pca.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv"
     run:
          matrix = pd.read_csv(str(input), index_col=0)
 
@@ -107,31 +108,30 @@ rule run_pca:
 
 rule clustering:
     input:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_pca.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv"
     output:
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_plot.png",
-         f"data/temp/{TOKEN}/{{window_length}}_{{type}}_filtered.csv"
+         f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv"
     script:
          "scripts/clustering.R"
 
 rule collect:
     input:
-          plots=\
-              expand(f"data/temp/{TOKEN}/{{window_length}}_{{type}}_plot.png",
-                     window_length=config["window_lengths"],
-                     type=["1", "2", "3A", "3B", "4", "5", "6A", "6B", "6C", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"]),
-          csvs=\
-             expand(f"data/temp/{TOKEN}/{{window_length}}_{{type}}_filtered.csv",
-                    window_length=config["window_lengths"],
-                    type=["1", "2", "3A", "3B", "4", "5", "6A", "6B", "6C", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"])
+         expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv",
+                psekraac_type=set([re.findall("(t\w+)_st.*", os.path.basename(p))[0]
+                                   for p in config["csv_in"]]))
     output:
-          f"data/temp/{TOKEN}/moved.txt"
+         temp(f"data/temp/{TOKEN}/psekraac_filtered.txt")
     run:
-          for p in list(input.plots):
-              shell(f"cp {p} {config['plot_dir_out']}")
+         pattern = ".*/t.*?_st.*rt.*ktu.*la.*"
 
-          for p in list(input.csvs):
-              source_file = pd.read_csv(p, index_col=0).iloc[0, 0]
-              shell(f"cp {source_file} {config['csv_dir_out']}")
+         non_psekraac_files = \
+             [p for p in config["csv_in"] if re.search(pattern, p) is None]
 
-          shell(f"touch {str(output)}")
+         for p in non_psekraac_files:
+             shell(f"cp {p} {config['csv_out']}")
+
+         for p in list(input):
+             source_file = pd.read_csv(p, index_col=0).iloc[0, 0]
+             shell(f"cp {source_file} {config['csv_out']}")
+
+         shell(f"touch {str(output)}")
