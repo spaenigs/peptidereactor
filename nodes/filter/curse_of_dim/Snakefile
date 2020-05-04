@@ -1,0 +1,24 @@
+import pandas as pd
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         f"data/temp/{TOKEN}/curse_of_dim_filtered.txt"
+
+rule filter_curse_of_dim:
+    input:
+         config["csv_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/curse_of_dim_filtered.txt")
+    run:
+         for p in list(input):
+
+             df = pd.read_csv(p, index_col=0, engine="c")
+             nrows, ncols = df.shape
+
+             # https://academic.oup.com/bioinformatics/article/21/8/1509/249540#2950870
+             if ncols - 1 <= nrows:
+                 shell(f"cp {p} {config['csv_out']}")
+
+         shell("touch {output[0]}")
