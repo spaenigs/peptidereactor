@@ -6,7 +6,7 @@ TOKEN = config["token"]
 
 rule all:
     input:
-         f"data/temp/{TOKEN}/filtered.txt"
+         f"data/temp/{TOKEN}/aaindex_filtered.txt"
 
 rule filter_low_correlated_indices:
     input:
@@ -32,16 +32,27 @@ rule filter_low_correlated_indices:
 rule filter_files:
     input:
          f"data/temp/{TOKEN}/low_correlated.csv",
-         config["base_dir_in"]
+         config["csv_in"]
     output:
-         temp(f"data/temp/{TOKEN}/filtered.txt")
+         temp(f"data/temp/{TOKEN}/aaindex_filtered.txt")
     run:
          aaindex = pd.read_csv(str(input[0]), index_col=0)
 
-         for idx in aaindex.index:
-             for p in glob(str(input[1]) + f"*{idx}*"):
-                 shell(f"cp {p} {config['csv_dir_out']}")
+         # copy all files to target dir, except aaindex related
+         aaindex_files = []
+         for p in input[1:]:
+             if "aaindex" in p:
+                aaindex_files += [p]
+             else:
+                shell(f"cp {p} {config['csv_out']}")
 
+         # filter and copy non-correlated aaindex files to target dir
+         for idx in aaindex.index:
+             for f in aaindex_files:
+                 if idx in f:
+                    shell(f"cp {f} {config['csv_out']}")
+
+         # create dummy output
          shell("touch {output}")
 
 
