@@ -13,6 +13,8 @@ from nodes.utils.tertiary_structure_search.scripts.fetch_missing_ids \
 
 warnings.simplefilter('ignore', BiopythonWarning)
 
+TOKEN = config["token"]
+
 rule all:
     input:
          "peptidereactor/db/pdb/in_structure/pdb.fasta.gz",
@@ -47,12 +49,13 @@ else:
              attempt = 1
              while attempt <= 2:
                  try:
+                     path = input[0]
                      if attempt == 2:
                          # on second attempt: use pymol to download cif
-                         fetch_and_save(id, input[0])
+                         path = f"data/temp/{TOKEN}/{id}.cif"
+                         fetch_and_save(id, path)
                      parser = MMCIFParser()
-                     structure = parser.get_structure(id, input[0])
-                     parsing_error = False
+                     structure = parser.get_structure(id, path)
                  except Exception as e:
                      print(e)
                      attempt += 1
@@ -65,6 +68,7 @@ else:
                          with open(output[0], "a") as f:
                              fasta_handle = f"{header}\n{seq}"
                              SeqIO.write(SeqIO.parse(StringIO(fasta_handle), "fasta"), f, "fasta")
+                     break
 
              if attempt > 2:
                  shell("touch {output[0]}")
