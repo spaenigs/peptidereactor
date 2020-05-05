@@ -71,7 +71,10 @@ class WorkflowSetter:
     def __exit__(self, exc_type, exc_val, exc_tb):
         scaffold = textwrap.dedent(
             f"""\
-                from peptidereactor.workflow_executer import WorkflowExecuter
+                from glob import glob
+            
+                from peptidereactor.workflow_executer \
+                    import WorkflowExecuter
                 
                 CORES = {self.cores}
                 
