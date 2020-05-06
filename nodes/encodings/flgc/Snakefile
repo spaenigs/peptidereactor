@@ -49,7 +49,7 @@ rule encode_five_level_grouping_composition:
          config["csv_in"],
          f"data/temp/{TOKEN}/flgc/aaindex_cluster_{{aaindex}}.csv"
     output:
-         f"{TARGET_DIR}/flgc_{{aaindex}}.csv"
+         f"{TARGET_DIR}/flgc_aaindex_{{aaindex}}.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          sorted_df = pd.read_csv(str(input[1]))
