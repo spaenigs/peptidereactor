@@ -1,6 +1,10 @@
 from sklearn.decomposition import PCA
+from pathos.multiprocessing import ProcessingPool as Pool
+from more_itertools import chunked
+from functools import partial
+
 import pandas as pd
-from glob import glob
+import numpy as np
 
 TOKEN = config["token"]
 
@@ -38,21 +42,39 @@ rule filter_files:
     run:
          aaindex = pd.read_csv(str(input[0]), index_col=0)
 
-         # copy all files to target dir, except aaindex related
-         aaindex_files = []
-         for p in input[1:]:
-             if "aaindex" in p:
-                aaindex_files += [p]
-             else:
-                shell(f"cp {p} {config['csv_out']}")
+         def filter_files(from_files, target_dir):
 
-         # filter and copy non-correlated aaindex files to target dir
-         for idx in aaindex.index:
-             for f in aaindex_files:
-                 if idx in f:
-                    shell(f"cp {f} {config['csv_out']}")
+             # copy all files to target dir, except aaindex related
+             aaindex_files = []
+             for p in from_files:
+                 if "aaindex" in p:
+                    aaindex_files += [p]
+                 else:
+                    shell(f"cp {p} {target_dir}")
 
-         # create dummy output
+             # filter and copy non-correlated aaindex files to target dir
+             for idx in aaindex.index:
+                 for f in aaindex_files:
+                     if idx in f:
+                        shell(f"cp {f} {target_dir}")
+
+             # for csv_path in from_files:
+             #     df = pd.read_csv(csv_path, index_col=0, engine="c")
+             #     nrows, ncols = df.shape
+                 # https://academic.oup.com/bioinformatics/article/21/8/1509/249540#2950870
+                 # if ncols - 1 <= nrows:
+                 #         shell(f"cp {csv_path} {target_dir}")
+
+         def run(from_files, target_dir):
+             cores = workflow.cores
+             p = Pool(cores)
+             chunk_len = int(np.round(len(from_files)/cores))
+             chunks = chunked(from_files, chunk_len)
+             pfunc = partial(filter_files, target_dir=target_dir)
+             p.map(pfunc, chunks)
+
+         run(list(input), config["csv_out"])
+
          shell("touch {output}")
 
 
