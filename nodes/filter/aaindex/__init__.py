@@ -7,7 +7,7 @@ def rule(csv_in, csv_out):
         f'''\
             rule filter_aaindex:
                 input:
-                     csv_dir_in={csv_in}
+                     csv_in={csv_in}
                 output:
                      csv_out=directory("{csv_out}")
                 params:
