@@ -30,7 +30,7 @@ rule get_cluster:
          aaindex_df = parse_aaindices(str(input))
 
          kmeans = KMeans(n_clusters=5)\
-             .fit(aaindex_df.loc[wildcards.aaindex, :].values.reshape(-1, 1))
+             .fit(aai ndex_df.loc[wildcards.aaindex, :].values.reshape(-1, 1))
 
          sorted_df = pd.DataFrame({
              "aa": aaindex_df.columns,
@@ -49,7 +49,7 @@ rule encode_five_level_dpc:
          config["csv_in"],
          f"data/temp/{TOKEN}/fldpc/aaindex_cluster_{{aaindex}}.csv"
     output:
-         f"{TARGET_DIR}/fldpc_{{aaindex}}.csv"
+         f"{TARGET_DIR}/fldpc_aaindex_{{aaindex}}.csv"
     run:
          from itertools import product
 
