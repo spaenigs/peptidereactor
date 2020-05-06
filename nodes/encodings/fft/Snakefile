@@ -26,7 +26,7 @@ rule encode:
     input:
         f"{SOURCE_DIR}/aaindex_{{aaindex}}.csv"
     output:
-        f"{TARGET_DIR}/fft_{{aaindex}}.csv"
+        f"{TARGET_DIR}/fft_aaindex_{{aaindex}}.csv"
     run:
         def compute_fft(values):
             signal = np.array(values)
