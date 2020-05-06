@@ -1,4 +1,9 @@
+from pathos.multiprocessing import ProcessingPool as Pool
+from more_itertools import chunked
+from functools import partial
+
 import pandas as pd
+import numpy as np
 
 TOKEN = config["token"]
 
@@ -12,13 +17,22 @@ rule filter_curse_of_dim:
     output:
          temp(f"data/temp/{TOKEN}/curse_of_dim_filtered.txt")
     run:
-         for p in list(input):
+         def filter_files(from_files, target_dir):
+             for csv_path in from_files:
+                 df = pd.read_csv(csv_path, index_col=0, engine="c")
+                 nrows, ncols = df.shape
+                 # https://academic.oup.com/bioinformatics/article/21/8/1509/249540#2950870
+                 if ncols - 1 <= nrows:
+                         shell(f"cp {csv_path} {target_dir}")
 
-             df = pd.read_csv(p, index_col=0, engine="c")
-             nrows, ncols = df.shape
+         def run(from_files, target_dir):
+             cores = workflow.cores
+             p = Pool(cores)
+             chunk_len = int(np.round(len(from_files)/cores))
+             chunks = chunked(from_files, chunk_len)
+             pfunc = partial(filter_files, target_dir=target_dir)
+             p.map(pfunc, chunks)
 
-             # https://academic.oup.com/bioinformatics/article/21/8/1509/249540#2950870
-             if ncols - 1 <= nrows:
-                 shell(f"cp {p} {config['csv_out']}")
+         run(list(input), config["csv_out"])
 
          shell("touch {output[0]}")
