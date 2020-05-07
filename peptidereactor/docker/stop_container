@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+read -p "Stop running container? (y/n)" -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  id=$(docker container ps | tail -n 1 | tr -s " " "\n" | head -n 1)
+  if [[ $id == "CONTAINER" ]]; then
+    echo "No running containers."
+  else
+    docker stop $id
+  fi
+fi
