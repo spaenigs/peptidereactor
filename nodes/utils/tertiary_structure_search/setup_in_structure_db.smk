@@ -8,9 +8,6 @@ from Bio.SeqUtils import seq1
 
 import re
 
-from nodes.utils.tertiary_structure_search.scripts.fetch_missing_ids \
-    import fetch_and_save
-
 warnings.simplefilter('ignore', BiopythonWarning)
 
 TOKEN = config["token"]
@@ -46,32 +43,22 @@ else:
         run:
              id = wildcards.id
 
-             attempt = 1
-             while attempt <= 2:
-                 try:
-                     path = input[0]
-                     if attempt == 2:
-                         # on second attempt: use pymol to download cif
-                         path = f"data/temp/{TOKEN}/{id}.cif"
-                         fetch_and_save(id, path)
-                     parser = MMCIFParser()
-                     structure = parser.get_structure(id, path)
-                 except Exception as e:
-                     print(e)
-                     attempt += 1
-                 else:
-                     for chain in list(structure.get_models())[0]:
-                         header = f">{id.upper()}_{chain.get_id()}"
-                         seq = ""
-                         for res in chain:
-                             seq += seq1(res.get_resname())
-                         with open(output[0], "a") as f:
-                             fasta_handle = f"{header}\n{seq}"
-                             SeqIO.write(SeqIO.parse(StringIO(fasta_handle), "fasta"), f, "fasta")
-                     break
+             try:
+                 parser = MMCIFParser()
+                 structure = parser.get_structure(id, input[0])
 
-             if attempt > 2:
-                 shell("touch {output[0]}")
+                 for chain in list(structure.get_models())[0]:
+                     header = f">{id.upper()}_{chain.get_id()}"
+                     seq = ""
+                     for res in chain:
+                         seq += seq1(res.get_resname())
+                     with open(output[0], "a") as f:
+                         fasta_handle = f"{header}\n{seq}"
+                         SeqIO.write(SeqIO.parse(StringIO(fasta_handle), "fasta"), f, "fasta")
+
+             except Exception as e:
+                 print(f"Key {e} missing in {id}")
+                 shell("touch {output}")
 
     rule collect:
         input:
