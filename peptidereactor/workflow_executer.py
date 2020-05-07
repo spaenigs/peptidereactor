@@ -1,11 +1,11 @@
-from snakemake import shell
 from snakemake.utils import Namedlist
+from shutil import rmtree
+
 import yaml
 import secrets
 import os
-from shutil import rmtree
-
 import textwrap
+
 
 class WorkflowExecuter:
 
@@ -93,7 +93,7 @@ class WorkflowSetter:
     def add(self, rule_definition):
         self.rule_definitions += [rule_definition]
 
-    def __init__(self, cores=1, key_target_rule="out", snakefile = "peptidereactor.smk"):
+    def __init__(self, cores=1, key_target_rule="out", snakefile="peptidereactor.smk"):
         self.rule_definitions = []
         self.cores = cores
         self.key_target_rule = key_target_rule
