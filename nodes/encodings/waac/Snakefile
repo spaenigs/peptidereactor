@@ -24,7 +24,7 @@ rule encode_waac:
          config["csv_in"],
          "peptidereactor/iFeature/data/AAindex.tsv"
     output:
-         f"{TARGET_DIR}/waac_{{aaindex}}.csv"
+         f"{TARGET_DIR}/waac_aaindex_{{aaindex}}.csv"
     run:
          df = pd.read_csv(str(input[0]), index_col=0)
          aaindex_df = parse_aaindices(str(input[1]))
