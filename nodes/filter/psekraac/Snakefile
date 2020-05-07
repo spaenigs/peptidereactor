@@ -1,4 +1,3 @@
-from snakemake.io import glob_wildcards
 from itertools import combinations, product
 from pathos.multiprocessing import ProcessingPool as Pool
 from scipy import interpolate, stats
@@ -13,17 +12,7 @@ import os
 TOKEN = config["token"]
 
 def generate_input_files(psekraac_type):
-    # base_dir = [p for p in BASE_DIR if f"psekraac_type{type}" in p][0]
-    # tmp = \
-    #     glob_wildcards(f"{base_dir}t{psekraac_type}_st-{{subtype}}_rt-{{raactype}}_ktu-{{ktuple}}_la-{{lambda_}}.csv")
-    # res = \
-    #     expand(f"{base_dir}t{psekraac_type}_st-{{subtype}}_rt-{{raactype}}_ktu-{{ktuple}}_la-{{lambda_}}.csv",
-    #            subtype=set(tmp.subtype),
-    #            raactype=[int(rt) for rt in set(tmp.raactype)],
-    #            ktuple=[int(kt) for kt in set(tmp.ktuple)],
-    #            lambda_=[int(l) for l in set(tmp.lambda_)])
-    res = [p for p in config["csv_in"] if f"t{psekraac_type}_st" in p]
-    return res
+    return [p for p in config["csv_in"] if f"{psekraac_type}_st" in p]
 
 rule all:
     input:
@@ -58,7 +47,7 @@ rule correlation:
          p = Pool(workflow.cores)
          csv_paths = list(input)
          df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
-         df_res.to_csv(str(output))
+         df_res.to_csv(output[0])
 
 rule corr_matrix:
     input:
@@ -67,10 +56,10 @@ rule corr_matrix:
     output:
          f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv"
     run:
-          df = pd.read_csv(str(input[0]), index_col=0)
+          df = pd.read_csv(input[0], index_col=0)
           df.set_index(["e1", "e2"], inplace=True)
 
-          csv_paths = list(input[1:])
+          csv_paths = input[1:]
           csv_products = list(zip(*product(csv_paths, repeat=2)))
           df_res = pd.DataFrame({"e1": csv_products[0], "e2": csv_products[1], "R": 0.0})
           df_res["R"] = df_res.apply(lambda row: 1.0 if row[0] == row[1] else row[2], axis=1)
@@ -90,7 +79,7 @@ rule corr_matrix:
           # 1 - abs(values) to get distance matrix, 0 == equal
           matrix = pd.DataFrame(1 - np.abs(matrix_tmp), index=matrix.index, columns=matrix.columns)
 
-          matrix.to_csv(str(output))
+          matrix.to_csv(output[0])
 
 rule run_pca:
     input:
@@ -98,13 +87,13 @@ rule run_pca:
     output:
          f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv"
     run:
-         matrix = pd.read_csv(str(input), index_col=0)
+         matrix = pd.read_csv(input[0], index_col=0)
 
          embedding = TSNE(n_components=2, metric="precomputed")
          X_transformed = embedding.fit_transform(matrix)
 
          df_for_cls = pd.DataFrame(X_transformed, index=matrix.index, columns=["x1", "x2"])
-         df_for_cls.to_csv(str(output))
+         df_for_cls.to_csv(output[0])
 
 rule clustering:
     input:
@@ -114,11 +103,19 @@ rule clustering:
     script:
          "scripts/clustering.R"
 
+def get_files(wildcards):
+    psekraac_types = []
+    for p in config["csv_in"]:
+        hits = re.findall("(t\w+)_st.*", os.path.basename(p))
+        if len(hits) > 0:
+            psekraac_types += [hits[0]]
+    res = \
+        expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv", psekraac_type=set(psekraac_types))
+    return res
+
 rule collect:
     input:
-         expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv",
-                psekraac_type=set([re.findall("(t\w+)_st.*", os.path.basename(p))[0]
-                                   for p in config["csv_in"]]))
+         get_files
     output:
          temp(f"data/temp/{TOKEN}/psekraac_filtered.txt")
     run:
@@ -134,4 +131,4 @@ rule collect:
              source_file = pd.read_csv(p, index_col=0).iloc[0, 0]
              shell(f"cp {source_file} {config['csv_out']}")
 
-         shell(f"touch {str(output)}")
+         shell("touch {output[0]}")
