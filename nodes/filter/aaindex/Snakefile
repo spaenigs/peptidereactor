@@ -58,13 +58,6 @@ rule filter_files:
                      if idx in f:
                         shell(f"cp {f} {target_dir}")
 
-             # for csv_path in from_files:
-             #     df = pd.read_csv(csv_path, index_col=0, engine="c")
-             #     nrows, ncols = df.shape
-                 # https://academic.oup.com/bioinformatics/article/21/8/1509/249540#2950870
-                 # if ncols - 1 <= nrows:
-                 #         shell(f"cp {csv_path} {target_dir}")
-
          def run(from_files, target_dir):
              cores = workflow.cores
              p = Pool(cores)
