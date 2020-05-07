@@ -1,5 +1,8 @@
-import os
+from itertools import product
+
 import pandas as pd
+
+import os
 
 TOKEN = config["token"]
 TARGET_FILES = config["csv_out"]
@@ -30,7 +33,7 @@ rule get_cluster:
          aaindex_df = parse_aaindices(str(input))
 
          kmeans = KMeans(n_clusters=5)\
-             .fit(aai ndex_df.loc[wildcards.aaindex, :].values.reshape(-1, 1))
+             .fit(aaindex_df.loc[wildcards.aaindex, :].values.reshape(-1, 1))
 
          sorted_df = pd.DataFrame({
              "aa": aaindex_df.columns,
@@ -51,8 +54,6 @@ rule encode_five_level_dpc:
     output:
          f"{TARGET_DIR}/fldpc_aaindex_{{aaindex}}.csv"
     run:
-         from itertools import product
-
          df = pd.read_csv(str(input[0]), index_col=0)
          sorted_df = pd.read_csv(str(input[1]), index_col=0)
 
