@@ -6,6 +6,7 @@ from snakemake.io import expand
 import nodes.utils as utils
 import nodes.encodings as encodings
 import nodes.filter as dataset_filter
+import nodes.benchmark as benchmark
 
 import sys
 
@@ -57,7 +58,7 @@ with WorkflowSetter(cores=CORES) as w:
 
     w.add(dataset_filter.curse_of_dim.rule(
         csv_in="lambda wildcards: glob('data/temp/{dataset}/csv/sequence_based/non_empty/*.csv')",
-        csv_out="data/temp/{dataset}/csv/sequence_based/curse)of_dim/",
+        csv_out="data/temp/{dataset}/csv/sequence_based/curse_of_dim/",
         benchmark_dir="data/{dataset}/misc/benchmark/"))
 
     w.add(dataset_filter.aaindex.rule(
@@ -73,9 +74,16 @@ with WorkflowSetter(cores=CORES) as w:
         csv_out=structure_based_encodings_dir,
         benchmark_dir="data/{dataset}/misc/"))
 
+    w.add(benchmark.cross_validation.rule(
+        csv_in=["data/hiv_protease/csv/zscale.csv"],
+        csv_dir_out="data/{dataset}/benchmark/",
+        benchmark_dir="data/{dataset}/misc/benchmark/"))
+
 target = \
     expand(sequence_based_encodings_dir, dataset=DATASETS) + \
     expand(structure_based_encodings_dir, dataset=DATASETS)
+
+target += expand("data/{dataset}/benchmark/", dataset=DATASETS)
 
 # target = expand(["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta", "data/{dataset}/seqs_msa_ter.fasta"], dataset=DATASETS)
 # target += expand(["data/{dataset}/seqs_sec.fasta", "data/{dataset}/classes_sec.txt", "data/{dataset}/seqs_ter.fasta", "data/{dataset}/classes_ter.txt"], dataset=DATASETS)
