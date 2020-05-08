@@ -73,15 +73,13 @@ class WorkflowSetter:
             f"""\
                 from glob import glob
             
-                from peptidereactor.workflow_executer \
-                    import WorkflowExecuter
+                from peptidereactor.workflow_executer import WorkflowExecuter
                 
                 CORES = {self.cores}
                 
                 rule all:
                     input:
                          config['{self.key_target_rule}']        
-
             """)
 
         for r in self.rule_definitions:
