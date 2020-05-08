@@ -1,8 +1,9 @@
+from shutil import copyfile
+
 import sys
 import re
 
-old_path = "nodes/encodings/aac/__init__.py"
-new_path = "foo.py"
+old_path = sys.argv[1]  # "nodes/encodings/aac/__init__.py"
 
 with open(old_path) as f:
     _main = ""
@@ -18,7 +19,7 @@ with open(old_path) as f:
             add = False
         if add:
             _main += l.replace("            ", "")
-    print(_main)
+    # print(_main)
 
 rule_dir = old_path.split("/")[1]
 rule_name = old_path.split("/")[2]
@@ -31,15 +32,13 @@ scaffold = f"""import secrets
 
 def _get_header(token):
     return f'''
-rule {rule_dir}_{rule_name}_{{token}}:
-'''
+rule {rule_dir}_{rule_name}_{{token}}:'''
 
 
 def _get_benchmark(benchmark_out):
-    return f'''\\
+    return f'''
     benchmark:
-        "{{benchmark_out}}"
-'''
+        "{{benchmark_out}}"'''
 
 
 def _get_main({_params}):
@@ -48,7 +47,6 @@ def _get_main({_params}):
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
             shell(f\"\"\"{{{{e.snakemake}}}} -s {{{{params.snakefile}}}} --configfile {{{{params.configfile}}}}\"\"\")
-
 '''
 
 
@@ -60,9 +58,10 @@ def rule({_params}, benchmark_dir=None):
         rule += _get_benchmark(benchmark_out)
     rule += _get_main({_params})
     return rule
-
 """
 
-with open(new_path, "w") as f:
+copyfile(old_path, old_path.replace(".py", ".bckp.py"))
+
+with open(old_path, "w") as f:
     f.write(scaffold)
     f.flush()
