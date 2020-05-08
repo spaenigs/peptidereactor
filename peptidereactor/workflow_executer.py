@@ -85,6 +85,23 @@ class WorkflowSetter:
         for r in self.rule_definitions:
             scaffold += r
 
+        # TODO
+        # rule collect_benchmark:
+        #     input:
+        #          lambda wildcards: expand(f"{{name}}_{wildcards.dataset}.benchmark.txt", name=["myrule_a", "myrule_b", "myrule_c"])
+        #     output:
+        #          "benchmark_{dataset}.txt"
+        #     run:
+        #          names = ["myrule_a", "myrule_b", "myrule_c"]
+        #
+        #          df_res = pd.DataFrame()
+        #          for name in names:
+        #             df = pd.read_csv(f"{name}_{wildcards.dataset}.benchmark.txt", sep="\t", parse_dates=["h:m:s"])
+        #             df.index = [name]
+        #             df_res = pd.concat([df_res, df])
+        #
+        #          df_res.to_csv(output[0])
+
         with open(self.snakefile, mode="w") as f:
             f.write(scaffold)
 
