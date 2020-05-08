@@ -26,7 +26,6 @@ def _get_main(csv_in, csv_out):
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
             shell(f"""{{e.snakemake}} -s {{params.snakefile}} --configfile {{params.configfile}}""")
-
 '''
 
 
