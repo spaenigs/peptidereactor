@@ -1,23 +1,39 @@
-import textwrap
+import secrets
 
 
-def rule(fasta_in, fasta_out, maps_out):
+def _get_header(token):
+    return f'''
+rule utils_map_sequence_names_{token}:'''
 
-    rule = textwrap.dedent(
-        f'''\
-            rule utils_map_sequence_names:
-                input:
-                     fasta_in="{fasta_in}"
-                output:
-                     fasta_out="{fasta_out}",
-                     maps_out="{maps_out}"
-                params:
-                     snakefile="nodes/utils/map_sequence_names/Snakefile",
-                     configfile="nodes/utils/map_sequence_names/config.yaml"
-                run:
-                     with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
-                         shell(f"""{{e.snakemake}} -s {{params.snakefile}} --configfile {{params.configfile}}""")
 
-        ''')
+def _get_benchmark(benchmark_out):
+    return f'''
+    benchmark:
+        "{benchmark_out}"'''
 
+
+def _get_main(fasta_in, fasta_out, maps_out):
+    return f'''
+    input:
+         fasta_in="{fasta_in}"
+    output:
+         fasta_out="{fasta_out}",
+         maps_out="{maps_out}"
+    params:
+         snakefile="nodes/utils/map_sequence_names/Snakefile",
+         configfile="nodes/utils/map_sequence_names/config.yaml"
+    run:
+        with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+            shell(f"""{{e.snakemake}} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+'''
+
+
+def rule(fasta_in, fasta_out, maps_out, benchmark_dir=None):
+    token = secrets.token_hex(4)
+    rule = _get_header(token)
+    if benchmark_dir is not None:
+        benchmark_out = f"{benchmark_dir}utils_map_sequence_names_{token}.txt"
+        rule += _get_benchmark(benchmark_out)
+    rule += _get_main(fasta_in, fasta_out, maps_out)
     return rule
+
