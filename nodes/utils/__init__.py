@@ -3,3 +3,4 @@ from . import multiple_sequence_alignment
 from . import window_length
 from . import dim_size
 from . import tertiary_structure_search
+from . import tertiary_structure_prediction
