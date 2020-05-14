@@ -41,7 +41,7 @@ rule init_raptorx:
          "peptidereactor/RaptorX/setup.pl",
          temp(f"data/temp/{TOKEN}/CNFsearch.zip")
     priority:
-        1000
+         1000
     shell:
          f"""
          wget $(head -n 1 {{input}}) \
@@ -59,7 +59,7 @@ rule init_modeller:
     output:
          "peptidereactor/RaptorX/modeller/config.py"
     priority:
-        1000
+         1000
     shell:
          """
          export key=$(head -n 1 {input});
@@ -80,7 +80,7 @@ rule download_databases:
     output:
          "peptidereactor/RaptorX/databases/archives/{database}.tar.gz"
     priority:
-        1000
+         1000
     threads:
          1000
     shell:
@@ -94,7 +94,7 @@ rule unzip_databases:
     output:
          "peptidereactor/RaptorX/databases/{database}/{database}.unzipped.txt"
     priority:
-        1000
+         1000
     threads:
          1000
     run:
@@ -112,7 +112,7 @@ rule move_databases:
     output:
          "peptidereactor/RaptorX/databases/{database}/{database}.moved.txt"
     priority:
-        1000
+         1000
     run:
          db = wildcards.database
          move_files = True
