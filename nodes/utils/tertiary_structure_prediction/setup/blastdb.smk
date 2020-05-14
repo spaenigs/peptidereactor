@@ -9,7 +9,7 @@ rule download_fasta:
     threads:
          1000
     priority:
-        999
+         999
     run:
          url = \
              "https://www.uniprot.org/uniprot/?query=length%3A[30+TO+300]+AND+" \
@@ -27,7 +27,7 @@ rule make_db:
     output:
          "peptidereactor/db/swiss_prot/proteins.db"
     priority:
-        999
+         999
     shell:
          """
          makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids
