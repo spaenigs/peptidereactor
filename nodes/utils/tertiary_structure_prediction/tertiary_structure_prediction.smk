@@ -1,10 +1,11 @@
+from Bio.PDB import Dice, PDBParser
+from modlamp.core import save_fasta, read_fasta
+
+import pandas as pd
+
 import os
 
-from nodes.utils.tertiary_structure_search.scripts.utils \
-    import get_seq_names
-
 TOKEN = config["token"]
-TARGET_PDBS = config["pdbs_out"]
 TARGET_DIR = config["target_dir"]
 PROFILE_DIR = config["profile_dir"]
 
@@ -34,7 +35,7 @@ rule best_template:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_best_template.txt")
     run:
          import re
-         with open(str(input)) as f, open(str(output), mode="w") as out:
+         with open(input[0]) as f, open(output[0], mode="w") as out:
              lines_with_hit = list(filter(lambda line: re.search("^1\s", line) is not None,
                                           f.readlines()))
              if len(lines_with_hit) == 1:
@@ -77,7 +78,7 @@ rule generate_structure:
                 database=["pdb_BC40", "pdb_Remain"]),
          "peptidereactor/RaptorX/modeller/config.py"
     output:
-         TARGET_DIR + "{seq_name}.pdb"
+         f"data/temp/{TOKEN}/{{seq_name}}.pdbtmp",
     shell:
          """
          if [ -s {input[0]} ]; then
@@ -98,37 +99,55 @@ rule generate_structure:
          fi
          """
 
-# TODO cut profiles for short sequences
+rule slice_or_dump_ter:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.csv",
+         f"data/temp/{TOKEN}/{{seq_name}}.pdbtmp"
+    output:
+         TARGET_DIR + "{seq_name}.pdb"
+    run:
+         df = pd.read_csv(input[0])
+
+         if df.empty:
+             shell("cp {input[1]} {output[0]}")
+
+         else:
+             structure = PDBParser().get_structure(wildcards.seq_name, input[1])
+             chain_id = [c.get_id() for c in structure.get_chains()][0]
+             start, end = df["sstart"].values[0], df["send"].values[0]
+             Dice.extract(structure, chain_id, start, end, output[0])
 
 rule remove_non_hits:
     input:
          config["fasta_in"],
          config["classes_in"],
          expand(TARGET_DIR + "{seq_name}.pdb",
-                seq_name=get_seq_names(config["fasta_in"]))
+                seq_name=read_fasta(config["fasta_in"])[1])
     output:
-         config["fasta_out"],
-         config["classes_out"]
+         config["fasta_ter_out"],
+         config["classes_ter_out"]
     run:
-         from modlamp.core import save_fasta, read_fasta
-
-         seqs, names = read_fasta(str(input[0]))
+         seqs, names = read_fasta(input[0])
          with open(str(input[1])) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
          in_da = [[[n, s] for n, s in zip(names, seqs)], classes]
 
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          res_names, res_seqs, res_classes = [], [], []
-         for file_path in list(input[2:]):
+         for file_path in input[2:]:
              if os.path.getsize(file_path) > 0:
                  seq_name = os.path.basename(file_path).replace(".pdb", "")
                  seq, class_ = seq_tuples[seq_name]
+                 df = pd.read_csv(f"data/temp/{TOKEN}/{seq_name}.csv", engine="c")
+                 if not df.empty:
+                    seq = df["sseq"][0]
                  res_names.append(seq_name)
                  res_seqs.append(seq)
                  res_classes.append(class_)
 
          save_fasta(str(output[0]), sequences=res_seqs, names=res_names)
 
-         with open(str(output[1]), mode="a") as f:
+         with open(output[1], mode="a") as f:
              for c in res_classes:
                  f.write(f"{c}\n")
