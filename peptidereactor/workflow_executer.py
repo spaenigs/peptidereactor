@@ -85,22 +85,29 @@ class WorkflowSetter:
         for r in self.rule_definitions:
             scaffold += r
 
-        # TODO
-        # rule collect_benchmark:
-        #     input:
-        #          lambda wildcards: expand(f"{{name}}_{wildcards.dataset}.benchmark.txt", name=["myrule_a", "myrule_b", "myrule_c"])
-        #     output:
-        #          "benchmark_{dataset}.txt"
-        #     run:
-        #          names = ["myrule_a", "myrule_b", "myrule_c"]
-        #
-        #          df_res = pd.DataFrame()
-        #          for name in names:
-        #             df = pd.read_csv(f"{name}_{wildcards.dataset}.benchmark.txt", sep="\t", parse_dates=["h:m:s"])
-        #             df.index = [name]
-        #             df_res = pd.concat([df_res, df])
-        #
-        #          df_res.to_csv(output[0])
+        if self.benchmark_dir is not None:
+            scaffold += textwrap.dedent(
+                f"""\
+    
+                    rule collect_benchmark:
+                        input:
+                             "{self.benchmark_dir}"
+                        output:
+                             "{self.benchmark_dir}{{dataset}}.csv"
+                        run:
+                             import re
+                             import pandas as pd
+
+                             df_res = pd.DataFrame()
+                             for p in glob("data/hivp_test/misc/benchmark/*.txt"):
+                                 name = re.findall(".*/(.*)_\w+.txt", p)[0]
+                                 df_tmp = pd.read_csv(p, sep="\t")
+                                 df_tmp.index = [name]
+                                 df_res = pd.concat([df_res, df_tmp])
+
+                             df_res.to_csv(output[0])
+
+                """)
 
         with open(self.snakefile, mode="w") as f:
             f.write(scaffold)
@@ -108,8 +115,9 @@ class WorkflowSetter:
     def add(self, rule_definition):
         self.rule_definitions += [rule_definition]
 
-    def __init__(self, cores=1, key_target_rule="out", snakefile="peptidereactor.smk"):
+    def __init__(self, cores=1, key_target_rule="out", snakefile="peptidereactor.smk", benchmark_dir=None):
         self.rule_definitions = []
         self.cores = cores
         self.key_target_rule = key_target_rule
         self.snakefile = snakefile
+        self.benchmark_dir = benchmark_dir
