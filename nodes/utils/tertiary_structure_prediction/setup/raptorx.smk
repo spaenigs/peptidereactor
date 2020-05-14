@@ -1,10 +1,17 @@
 TOKEN = config["token"]
 
+PATH_TO_RAPTORX_LICENSE = \
+    "nodes/utils/tertiary_structure_prediction/license/raptorx.txt"
+PATH_TO_MODELLER_LICENSE = \
+    "nodes/utils/tertiary_structure_prediction/license/modeller.txt"
+
 rule download_index_html:
     input:
-         config["raptorx_download_link_in"]
+         PATH_TO_RAPTORX_LICENSE
     output:
          temp(f"data/temp/{TOKEN}/index.html")
+    priority:
+        1000
     run:
          with open(str(input)) as file_in:
               link_to_index_html = list(file_in.readlines())[0]
@@ -15,6 +22,8 @@ rule parse_download_links:
          f"data/temp/{TOKEN}/index.html"
     output:
          temp(f"data/temp/{TOKEN}/{{database}}_download_link.txt")
+    priority:
+        1000
     run:
          import re
          with open(str(input)) as index_html:
@@ -32,7 +41,7 @@ rule init_raptorx:
          "peptidereactor/RaptorX/setup.pl",
          temp(f"data/temp/{TOKEN}/CNFsearch.zip")
     priority:
-         50
+        1000
     shell:
          f"""
          wget $(head -n 1 {{input}}) \
@@ -46,11 +55,11 @@ rule init_raptorx:
 
 rule init_modeller:
     input:
-         config["modeller_license_key_in"]
+         PATH_TO_MODELLER_LICENSE
     output:
          "peptidereactor/RaptorX/modeller/config.py"
     priority:
-         50
+        1000
     shell:
          """
          export key=$(head -n 1 {input});
@@ -71,7 +80,7 @@ rule download_databases:
     output:
          "peptidereactor/RaptorX/databases/archives/{database}.tar.gz"
     priority:
-         40
+        1000
     threads:
          1000
     shell:
@@ -85,7 +94,7 @@ rule unzip_databases:
     output:
          "peptidereactor/RaptorX/databases/{database}/{database}.unzipped.txt"
     priority:
-         30
+        1000
     threads:
          1000
     run:
@@ -103,7 +112,7 @@ rule move_databases:
     output:
          "peptidereactor/RaptorX/databases/{database}/{database}.moved.txt"
     priority:
-         20
+        1000
     run:
          db = wildcards.database
          move_files = True

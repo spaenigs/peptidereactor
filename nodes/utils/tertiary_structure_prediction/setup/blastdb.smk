@@ -5,7 +5,11 @@ from Bio import SeqIO
 
 rule download_fasta:
     output:
-         "peptidereactor/db/swiss_port/proteins.fasta"
+         "peptidereactor/db/swiss_prot/proteins.fasta"
+    threads:
+         1000
+    priority:
+        999
     run:
          url = \
              "https://www.uniprot.org/uniprot/?query=length%3A[30+TO+300]+AND+" \
@@ -19,9 +23,11 @@ rule download_fasta:
 
 rule make_db:
     input:
-         "peptidereactor/db/swiss_port/proteins.fasta"
+         "peptidereactor/db/swiss_prot/proteins.fasta"
     output:
-         "peptidereactor/db/swiss_port/proteins.db"
+         "peptidereactor/db/swiss_prot/proteins.db"
+    priority:
+        999
     shell:
          """
          makeblastdb -dbtype prot -in {input} -out {output} -parse_seqids
