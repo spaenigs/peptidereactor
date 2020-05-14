@@ -1,6 +1,4 @@
-import os
 from io import StringIO
-
 from Bio import SeqIO
 from Bio.Blast.Applications import NcbiblastpCommandline
 from modlamp.core import read_fasta, save_fasta
@@ -8,8 +6,9 @@ from modlamp.core import read_fasta, save_fasta
 import joblib as jl
 import pandas as pd
 
+import os
+
 TOKEN = config["token"]
-TARGET_PDBS = config["pdbs_out"]
 TARGET_DIR = config["target_dir"]
 PROFILE_DIR = config["profile_dir"]
 
@@ -31,22 +30,21 @@ rule to_fasta:
     input:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
-         temp(f"data/temp/{TOKEN}/{{seq_name}}.tmp.fasta")
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.tmp")
     run:
          seq_tuples, seq_class = jl.load(str(input))
          save_fasta(str(output), sequences=[seq_tuples[0][1]], names=[seq_tuples[0][0]])
 
 rule distribute:
     input:
-         f"data/temp/{TOKEN}/{{seq_name}}.tmp.fasta",
-         "peptidereactor/db/swiss_port/proteins.db"
+         f"data/temp/{TOKEN}/{{seq_name}}.tmp",
+         "peptidereactor/db/swiss_prot/proteins.db"
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+         f"data/temp/{TOKEN}/{{seq_name}}.fasta",
+         f"data/temp/{TOKEN}/{{seq_name}}.csv"
     run:
          seqs, names = read_fasta(input[0])
          seq, name = seqs[0], names[0]
-
-         # TODO sort by subject total protein length
 
          if len(seq) < 30:
              header = ["qseqid", "sacc", "sstart", "send", "evalue", "qseq", "sseq"]
@@ -55,8 +53,6 @@ rule distribute:
                  db=input[1],
                  query=input[0],
                  evalue=200000, # include distinct hits
-                 max_target_seqs=1,
-                 max_hsps=1,
                  outfmt="10 " + " ".join(header))
              stdout, stderr = cline()
 
@@ -66,24 +62,35 @@ rule distribute:
                  shell("touch {output[0]}")
 
              else:
-                 id = df_res.loc[0, "sacc"]
+                 df_res["length"] = -1
+                 for idx in df_res.index:
+                     id = df_res.loc[idx, "sacc"]
+                     fasta_lines_tmp = \
+                         os.popen(f"blastdbcmd -db {input[1]} -entry {id}").read()
+                     for r in SeqIO.parse(StringIO(fasta_lines_tmp), "fasta"):
+                         df_res.loc[idx, "length"] = len(r.seq)
 
+                 df_res.sort_values(by="length", ascending=True, inplace=True)
+                 df_res.to_csv(output[1])
+
+                 id = df_res["sacc"].values[0]
                  fasta_lines = \
-                     os.popen(f"blastdbcmd -db peptidereactor/db/pdb/in_structure/pdb.db -entry {id}").read()
+                         os.popen(f"blastdbcmd -db {input[1]} -entry {id}").read()
 
                  if fasta_lines == "":
                      shell("touch {output[0]}")
 
                  else:
-                     fasta = ""
-                     for l in fasta_lines:
-                         fasta += l
-                     with open(output[0], "w") as f:
-                         sequences = SeqIO.parse(StringIO(fasta), "fasta")
-                         SeqIO.write(sequences, f, "fasta")
+                     seqs, names = [], []
+                     for r in SeqIO.parse(StringIO(fasta_lines), "fasta"):
+                         seqs += [str(r.seq)]
+                         names += [f"{wildcards.seq_name}_{id}"]
+
+                     save_fasta(output[0], seqs, names)
 
          else:
              save_fasta(output[0], seqs, names)
+             pd.DataFrame().to_csv(output[1])
 
 rule build_feature:
     input:
@@ -92,7 +99,9 @@ rule build_feature:
                 database=["nr70", "nr90"]),
          "peptidereactor/RaptorX/setup.pl"
     output:
-         PROFILE_DIR + "{seq_name}.tgt"
+         PROFILE_DIR + "{seq_name}.tgt",
+         "peptidereactor/RaptorX/tmp/{seq_name}.diso",
+         "peptidereactor/RaptorX/tmp/{seq_name}.psp"
     shell:
          """
          touch {output};
@@ -101,5 +110,3 @@ rule build_feature:
             echo "No alignments found for {wildcards.seq_name}";
          cd - 1> /dev/null;
          """
-
-
