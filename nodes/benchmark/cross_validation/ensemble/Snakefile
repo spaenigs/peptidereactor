@@ -1,0 +1,87 @@
+from functools import reduce
+from glob import glob
+
+import pandas as pd
+
+import os
+
+TOKEN = config["token"]
+
+if type(config["csv_seq_in"]) == list:
+    CSV_SEQ_DIR = os.path.dirname(config["csv_seq_in"][0]) + "/"
+    CSVS_SEQ_IN = config["csv_seq_in"]
+else:
+    CSV_SEQ_DIR = os.path.dirname(config["csv_seq_in"]) + "/"
+    CSVS_SEQ_IN = [config["csv_seq_in"]]
+
+if type(config["csv_str_in"]) == list:
+    CSV_STR_DIR = os.path.dirname(config["csv_str_in"][0]) + "/"
+    CSVS_STR_IN = config["csv_str_in"]
+else:
+    CSV_STR_DIR = os.path.dirname(config["csv_str_in"]) + "/"
+    CSVS_STR_IN = [config["csv_str_in"]]
+
+rule all:
+    input:
+         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]),
+         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]),
+         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]),
+         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN]),
+         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN]),
+         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv",
+                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN])
+
+rule get_unique_ids:
+    input:
+         config["csv_str_in"]
+    output:
+         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+    run:
+         sets = [set(pd.read_csv(p, index_col=0).index.values)
+                 for p in glob("data/hiv_protease/csv/structure_based/*.csv")]
+         unique_ids = sorted(reduce(set.intersection, sets),
+                             key=lambda v: int(v.replace("Seq_", "")))
+
+         with open(output[0], "w") as f:
+             for i in unique_ids:
+                 f.write(f"{i}\n")
+                 f.flush()
+
+def filter_encodings(path_ids, path_in, path_out):
+    df = pd.read_csv(path_in, index_col=0)
+    with open(path_ids) as f:
+        unique_ids = [i.rstrip() for i in f.readlines()]
+    df.loc[unique_ids, :].to_csv(path_out)
+
+rule filter_sequence_based_encodings:
+    input:
+         f"{CSV_SEQ_DIR}{{name}}.csv",
+         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+    output:
+         f"data/temp/{TOKEN}/{{name}}.csv"
+    run:
+         filter_encodings(input[1], input[0], output[0])
+
+rule filter_structure_based_encodings:
+    input:
+         f"{CSV_STR_DIR}{{name}}.csv",
+         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+    output:
+         f"data/temp/{TOKEN}/{{name}}.csv"
+    run:
+         filter_encodings(input[1], input[0], output[0])
+
+rule train:
+    input:
+         f"data/temp/{TOKEN}/{{name}}.csv"
+    output:
+         config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
+         config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
+         config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv"
+    script:
+         "../scripts/cv.py"
