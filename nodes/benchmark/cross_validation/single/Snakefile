@@ -1,22 +1,20 @@
+from glob import glob
+
 import os
 
 TOKEN = config["token"]
-
-if type(config["csv_in"]) == list:
-    CSV_DIR = os.path.dirname(config["csv_in"][0]) + "/"
-    CSVS_IN = config["csv_in"]
-else:
-    CSV_DIR = os.path.dirname(config["csv_in"]) + "/"
-    CSVS_IN = [config["csv_in"]]
+CSVS_IN = []
+for csv_dir in config["csv_in"]:
+    for p in glob(csv_dir + "*.csv"):
+        CSVS_IN += [p]
+CSV_DIR = os.path.commonpath(config["csv_in"])
+NAMES = [p.replace(CSV_DIR, "").replace(".csv", "") for p in CSVS_IN]
 
 rule all:
     input:
-         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
-                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_IN]),
-         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
-                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_IN]),
-         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv",
-                name=[os.path.basename(p).replace(".csv", "") for p in CSVS_IN])
+         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES),
+         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES),
+         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES)
 
 rule train:
     input:
