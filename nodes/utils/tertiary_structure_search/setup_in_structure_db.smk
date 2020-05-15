@@ -12,11 +12,6 @@ warnings.simplefilter('ignore', BiopythonWarning)
 
 TOKEN = config["token"]
 
-rule all:
-    input:
-         "peptidereactor/db/pdb/in_structure/pdb.fasta.gz",
-         "peptidereactor/db/pdb/in_structure/pdb.db"
-
 # rule download_pdb:
 #     output:
 #          directory("peptidereactor/db/cifs/")
