@@ -17,7 +17,7 @@ from nodes.utils.tertiary_structure_search.scripts.utils \
     import get_seq_names, Cif
 
 include:
-    "setup_pdb.smk"
+    "setup_in_structure_db.smk"
 
 TOKEN = config["token"]
 
