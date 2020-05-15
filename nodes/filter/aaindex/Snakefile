@@ -2,6 +2,7 @@ from sklearn.decomposition import PCA
 from pathos.multiprocessing import ProcessingPool as Pool
 from more_itertools import chunked
 from functools import partial
+from glob import glob
 
 import pandas as pd
 import numpy as np
@@ -66,7 +67,7 @@ rule filter_files:
              pfunc = partial(filter_files, target_dir=target_dir)
              p.map(pfunc, chunks)
 
-         run(list(input), config["csv_out"])
+         run(glob(input[1] + "*.csv"), config["csv_out"])
 
          shell("touch {output}")
 

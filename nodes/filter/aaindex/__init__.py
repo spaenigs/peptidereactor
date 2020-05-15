@@ -15,7 +15,7 @@ def _get_benchmark(benchmark_out):
 def _get_main(csv_in, csv_out):
     return f'''
     input:
-         csv_in={csv_in}
+         csv_in="{csv_in}"
     output:
          csv_out=directory("{csv_out}")
     params:
