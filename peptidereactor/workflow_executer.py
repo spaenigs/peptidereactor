@@ -79,7 +79,7 @@ class WorkflowSetter:
                 
                 rule all:
                     input:
-                         config['{self.key_target_rule}']        
+                         config['{self.key_target_rule}']
             """)
 
         for r in self.rule_definitions:
@@ -88,10 +88,10 @@ class WorkflowSetter:
         if self.benchmark_dir is not None:
             scaffold += textwrap.dedent(
                 f"""\
-    
+
                     rule collect_benchmark:
                         input:
-                             "{self.benchmark_dir}"
+                             {self.benchmark_target}
                         output:
                              "{self.benchmark_dir}{{dataset}}.csv"
                         run:
@@ -99,14 +99,13 @@ class WorkflowSetter:
                              import pandas as pd
 
                              df_res = pd.DataFrame()
-                             for p in glob("data/hivp_test/misc/benchmark/*.txt"):
+                             for p in glob(f"data/{{wildcards.dataset}}/misc/benchmark/*.txt"):
                                  name = re.findall(".*/(.*)_\w+.txt", p)[0]
                                  df_tmp = pd.read_csv(p, sep="\t")
                                  df_tmp.index = [name]
                                  df_res = pd.concat([df_res, df_tmp])
 
                              df_res.to_csv(output[0])
-
                 """)
 
         with open(self.snakefile, mode="w") as f:
@@ -120,4 +119,6 @@ class WorkflowSetter:
         self.cores = cores
         self.key_target_rule = key_target_rule
         self.snakefile = snakefile
-        self.benchmark_dir = benchmark_dir
+        self.benchmark_dir = \
+            None if benchmark_dir is None else f"{benchmark_dir}{secrets.token_hex(3)}/"
+        self.benchmark_target = []
