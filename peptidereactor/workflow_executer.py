@@ -93,7 +93,7 @@ class WorkflowSetter:
                         input:
                              {self.benchmark_target}
                         output:
-                             "{self.benchmark_dir}{{dataset}}.csv"
+                             "{self.benchmark_dir}benchmark.csv"
                         run:
                              import re
                              import pandas as pd
