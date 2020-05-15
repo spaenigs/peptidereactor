@@ -25,9 +25,9 @@ rule dump:
     output:
          config["csv_out"]
     run:
-         seqs, names = read_fasta(str(input[0]))
+         seqs, names = read_fasta(input[0])
          fastas = [[n, s] for s, n in zip(seqs, names)]
-         with open(str(input[1])) as f:
+         with open(input[1]) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
          df = pd.DataFrame()
@@ -39,4 +39,7 @@ rule dump:
          for (name, (seq, class_)) in seq_tuples.items():
              df.loc[name, "y"] = class_
 
-         df.sort_values(by="y").to_csv(str(output))
+         # for short sequences with similar amino acid content the algorithm return NA's
+         df.dropna(inplace=True)
+
+         df.sort_values(by="y").to_csv(output[0])
