@@ -2,6 +2,7 @@ from itertools import combinations, product
 from pathos.multiprocessing import ProcessingPool as Pool
 from scipy import interpolate, stats
 from sklearn.manifold import TSNE
+from glob import glob
 
 import pandas as pd
 import numpy as np
@@ -11,8 +12,10 @@ import os
 
 TOKEN = config["token"]
 
+CSVS = glob(config["csv_in"] + "*.csv")
+
 def generate_input_files(psekraac_type):
-    return [p for p in config["csv_in"] if f"{psekraac_type}_st" in p]
+    return [p for p in CSVS if f"{psekraac_type}_st" in p]
 
 rule all:
     input:
@@ -105,7 +108,7 @@ rule clustering:
 
 def get_files(wildcards):
     psekraac_types = []
-    for p in config["csv_in"]:
+    for p in CSVS:
         hits = re.findall("(t\w+)_st.*", os.path.basename(p))
         if len(hits) > 0:
             psekraac_types += [hits[0]]
@@ -122,7 +125,7 @@ rule collect:
          pattern = ".*/t.*?_st.*rt.*ktu.*la.*"
 
          non_psekraac_files = \
-             [p for p in config["csv_in"] if re.search(pattern, p) is None]
+             [p for p in CSVS if re.search(pattern, p) is None]
 
          for p in non_psekraac_files:
              shell(f"cp {p} {config['csv_out']}")
