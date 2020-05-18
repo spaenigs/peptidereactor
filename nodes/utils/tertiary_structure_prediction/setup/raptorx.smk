@@ -14,7 +14,7 @@ rule download_index_html:
         1000
     run:
          with open(str(input)) as file_in:
-              link_to_index_html = list(file_in.readlines())[0]
+              link_to_index_html = list(file_in.readlines())[0].rstrip()
               shell(f"wget {link_to_index_html} -P data/temp/{TOKEN}/ 2> /dev/null")
 
 rule parse_download_links:
