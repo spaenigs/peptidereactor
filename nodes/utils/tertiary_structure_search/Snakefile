@@ -151,6 +151,8 @@ rule download_from_pdb:
                      touch {target_path} 
                  fi
                  """
+             if not os.path.exists(CIFS_DIR):
+                 os.mkdir(CIFS_DIR)
              if not os.path.exists(target_path):
                  shell(cmd)
 
