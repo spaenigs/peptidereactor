@@ -60,7 +60,7 @@ class MetaWorkflowExecuter(WorkflowExecuter):
 
     def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
         super().__init__(input_files, output_files, path_to_configfile, cores, **kwargs)
-        self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores}"
+        self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores} --keep-going"
 
 
 class WorkflowSetter:
@@ -94,6 +94,8 @@ class WorkflowSetter:
                              {self.benchmark_target}
                         output:
                              "{self.benchmark_dir}benchmark.csv"
+                        threads:
+                             1000
                         run:
                              import re
                              import pandas as pd
