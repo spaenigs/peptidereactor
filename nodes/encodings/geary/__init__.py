@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, geary_out):
          length_in="{length_in}"
     output:
          csv_out={geary_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/geary/Snakefile",
          configfile="nodes/encodings/geary/config.yaml"

@@ -24,6 +24,8 @@ def _get_main(fasta_in, classes_in, fasta_sec_out, classes_sec_out, fasta_ter_ou
          fasta_ter_out="{fasta_ter_out}",
          classes_ter_out="{classes_ter_out}",
          pdb_dir=directory("{pdb_dir}")
+    threads:
+         1000
     params:
          snakefile="nodes/utils/tertiary_structure_search/Snakefile",
          configfile="nodes/utils/tertiary_structure_search/config.yaml"

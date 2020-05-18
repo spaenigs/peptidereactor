@@ -19,6 +19,8 @@ def _get_main(fasta_in, fasta_out, maps_out):
     output:
          fasta_out="{fasta_out}",
          maps_out="{maps_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/utils/map_sequence_names/Snakefile",
          configfile="nodes/utils/map_sequence_names/config.yaml"

@@ -19,7 +19,9 @@ def _get_main(csv_in, csv_out):
     input:
         csv_in="{csv_in}"
     output:
-        csv_out=directory("{csv_out}")              
+        csv_out=directory("{csv_out}")
+    threads:
+         1000              
     params:
         snakefile="nodes/filter/non_empty/Snakefile",
         configfile="nodes/filter/non_empty/config.yaml"

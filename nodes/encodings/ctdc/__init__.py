@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, ctdc_out):
          classes_in="{classes_in}"
     output:
          csv_out="{ctdc_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ctdc/Snakefile",
          configfile="nodes/encodings/ctdc/config.yaml"

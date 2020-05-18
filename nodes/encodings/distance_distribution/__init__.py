@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, pdb_dir, distance_distribution_out):
          pdb_dir="{pdb_dir}"
     output:
          csv_out="{distance_distribution_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/distance_distribution/distance_distribution.smk",
          configfile="nodes/encodings/distance_distribution/config.yaml"

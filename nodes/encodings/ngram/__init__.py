@@ -25,6 +25,8 @@ def _get_main(ngram_type,
          csv_out={ngram_out},
          lsv_out={ngram_lsv_out},
          sv_out={ngram_sv_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"'''
@@ -39,6 +41,8 @@ def _get_main(ngram_type,
          csv_out={ngram_out},
          lsv_out={ngram_lsv_out},
          sv_out={ngram_sv_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ngram/Snakefile",
          configfile="nodes/encodings/ngram/config.yaml"'''

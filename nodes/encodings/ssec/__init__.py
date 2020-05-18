@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, profile_dir, ssec_out):
          profile="{profile_dir}"
     output:
          csv_out="{ssec_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ssec/ssec.smk",
          configfile="nodes/encodings/ssec/config.yaml"

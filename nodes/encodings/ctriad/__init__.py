@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, ctriad_out):
          classes_in="{classes_in}"
     output:
          csv_out="{ctriad_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ctriad/Snakefile",
          configfile="nodes/encodings/ctriad/config.yaml"

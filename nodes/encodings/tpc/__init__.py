@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, tpc_out):
          classes_in="{classes_in}"
     output:
          csv_out="{tpc_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/tpc/Snakefile",
          configfile="nodes/encodings/tpc/config.yaml"

@@ -19,7 +19,9 @@ def _get_main(csv_in, csv_dir_out):
     input:
         csv_in={csv_in}
     output:
-        cv_dir_out=directory("{csv_dir_out}")              
+        cv_dir_out=directory("{csv_dir_out}")
+    threads:
+         1000
     params:
         snakefile="nodes/benchmark/cross_validation/single/Snakefile",
         configfile="nodes/benchmark/cross_validation/single/config.yaml"

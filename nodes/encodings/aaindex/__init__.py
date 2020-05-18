@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, aaindex_out):
          classes_in="{classes_in}"
     output:
          csv_out={aaindex_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/aaindex/Snakefile",
          configfile="nodes/encodings/aaindex/config.yaml"

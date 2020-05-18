@@ -18,6 +18,8 @@ def _get_main(fastas_in, fastas_out):
          fastas_in={fastas_in}
     output:
          fastas_out={fastas_out}
+    threads:
+         1000
     params:
          snakefile="nodes/utils/multiple_sequence_alignment/Snakefile",
          configfile="nodes/utils/multiple_sequence_alignment/config.yaml"

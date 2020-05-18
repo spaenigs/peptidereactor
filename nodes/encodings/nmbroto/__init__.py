@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, nmbroto_out):
          length_in="{length_in}"
     output:
          csv_out={nmbroto_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/nmbroto/Snakefile",
          configfile="nodes/encodings/nmbroto/config.yaml"

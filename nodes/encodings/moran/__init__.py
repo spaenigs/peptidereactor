@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, moran_out):
          length_in="{length_in}"
     output:
          csv_out={moran_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/moran/Snakefile",
          configfile="nodes/encodings/moran/config.yaml"

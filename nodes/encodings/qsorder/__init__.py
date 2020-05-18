@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, qsorder_out):
          length_in="{length_in}"
     output:
          csv_out={qsorder_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/qsorder/Snakefile",
          configfile="nodes/encodings/qsorder/config.yaml"

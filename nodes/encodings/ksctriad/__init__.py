@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, ksctriad_out):
          length_in="{length_in}"
     output:
          csv_out={ksctriad_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/ksctriad/Snakefile",
          configfile="nodes/encodings/ksctriad/config.yaml"

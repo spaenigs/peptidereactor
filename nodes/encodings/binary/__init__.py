@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, binary_out):
          classes_in="{classes_in}"
     output:
          csv_out="{binary_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/binary/Snakefile",
          configfile="nodes/encodings/binary/config.yaml"

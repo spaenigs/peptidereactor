@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, profile_dir, asa_out):
          profile="{profile_dir}"
     output:
          csv_out="{asa_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/asa/asa.smk",
          configfile="nodes/encodings/asa/config.yaml"

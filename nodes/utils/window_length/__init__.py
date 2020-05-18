@@ -18,6 +18,8 @@ def _get_main(fasta_in, length_out):
          fasta_in="{fasta_in}"
     output:
          length_out={length_out}
+    threads:
+         1000
     params:
          snakefile="nodes/utils/window_length/Snakefile",
          configfile="nodes/utils/window_length/config.yaml"

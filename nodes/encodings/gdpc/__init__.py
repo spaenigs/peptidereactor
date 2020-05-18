@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, gdpc_out):
          classes_in="{classes_in}"
     output:
          csv_out="{gdpc_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/gdpc/Snakefile",
          configfile="nodes/encodings/gdpc/config.yaml"

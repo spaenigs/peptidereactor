@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, pdb_dir, electrostatic_hull_out):
          pdb_dir="{pdb_dir}"
     output:
          csv_out={electrostatic_hull_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/electrostatic_hull/electrostatic_hull.smk",
          configfile="nodes/encodings/electrostatic_hull/config.yaml"

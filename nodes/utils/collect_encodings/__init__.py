@@ -20,6 +20,8 @@ def _get_main(csv_seq_in, csv_str_in, csv_seq_out, csv_str_out):
     output:
          csv_seq_out=directory("{csv_seq_out}"),
          csv_str_out=directory("{csv_str_out}")
+    threads:
+         1000
     params:
          snakefile="nodes/utils/collect_encodings/Snakefile",
          configfile="nodes/utils/collect_encodings/config.yaml"

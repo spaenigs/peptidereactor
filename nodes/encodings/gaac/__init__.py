@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, gaac_out):
          classes_in="{classes_in}"
     output:
          csv_out="{gaac_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/gaac/Snakefile",
          configfile="nodes/encodings/gaac/config.yaml"

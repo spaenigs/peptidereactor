@@ -20,7 +20,9 @@ def _get_main(csv_seq_in, csv_str_in, csv_dir_out):
         csv_seq_in="{csv_seq_in}",
         csv_str_in="{csv_str_in}"
     output:
-        cv_dir_out=directory("{csv_dir_out}")              
+        cv_dir_out=directory("{csv_dir_out}")
+    threads:
+         1000      
     params:
         snakefile="nodes/benchmark/cross_validation/ensemble/Snakefile",
         configfile="nodes/benchmark/cross_validation/ensemble/config.yaml"

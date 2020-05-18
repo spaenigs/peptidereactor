@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, distance_frequency_out):
          classes_in="{classes_in}"
     output:
          csv_out={distance_frequency_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/distance_frequency/Snakefile",
          configfile="nodes/encodings/distance_frequency/config.yaml"

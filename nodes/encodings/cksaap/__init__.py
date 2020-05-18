@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, cksaap_out):
          length_in="{length_in}"
     output:
          csv_out={cksaap_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/cksaap/Snakefile",
          configfile="nodes/encodings/cksaap/config.yaml"

@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, blosum62_out):
          classes_in="{classes_in}"
     output:
          csv_out="{blosum62_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/blosum62/Snakefile",
          configfile="nodes/encodings/blosum62/config.yaml"

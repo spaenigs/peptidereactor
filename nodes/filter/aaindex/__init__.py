@@ -18,6 +18,8 @@ def _get_main(csv_in, csv_out):
          csv_in="{csv_in}"
     output:
          csv_out=directory("{csv_out}")
+    threads:
+         1000
     params:
          snakefile="nodes/filter/aaindex/Snakefile",
          configfile="nodes/filter/aaindex/config.yaml"

@@ -18,6 +18,8 @@ def _get_main(csv_in, fft_out):
          csv_in={csv_in}
     output:
          csv_out={fft_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/fft/Snakefile",
          configfile="nodes/encodings/fft/config.yaml"

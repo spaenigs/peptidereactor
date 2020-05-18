@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, length_in, socnumber_out):
          length_in="{length_in}"
     output:
          csv_out={socnumber_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/socnumber/Snakefile",
          configfile="nodes/encodings/socnumber/config.yaml"

@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, dde_out):
          classes_in="{classes_in}"
     output:
          csv_out="{dde_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/dde/Snakefile",
          configfile="nodes/encodings/dde/config.yaml"

@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, psekraac_type16_out):
          classes_in="{classes_in}"
     output:
          csv_out={psekraac_type16_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/psekraac_type16/Snakefile",
          configfile="nodes/encodings/psekraac_type16/config.yaml"

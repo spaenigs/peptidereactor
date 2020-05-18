@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, zscale_out):
          classes_in="{classes_in}"
     output:
          csv_out="{zscale_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/zscale/Snakefile",
          configfile="nodes/encodings/zscale/config.yaml"

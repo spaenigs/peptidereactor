@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, pdb_dir, delaunay_out):
          pdb_dir="{pdb_dir}"
     output:
          csv_out={delaunay_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/delaunay/delaunay.smk",
          configfile="nodes/encodings/delaunay/config.yaml"

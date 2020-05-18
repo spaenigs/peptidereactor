@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, blomap_out):
          classes_in="{classes_in}"
     output:
          csv_out="{blomap_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/blomap/Snakefile",
          configfile="nodes/encodings/blomap/config.yaml"

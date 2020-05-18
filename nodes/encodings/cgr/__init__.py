@@ -19,6 +19,8 @@ def _get_main(fasta_in, classes_in, cgr_out):
          classes_in="{classes_in}"
     output:
          csv_out={cgr_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/cgr/Snakefile",
          configfile="nodes/encodings/cgr/config.yaml"

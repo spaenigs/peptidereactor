@@ -18,6 +18,8 @@ def _get_main(csv_in, waac_out):
          csv_in="{csv_in}"
     output:
          csv_out={waac_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/waac/Snakefile",
          configfile="nodes/encodings/waac/config.yaml"

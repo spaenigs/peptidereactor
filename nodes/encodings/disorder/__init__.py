@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, profile_dir, disorder_out):
          profile="{profile_dir}"
     output:
          csv_out="{disorder_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/disorder/disorder.smk",
          configfile="nodes/encodings/disorder/config.yaml"

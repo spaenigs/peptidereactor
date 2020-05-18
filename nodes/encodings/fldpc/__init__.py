@@ -18,6 +18,8 @@ def _get_main(csv_in, fldpc_out):
          csv_in="{csv_in}"
     output:
          csv_out={fldpc_out}
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/fldpc/Snakefile",
          configfile="nodes/encodings/fldpc/config.yaml"

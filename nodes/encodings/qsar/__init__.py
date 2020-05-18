@@ -20,6 +20,8 @@ def _get_main(fasta_in, classes_in, pdb_dir, qsar_out):
          pdb_dir="{pdb_dir}"
     output:
          csv_out="{qsar_out}"
+    threads:
+         1000
     params:
          snakefile="nodes/encodings/qsar/qsar.smk",
          configfile="nodes/encodings/qsar/config.yaml"
