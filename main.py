@@ -37,14 +37,12 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     seqb = encodings.sequence_based.Rule()
     w.add(seqb.rule(
-        exclude=["fldpc"],
         fasta_in="data/{dataset}/seqs_mapped.fasta", fasta_msa_in="data/{dataset}/seqs_msa.fasta",
         classes_in="data/{dataset}/classes.txt", path_to_config="config.yaml",
         misc_dir="data/{dataset}/misc/", csv_dir="data/{dataset}/csv/", benchmark_dir=w.benchmark_dir))
 
     strb = encodings.structure_based.Rule()
     w.add(strb.rule(
-        exclude=["electrostatic_hull"],
         fasta_sec_in="data/{dataset}/seqs_sec.fasta", fasta_msa_sec_in="data/{dataset}/seqs_msa_sec.fasta",
         classes_sec_in="data/{dataset}/classes_sec.txt", fasta_ter_in="data/{dataset}/seqs_ter.fasta",
         classes_ter_in="data/{dataset}/classes_ter.txt", path_to_config="config.yaml", pdb_dir="data/{dataset}/pdb/",
@@ -93,7 +91,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_dir_out="data/{dataset}/benchmark/ensemble/", benchmark_dir=w.benchmark_dir))
 
     w.benchmark_target = ["data/{dataset}/benchmark/single/", "data/{dataset}/benchmark/ensemble/"]
-    target = expand(w.benchmark_dir + "{dataset}.csv", dataset=DATASETS)
+    target = expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     shell(f"""./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml {" ".join(sys.argv[1:])}""")
