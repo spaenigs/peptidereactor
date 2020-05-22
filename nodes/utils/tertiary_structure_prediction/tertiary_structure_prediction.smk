@@ -111,6 +111,9 @@ rule slice_or_dump_ter:
          if df.empty:
              shell("cp {input[1]} {output[0]}")
 
+         elif os.path.getsize(input[1]) == 0:
+             shell("cp {input[1]} {output[0]}")
+
          else:
              structure = PDBParser().get_structure(wildcards.seq_name, input[1])
              chain_id = [c.get_id() for c in structure.get_chains()][0]
