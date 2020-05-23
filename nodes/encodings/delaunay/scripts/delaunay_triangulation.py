@@ -139,6 +139,8 @@ class ProteinStructure:
         :return: list of distance's sum of each edge (210 features instead of 400).
         """
         data_frame = self.__read()
+        if data_frame.empty:
+            return []
         output_distance = []
         df = Utils.reverse_imp_tuples(data_frame)
         df = df.groupby('residues', as_index=False)['distance'].sum()
@@ -159,6 +161,8 @@ class ProteinStructure:
         :return: list of the occurrence of each edge (210 features instead of 400).
         """
         data_frame = self.__read()
+        if data_frame.empty:
+            return []
         output_distance = []
         df = Utils.reverse_imp_tuples(data_frame)
         df = df.groupby('residues', as_index=False)['distance'].count()
@@ -180,6 +184,8 @@ class ProteinStructure:
         :return: list of frequency of the occurrence of each edge (210 features instead of 400).
         """
         data_frame = self.__read()
+        if data_frame.empty:
+            return []
         output_distance = []
         df = Utils.reverse_imp_tuples(data_frame)
         all_len = len(df)
