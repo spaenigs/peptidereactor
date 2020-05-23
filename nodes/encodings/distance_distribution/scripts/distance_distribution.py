@@ -86,6 +86,8 @@ for func_type_1, func_type_2 in combinations_with_replacement(functional_types, 
     if len(dataset) <= 1:
         # results to smaller, final dataset
         pass
+    elif len(list(set(dataset))) == 1:
+        pass
     else:
         kde = gaussian_kde(dataset, bw_method=1)
         res_vec += list(kde.evaluate(range_vals))
