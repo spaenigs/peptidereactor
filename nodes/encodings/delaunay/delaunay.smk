@@ -23,9 +23,10 @@ rule encode:
     run:
          from nodes.encodings.delaunay.scripts.delaunay_triangulation import ProteinStructure
 
-         _, names = read_fasta(str(input))
+         _, names = read_fasta(input[0])
 
          res = {}
+         names_for_index = []
          for name in names:
              pdb_file = PDB_DIR + f"{name}.pdb"
              if wildcards.algorithm == "average_distance":
@@ -45,21 +46,30 @@ rule encode:
                      .cartesian_product()
              else:
                  raise ValueError(f"Unknown algorithm: {wildcards.algorithm}.")
-             res[name] = vals
+             if len(vals) > 0:
+                 res[name] = vals
+                 names_for_index += [name]
 
          df = pd.DataFrame(res).transpose()
-         df.index = names
-         df.to_csv(str(output))
+         df.index = names_for_index
+         df.to_csv(output[0])
 
 rule dump:
     input:
-        f"data/temp/{TOKEN}/delaunay_{{algorithm}}.csv",
-        config["classes_in"]
+         f"data/temp/{TOKEN}/delaunay_{{algorithm}}.csv",
+         config["fasta_in"],
+         config["classes_in"]
     output:
-        f"{TARGET_DIR}/delaunay_{{algorithm}}.csv"
+         f"{TARGET_DIR}/delaunay_{{algorithm}}.csv"
     run:
-        with open(str(input[1])) as f:
-            classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
-        df = pd.read_csv(str(input[0]), index_col=0)
-        df["y"] = classes
-        df.to_csv(str(output))
+         df = pd.read_csv(input[0], index_col=0)
+
+         seqs, names = read_fasta(input[1])
+         with open(input[2]) as f:
+             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+
+         seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
+         for (name, (seq, class_)) in seq_tuples.items():
+             df.loc[name, "y"] = class_
+
+         df.to_csv(output[0])

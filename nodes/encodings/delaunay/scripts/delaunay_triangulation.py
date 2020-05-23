@@ -56,7 +56,13 @@ class ProteinStructure:
         coo_delaunay = np.asarray(coordinates)
 
         # To apply the Delaunay function, simply use the Delaunay function from the scipy.spatial library.
-        tri = Delaunay(coo_delaunay)
+        try:
+            tri = Delaunay(coo_delaunay)
+        except Exception as e:
+            return pd.DataFrame()
+            # import pydevd_pycharm
+            # pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
+
         self.tri = tri
         # Now, we have a graph with vertices and edges and every 4 vertices/residues/(x,y,z)-coordinates form a
         # tetrahedron.
@@ -111,6 +117,8 @@ class ProteinStructure:
         :return: list of mean distances of each edge (210 features instead of 400).
         """
         data_frame = self.__read()
+        if data_frame.empty:
+            return []
         output_distance = []
         df = Utils.reverse_imp_tuples(data_frame)
         df = df.groupby('residues', as_index=False)['distance'].mean()
