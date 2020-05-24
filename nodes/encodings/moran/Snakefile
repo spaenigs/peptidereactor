@@ -25,9 +25,9 @@ rule encode:
     output:
          temp(f"data/temp/{TOKEN}/moran_nlag_{{nlag_val}}.csv")
     run:
-         seqs, names = read_fasta(str(input[0]))
+         seqs, names = read_fasta(input[0])
 
-         with open(str(input[1])) as f:
+         with open(input[1]) as f:
              max_nlv = yaml.safe_load(f)
 
          fastas = [[n, s] for s, n in zip(seqs, names)]
@@ -39,7 +39,7 @@ rule encode:
              res = np.array(Moran.Moran(fastas, nlag=int(wildcards.nlag_val)))
              df = pd.DataFrame(res[1:, 1:], columns=res[0, 1:])
              df.index = np.array(res)[1:, 0]
-             df.to_csv(str(output))
+             df.to_csv(output[0])
 
 rule dump:
     input:
@@ -48,12 +48,13 @@ rule dump:
     output:
          f"{TARGET_DIR}/moran_nlag_{{nlag_val}}.csv"
     run:
-         with open(str(input[1])) as f:
+         with open(input[1]) as f:
              classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
-         if os.path.getsize(str(input[0])) == 0:
+         if os.path.getsize(input[0]) == 0:
              shell("touch {output}")
          else:
-             df = pd.read_csv(str(input[0]), index_col=0)
+             df = pd.read_csv(input[0], index_col=0)
              df["y"] = classes
-             df.to_csv(str(output))
+             df.dropna(inplace=True)
+             df.to_csv(output[0])
