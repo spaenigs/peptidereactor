@@ -72,4 +72,5 @@ rule dump:
          for (name, (seq, class_)) in seq_tuples.items():
              df.loc[name, "y"] = class_
 
+         df.dropna(inplace=True)
          df.to_csv(output[0])
