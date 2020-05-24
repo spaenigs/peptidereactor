@@ -45,7 +45,7 @@ rule solvent_accessible_surface:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.sas.dx")
     threads:
-         1000
+         int(workflow.cores/4)
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} smol"
 
@@ -68,7 +68,7 @@ rule electrostatic_potential:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.esp.dx")
     threads:
-         1000
+         int(workflow.cores/4)
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} pot"
 
