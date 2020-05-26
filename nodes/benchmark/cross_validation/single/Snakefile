@@ -3,22 +3,41 @@ from glob import glob
 import os
 
 TOKEN = config["token"]
-CSVS_IN = []
-for csv_dir in config["csv_in"]:
-    for p in glob(csv_dir + "*.csv"):
-        CSVS_IN += [p]
-CSV_DIR = os.path.commonpath(config["csv_in"])
-NAMES = [p.replace(CSV_DIR, "").replace(".csv", "") for p in CSVS_IN]
+
+CSV_SEQ_DIR = config["csv_seq_in"]
+CSVS_SEQ_IN = glob(config["csv_seq_in"] + "*.csv")
+
+CSV_STR_DIR = config["csv_str_in"]
+CSVS_STR_IN = glob(config["csv_str_in"] + "*.csv")
+
+NAMES_SEQ = [os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]
+NAMES_STR = [os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN]
+
+import pydevd_pycharm
+pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
 
 rule all:
     input:
-         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES),
-         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES),
-         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES)
+         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_SEQ),
+         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_SEQ),
+         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_SEQ),
+         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_STR),
+         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_STR),
+         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_STR)
 
-rule train:
+rule train_seq:
     input:
-         f"{CSV_DIR}{{name}}.csv"
+         f"{CSV_SEQ_DIR}{{name}}.csv"
+    output:
+         config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
+         config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
+         config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv"
+    script:
+         "../scripts/cv.py"
+
+rule train_str:
+    input:
+         f"{CSV_STR_DIR}{{name}}.csv"
     output:
          config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
          config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
