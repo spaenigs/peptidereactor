@@ -101,7 +101,7 @@ class WorkflowSetter:
                              import pandas as pd
 
                              df_res = pd.DataFrame()
-                             for p in glob(f"data/{{wildcards.dataset}}/misc/benchmark/*.txt"):
+                             for p in glob(f"data/{{wildcards.dataset}}/misc/benchmark/*/*.txt"):
                                  name = re.findall(".*/(.*)_\w+.txt", p)[0]
                                  df_tmp = pd.read_csv(p, sep="\t")
                                  df_tmp.index = [name]
