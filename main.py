@@ -13,7 +13,7 @@ import sys
 from peptidereactor.workflow_executer \
     import WorkflowExecuter, WorkflowSetter
 
-CORES = 12
+CORES = 32
 DATASETS = ["hiv_protease"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
@@ -81,9 +81,8 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
 
     w.add(benchmark.cross_validation.single.rule(
-        csv_in=[sequence_based_encodings_dir, structure_based_encodings_dir],
-        csv_dir_out="data/{dataset}/benchmark/single/",
-        benchmark_dir=w.benchmark_dir))
+        csv_seq_in=sequence_based_encodings_dir, csv_str_in=structure_based_encodings_dir,
+        csv_dir_out="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir))
 
     w.add(benchmark.cross_validation.ensemble.rule(
         csv_seq_in=sequence_based_encodings_dir,
