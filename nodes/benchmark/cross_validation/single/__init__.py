@@ -14,10 +14,11 @@ def _get_benchmark(benchmark_out):
 '''
 
 
-def _get_main(csv_in, csv_dir_out):
+def _get_main(csv_seq_in, csv_str_in, csv_dir_out):
     return f'''\
     input:
-        csv_in={csv_in}
+        csv_seq_in="{csv_seq_in}",
+        csv_str_in="{csv_str_in}"
     output:
         cv_dir_out=directory("{csv_dir_out}")
     threads:
@@ -31,11 +32,11 @@ def _get_main(csv_in, csv_dir_out):
 '''
 
 
-def rule(csv_in, csv_dir_out, benchmark_dir=None):
+def rule(csv_seq_in, csv_str_in, csv_dir_out, benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}benchmark_cross_validation_single_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(csv_in, csv_dir_out)
+    rule += _get_main(csv_seq_in, csv_str_in, csv_dir_out)
     return rule
