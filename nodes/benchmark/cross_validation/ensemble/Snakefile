@@ -8,10 +8,10 @@ import os
 TOKEN = config["token"]
 
 CSV_SEQ_DIR = config["csv_seq_in"]
-CSVS_SEQ_IN = glob(config["csv_seq_in"] + "*.csv")[:1]
+CSVS_SEQ_IN = glob(config["csv_seq_in"] + "*.csv")
 
 CSV_STR_DIR = config["csv_str_in"]
-CSVS_STR_IN = glob(config["csv_str_in"] + "*.csv")[:1]
+CSVS_STR_IN = glob(config["csv_str_in"] + "*.csv")
 
 NAMES_SEQ = [os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]
 NAMES_STR = [os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN]
