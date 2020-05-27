@@ -14,9 +14,12 @@ from peptidereactor.workflow_executer \
     import WorkflowExecuter, WorkflowSetter
 
 CORES = 32
-DATASETS = ["hiv_protease"]
+DATASETS = ["hiv_protease", "ace_vaxinpad"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
+
+    w.add(utils.check_dataset.rule(
+        fasta_in="data/{dataset}/seqs.fasta", report_out="data/{dataset}/misc/seqs_report.txt"))
 
     w.add(utils.map_sequence_names.rule(
         fasta_in="data/{dataset}/seqs.fasta", fasta_out="data/{dataset}/seqs_mapped.fasta",
@@ -90,7 +93,9 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_dir_out="data/{dataset}/benchmark/ensemble/", benchmark_dir=w.benchmark_dir))
 
     w.benchmark_target = ["data/{dataset}/benchmark/single/", "data/{dataset}/benchmark/ensemble/"]
-    target = expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
+    target = \
+        expand("data/{dataset}/misc/seqs_report.txt", dataset=DATASETS) + \
+        expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     shell(f"""./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml {" ".join(sys.argv[1:])}""")
