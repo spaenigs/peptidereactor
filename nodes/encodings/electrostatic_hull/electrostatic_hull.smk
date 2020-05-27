@@ -1,4 +1,5 @@
 from modlamp.core import read_fasta
+
 import pandas as pd
 import numpy as np
 import yaml
@@ -23,10 +24,6 @@ rule assign_charges_and_radii:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.pqr")
     run:
-         # if wildcards.seq_name == "Seq_277":
-         #     import pydevd_pycharm
-         #     pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
-         # shell("pdb2pqr --whitespace --ff=amber --assign-only {input} {output} 1> /dev/null;")
          cmd = "pdb2pqr --whitespace XXX --ff=amber {input[0]} {output[0]} 1> /dev/null;"
          try:
              shell(cmd.replace("XXX", ""))
@@ -57,10 +54,10 @@ rule electrostatic_hull:
     run:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
              import readDX, electrostatic_hull
-         dx = readDX(str(input))
+         dx = readDX(input[0])
          electrostatic_hull(data=dx.data,
                             iterations=int(int(wildcards.distance)/dx.delta[0])+1,
-                            filename=str(output))
+                            filename=output[0])
 
 rule electrostatic_potential:
     input:
@@ -82,12 +79,12 @@ rule electrostatic_pot_at_electrostatic_hull_grid:
          from nodes.encodings.electrostatic_hull.scripts.parse_grid \
             import csv2points, readDX, dx2csv
 
-         filter = csv2points(str(input[0]))
+         filter = csv2points(input[0])
          ids, dx_list = [], []
-         dx_list.append(readDX(str(input[1])))
+         dx_list.append(readDX(input[1]))
          ids.append(wildcards.seq_name)
 
-         dx2csv(dx_list, filter=filter, ids=ids, filename=str(output), sep=",")
+         dx2csv(dx_list, filter=filter, ids=ids, filename=output[0], sep=",")
 
 rule combine:
     input:
@@ -105,9 +102,9 @@ rule combine:
              seq_name = df_tmp.index[0]
              enco["enco_seqs"][seq_name] = df_tmp.loc[seq_name, :].values.tolist()
 
-         with open(str(output), mode="w") as f:
+         with open(output[0], mode="w") as f:
             enco["interpolate_to"] = \
-                int(np.median([len(seq) for seq in read_fasta(str(input[0]))[0]]))
+                int(np.median([len(seq) for seq in read_fasta(input[0])[0]]))
             yaml.safe_dump(enco, f)
 
 rule interpolate:
@@ -126,16 +123,16 @@ rule dump:
     output:
          f"{TARGET_DIR}/electrostatic_hull_{{distance}}.csv"
     run:
-         df = pd.read_csv(str(input[0]), index_col=0)
+         df = pd.read_csv(input[0], index_col=0)
          df["y"] = -1
 
-         seqs, names = read_fasta(str(input[1]))
+         seqs, names = read_fasta(input[1])
          fastas = [[n, s] for s, n in zip(seqs, names)]
-         with open(str(input[2])) as f:
+         with open(input[2]) as f:
             classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
 
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          for (name, (seq, class_)) in seq_tuples.items():
              df.loc[name, "y"] = class_
 
-         df.sort_values(by="y").to_csv(str(output))
+         df.sort_values(by="y").to_csv(output[0])
