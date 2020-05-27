@@ -53,6 +53,7 @@ class Cif:
         return seq_from_pdb, seq_from_pdb_ics
 
     def dump_slice(self, motif, out_file):
+        motif = motif.replace("-", "")
         start_on_indices = self.seq.find(motif)
         end_on_indices = start_on_indices + len(motif) - 1
         start, end = self.indices[start_on_indices], self.indices[end_on_indices]
