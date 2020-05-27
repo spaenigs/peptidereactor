@@ -31,10 +31,10 @@ rule get_unique_ids:
     output:
          f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
     run:
-         sets = [set(pd.read_csv(p, index_col=0).index.values)
-                 for p in glob("data/hiv_protease/csv/structure_based/*.csv")]
-         unique_ids = sorted(reduce(set.intersection, sets),
-                             key=lambda v: int(v.replace("Seq_", "")))
+         sets = \
+             [set(pd.read_csv(p, index_col=0).index.values) for p in glob(input[0] + "*.csv")]
+         unique_ids = \
+             sorted(reduce(set.intersection, sets), key=lambda v: int(v.replace("Seq_", "")))
 
          with open(output[0], "w") as f:
              for i in unique_ids:
@@ -45,7 +45,9 @@ def filter_encodings(path_ids, path_in, path_out):
     df = pd.read_csv(path_in, index_col=0)
     with open(path_ids) as f:
         unique_ids = [i.rstrip() for i in f.readlines()]
-    df.loc[unique_ids, :].to_csv(path_out)
+    # take care of missing indices in df, due to .dropna() call
+    ids = list(set(list(unique_ids)).intersection(list(df.index)))
+    df.loc[ids, :].to_csv(path_out)
 
 rule filter_sequence_based_encodings:
     input:
@@ -54,8 +56,6 @@ rule filter_sequence_based_encodings:
     output:
          f"data/temp/{TOKEN}/{{name}}.csv"
     run:
-         # import pydevd_pycharm
-         # pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
          filter_encodings(input[1], input[0], output[0])
 
 rule filter_structure_based_encodings:
