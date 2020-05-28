@@ -5,7 +5,7 @@ import numpy as np
 import yaml
 import os
 
-TOKEN = config["token"]
+TOKEN = "5c8c84f2e646" # config["token"]
 PDB_DIR = config["pdb_dir"]
 TARGET_FILES = config["csv_out"]
 
@@ -100,7 +100,11 @@ rule combine:
          for path in list(input[1:]):
              df_tmp = pd.read_csv(path, index_col=0)
              seq_name = df_tmp.index[0]
-             enco["enco_seqs"][seq_name] = df_tmp.loc[seq_name, :].values.tolist()
+             vals = df_tmp.loc[seq_name, :].values
+             if np.isnan(vals).any():
+                 continue
+             else:
+                 enco["enco_seqs"][seq_name] = vals.tolist()
 
          with open(output[0], mode="w") as f:
             enco["interpolate_to"] = \
@@ -133,6 +137,7 @@ rule dump:
 
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          for (name, (seq, class_)) in seq_tuples.items():
-             df.loc[name, "y"] = class_
+             if name in df.index:
+                df.loc[name, "y"] = class_
 
          df.sort_values(by="y").to_csv(output[0])
