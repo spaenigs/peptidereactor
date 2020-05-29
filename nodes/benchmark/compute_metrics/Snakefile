@@ -1,0 +1,48 @@
+from glob import glob
+
+import pandas as pd
+import numpy as np
+
+import os
+import re
+from sklearn.metrics import f1_score
+
+TOKEN = config["token"]
+
+CSV_DIR = config["csv_dir_in"]
+CSVS_IN = glob(config["csv_dir_in"] + "y_true_cv_*.csv")
+NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
+
+METRICS_DIR = config["metrics_dir_out"]
+
+rule f1:
+    input:
+         f"{CSV_DIR}{{name}}.csv"
+    output:
+         f"data/temp/{TOKEN}/f1/{{name}}.csv"
+    run:
+         df_true = pd.read_csv(input[0], index_col=0)
+         df_pred = pd.read_csv(input[0].replace("_true_", "_pred_"), index_col=0)
+
+         f1s = []
+         for i in range(50):
+             y_true = df_true.iloc[i, :].dropna()
+             y_pred = df_pred.iloc[i, :].dropna()
+             f1s += [f1_score(y_true, y_pred)]
+
+         n = re.findall(".*y_true_cv_(.*).csv", input[0])
+         df_tmp = pd.DataFrame({n: f1s})
+         df_tmp.transpose().to_csv(output[0])
+
+rule collect_f1:
+    input:
+         expand(f"data/temp/{TOKEN}/f1/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}f1.csv"
+    run:
+         df_res = pd.DataFrame()
+         for p in list(input):
+             df_tmp = pd.read_csv(p, index_col=0)
+             df_res = pd.concat([df_res, df_tmp])
+
+         df_res.transpose().to_csv(output[0])
