@@ -1,11 +1,13 @@
 from modlamp.core import read_fasta
 from functools import reduce
-import joblib as jl
-import pandas as pd
-import numpy as np
+from sklearn.decomposition import PCA
 from simtk.openmm.app import *
 from simtk.openmm import *
 from simtk.unit import *
+
+import joblib as jl
+import pandas as pd
+import numpy as np
 
 # pipeline adapted from https://www.nature.com/articles/s41598-018-19669-4.pdf
 
@@ -23,13 +25,13 @@ rule split_input_data:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.joblib")
     run:
-         seqs, names = read_fasta(str(input[0]))
-         with open(str(input[1])) as f:
+         seqs, names = read_fasta(input[0])
+         with open(input[1]) as f:
              classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          seq_tuple = seq_tuples[wildcards.seq_name]
          jl.dump(value=([[wildcards.seq_name, seq_tuple[0]]], seq_tuple[1]),
-                 filename=str(output))
+                 filename=output[0])
 
 # rule find_energy_minimized_conformation:
 #     input:
@@ -85,7 +87,7 @@ rule combine:
               df_tmp = df_tmp.loc[:, unique_colnames]
               df_res = pd.concat([df_res, df_tmp])
 
-          df_res.to_csv(str(output))
+          df_res.to_csv(output[0])
 
 rule remove_zero_variance:
     input:
@@ -93,9 +95,9 @@ rule remove_zero_variance:
     output:
          temp(f"data/temp/{TOKEN}/qsar_raw_removed_zero_variance.csv")
     run:
-         df = pd.read_csv(str(input), index_col=0)
+         df = pd.read_csv(input[0], index_col=0)
          df = df.loc[:, [i != 0.0 for i in df.apply(np.var, axis=0)]]
-         df.to_csv(str(output))
+         df.to_csv(output[0])
 
 rule remove_highly_correlated:
     input:
@@ -103,7 +105,7 @@ rule remove_highly_correlated:
     output:
          temp(f"data/temp/{TOKEN}/qsar_raw_removed_highly_correlated.csv")
     run:
-         df = pd.read_csv(str(input), index_col=0)
+         df = pd.read_csv(input[0], index_col=0)
          cm = df.corr()
 
          cmindex, cmcolumns = cm.index.values.tolist(), cm.columns.values.tolist()
@@ -115,7 +117,7 @@ rule remove_highly_correlated:
                       cm = cm.loc[cmindex, cmcolumns]
 
          df = df.loc[:, cm.columns.append(pd.Index(["y"]))]
-         df.to_csv(str(output))
+         df.to_csv(output[0])
 
 rule run_pca:
     input:
@@ -123,9 +125,7 @@ rule run_pca:
     output:
          config["csv_out"]
     run:
-         from sklearn.decomposition import PCA
-
-         df = pd.read_csv(str(input), index_col=0)
+         df = pd.read_csv(input[0], index_col=0)
          X, y = df.iloc[:, :-1].values, df["y"]
 
          pca = PCA(n_components=np.min([7, np.min([X.shape[0], X.shape[1]])]))
@@ -133,4 +133,4 @@ rule run_pca:
 
          df_res = pd.DataFrame(X_new, index=df.index)
          df_res["y"] = df["y"]
-         df_res.to_csv(str(output))
+         df_res.to_csv(output[0])
