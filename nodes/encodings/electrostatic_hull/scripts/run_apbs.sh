@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-export TOKEN=$1
-export INPUT=$2
-export OUTPUT=$3
-export TYPE=$4
+TOKEN=$1
+INPUT=$2
+OUTPUT=$3
+TYPE=$4
 
-export OLD_WD=$PWD
-export PATH_TO_NODE=nodes/encodings/electrostatic_hull/;
-export NEW_WD=data/temp/$TOKEN/$RANDOM/; mkdir $NEW_WD;
+RND=$(shuf -i 100000-999999 -n 1)
+
+OLD_WD=$PWD
+PATH_TO_NODE=nodes/encodings/electrostatic_hull/;
+NEW_WD=data/temp/$TOKEN/$RND/; mkdir $NEW_WD;
 
 cp $INPUT $NEW_WD/template.pqr;
 cp $PATH_TO_NODE/config/apbs_$TYPE.input $NEW_WD;
