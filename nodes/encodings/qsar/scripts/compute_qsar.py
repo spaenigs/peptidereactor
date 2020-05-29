@@ -26,30 +26,35 @@ def get_pdb_chunks(full_pdb, window_size, len_residues, token):
             filename = f"data/temp/{token}/{full_pdb.get_id()}_{start}_{end}.pdb"
             Dice.extract(full_pdb, chain_id, start, end, filename)
 
-            cmd = f"from rdkit import Chem; Chem.MolFromPDBFile('{filename}')"
-            process = subprocess.Popen(["python", "-c", cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = process.communicate()
+            not_valid = True
+            tmp_filename = filename
 
-            error_msg = stderr.decode()
-
-            if error_msg == "":
-                mol_obj = Chem.MolFromPDBFile(filename)
-
-            else:
-                hits = re.findall("Explicit valence for atom # (\d+)", error_msg)
-                if len(hits) > 0:
-                    line_number = int(hits[0])
-                    new_filename = filename.replace(".pdb", ".tmp.pdb")
-                    with open(filename) as f1, open(new_filename, "a") as f2:
-                        for i, l in enumerate(f1.readlines()):
-                            if i == line_number:
-                                continue
-                            else:
-                                f2.write(l)
-                                f2.flush()
-                    mol_obj = Chem.MolFromPDBFile(new_filename)
+            # in case several atoms exceed explicit valence
+            while not_valid:
+                cmd = f"from rdkit import Chem; Chem.MolFromPDBFile('{tmp_filename}')"
+                process = subprocess.Popen(["python", "-c", cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                stdout, stderr = process.communicate()
+                error_msg = stderr.decode()
+                if error_msg == "":
+                    not_valid = False
+                    mol_obj = Chem.MolFromPDBFile(tmp_filename)
                 else:
-                    raise ValueError(f"Error parsing rdkit error message: {error_msg}!")
+                    hits = re.findall("Explicit valence for atom # (\d+)", error_msg)
+                    if len(hits) > 0:
+                        line_number = int(hits[0])
+                        import secrets
+                        id = secrets.token_hex(5)
+                        new_filename = filename.replace(".pdb", f".{id}.pdb")
+                        with open(tmp_filename) as f1, open(new_filename, "a") as f2:
+                            for i, l in enumerate(f1.readlines()):
+                                if i == line_number:
+                                    continue
+                                else:
+                                    f2.write(l)
+                                    f2.flush()
+                        tmp_filename = new_filename
+                    else:
+                        raise ValueError(f"Error parsing rdkit error message: {error_msg}!")
 
             yield filename, mol_obj
 
@@ -84,5 +89,3 @@ try:
     clean_up(filenames)
 except Exception as e:
     print(e)
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
