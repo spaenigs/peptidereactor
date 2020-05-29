@@ -59,7 +59,7 @@ rule distribute:
              df_res = pd.read_csv(StringIO(stdout), names=header)
 
              if df_res.empty:
-                 shell("touch {output[0]}")
+                 shell("touch {output[0]} {output[1]}")
 
              else:
                  df_res["length"] = -1
