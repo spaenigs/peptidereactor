@@ -18,24 +18,27 @@ rule get_vsl2_profile:
     output:
          f"data/temp/{TOKEN}/{{seq_name}}.dis"
     run:
-         name = wildcards.seq_name
-         header = textwrap.dedent(
-         """\
-             Dummy file to mimic output from VSL2 Predictor of Intrinsically Disordered Regions
-             
-             Prediction Scores:
-             ========================================
-             NO.     RES.    PREDICTION      DISORDER
-             ----------------------------------------
-         """)
-         with open(input[0]) as f, open(output[0], "w") as f2:
-             for l in f.readlines()[5:]:
-                 idx, aa, dis, prob, _  = \
-                     [i for i in l.lstrip().rstrip().split(" ") if i is not ""]
-                 header += f"{idx}\t{aa}\t{100-float(prob)}\t{'D' if dis == '*' else '.'}\n"
-             footer = "========================================\n"
-             f2.write(header + footer)
-             f2.flush()
+         if os.path.getsize(input[0]) != 0:
+             name = wildcards.seq_name
+             header = textwrap.dedent(
+             """\
+                 Dummy file to mimic output from VSL2 Predictor of Intrinsically Disordered Regions
+                 
+                 Prediction Scores:
+                 ========================================
+                 NO.     RES.    PREDICTION      DISORDER
+                 ----------------------------------------
+             """)
+             with open(input[0]) as f, open(output[0], "w") as f2:
+                 for l in f.readlines()[5:]:
+                     idx, aa, dis, prob, _  = \
+                         [i for i in l.lstrip().rstrip().split(" ") if i is not ""]
+                     header += f"{idx}\t{aa}\t{100-float(prob)}\t{'D' if dis == '*' else '.'}\n"
+                 footer = "========================================\n"
+                 f2.write(header + footer)
+                 f2.flush()
+         else:
+             shell("touch {output[0]}")
 
 rule slice_or_dump_vsl2:
     input:
@@ -44,27 +47,30 @@ rule slice_or_dump_vsl2:
     output:
          PROFILE_DIR + "{seq_name}.dis"
     run:
-         df = pd.read_csv(input[1])
+         if os.path.getsize(input[0]) != 0:
+             df = pd.read_csv(input[1])
 
-         if df.empty:
-             shell("cp {input[0]} {output[0]}")
+             if df.empty:
+                 shell("cp {input[0]} {output[0]}")
 
+             else:
+                 start, end = df["sstart"].values[0], df["send"].values[0]
+                 with open(input[0]) as fi, open(output[0], "w") as fo:
+                     lines = fi.readlines()
+                     header = lines[:6]
+                     footer = lines[-1:]
+                     for l in lines[6:]:
+                         if l.startswith("="):
+                             continue
+                         line_splitted = l.lstrip().rstrip().split("\t")
+                         id = int(line_splitted[0])
+                         if start <= id <= end:
+                             header += [l]
+                     for h in header + footer:
+                         fo.write(h)
+                         fo.flush()
          else:
-             start, end = df["sstart"].values[0], df["send"].values[0]
-             with open(input[0]) as fi, open(output[0], "w") as fo:
-                 lines = fi.readlines()
-                 header = lines[:6]
-                 footer = lines[-1:]
-                 for l in lines[6:]:
-                     if l.startswith("="):
-                         continue
-                     line_splitted = l.lstrip().rstrip().split("\t")
-                     id = int(line_splitted[0])
-                     if start <= id <= end:
-                         header += [l]
-                 for h in header + footer:
-                     fo.write(h)
-                     fo.flush()
+             shell("touch {output[0]}")
 
 rule get_spx_profile:
     input:
@@ -74,19 +80,22 @@ rule get_spx_profile:
          f"data/temp/{TOKEN}/{{seq_name}}.spXout",
          temp(f"data/temp/{TOKEN}/protein-list-file_{{seq_name}}.txt")
     run:
-        shell(
-         f"""
-         cp {{input[0]}} data/temp/{TOKEN}/{{wildcards.seq_name}}.mat;
-         export spineXcodir=peptidereactor/spineXpublic;
-         echo '{{wildcards.seq_name}}' > '{{output[1]}}';
-         if [ -s {{input[0]}} ]
-         then
-             $spineXcodir/spX.pl '{{output[1]}}' data/temp/{TOKEN}/ data/temp/{TOKEN}/
-         else
-             touch '{{output[0]}}';
-             touch '{{output[1]}}';
-         fi
-         """)
+         if os.path.getsize(input[0]) != 0:
+             shell(
+             f"""
+             cp {{input[0]}} data/temp/{TOKEN}/{{wildcards.seq_name}}.mat;
+             export spineXcodir=peptidereactor/spineXpublic;
+             echo '{{wildcards.seq_name}}' > '{{output[1]}}';
+             if [ -s {{input[0]}} ]
+             then
+                 $spineXcodir/spX.pl '{{output[1]}}' data/temp/{TOKEN}/ data/temp/{TOKEN}/
+             else
+                 touch '{{output[0]}}';
+                 touch '{{output[1]}}';
+             fi
+             """)
+         else:
+             shell("touch {output[0]} {output[1]}")
 
 rule slice_or_dump_spx:
     input:
@@ -95,24 +104,28 @@ rule slice_or_dump_spx:
     output:
          PROFILE_DIR + "{seq_name}.spXout"
     run:
-         df = pd.read_csv(input[1])
+         if os.path.getsize(input[0]) != 0:
 
-         if df.empty:
-             shell("cp {input[0]} {output[0]}")
+             df = pd.read_csv(input[1])
 
+             if df.empty:
+                 shell("cp {input[0]} {output[0]}")
+
+             else:
+                 start, end = df["sstart"].values[0], df["send"].values[0]
+                 with open(input[0]) as fi, open(output[0], "w") as fo:
+                     lines = fi.readlines()
+                     header = lines[:1]
+                     for l in lines[1:]:
+                         line_splitted = l.lstrip().rstrip().split(" ")
+                         id = int(line_splitted[0])
+                         if start <= id <= end:
+                             header += [l]
+                     for h in header:
+                         fo.write(h)
+                         fo.flush()
          else:
-             start, end = df["sstart"].values[0], df["send"].values[0]
-             with open(input[0]) as fi, open(output[0], "w") as fo:
-                 lines = fi.readlines()
-                 header = lines[:1]
-                 for l in lines[1:]:
-                     line_splitted = l.lstrip().rstrip().split(" ")
-                     id = int(line_splitted[0])
-                     if start <= id <= end:
-                         header += [l]
-                 for h in header:
-                     fo.write(h)
-                     fo.flush()
+             shell("touch {output[0]}")
 
 rule remove_non_pssm_hits:
     input:

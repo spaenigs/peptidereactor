@@ -106,19 +106,19 @@ rule slice_or_dump_ter:
     output:
          TARGET_DIR + "{seq_name}.pdb"
     run:
-         df = pd.read_csv(input[0])
-
-         if df.empty:
-             shell("cp {input[1]} {output[0]}")
-
-         elif os.path.getsize(input[1]) == 0:
-             shell("cp {input[1]} {output[0]}")
-
+         if os.path.getsize(input[1]) != 0:
+             df = pd.read_csv(input[0])
+             if df.empty:
+                 shell("cp {input[1]} {output[0]}")
+             elif os.path.getsize(input[1]) == 0:
+                 shell("cp {input[1]} {output[0]}")
+             else:
+                 structure = PDBParser().get_structure(wildcards.seq_name, input[1])
+                 chain_id = [c.get_id() for c in structure.get_chains()][0]
+                 start, end = df["sstart"].values[0], df["send"].values[0]
+                 Dice.extract(structure, chain_id, start, end, output[0])
          else:
-             structure = PDBParser().get_structure(wildcards.seq_name, input[1])
-             chain_id = [c.get_id() for c in structure.get_chains()][0]
-             start, end = df["sstart"].values[0], df["send"].values[0]
-             Dice.extract(structure, chain_id, start, end, output[0])
+             shell("touch {output[0]}")
 
 rule remove_non_hits:
     input:
