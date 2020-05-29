@@ -9,15 +9,57 @@
     let svg = null;
     let htmlSVG = null;
 
+    const d3 = Plotly.d3;
+    let myData = {"x": [10, 20, 30], "y": [20, 30, 10]};
+    let body = d3.select("body").append("svg").attr("width", "100%").attr("heigth", "100%")
+
+    body.selectAll("circle")
+        .data([0, 1, 2]).enter().append("circle")
+        .attr("cx", (d, i) => myData.x[i]).attr("cy", (d,i) => myData.y[i]).attr("r", (d, i) => 3)
+        .style("fill", "red");
+
+    body.selectAll("text")
+        .data([0, 1, 2]).enter().append("text")
+        .attr("x", (d, i) => myData.x[i]).attr("y", (d,i) => myData.y[i])
+        .text((d,i) => "(" + myData.x[i] + "," + myData.y[i] + ")")
+        .attr("font-size", "9px");
+
+    var names, values, names1, values1;
     Plotly.d3.csv("benchmark.csv", (err, rows) => {
-        var names = rows.map(row => row[""]);
-        var values = rows.map(row => row.s/60/60);
+        names = rows.map(row => row[""].includes("tertiary") ? "tertiary_structure" : row[""]);
+        values = rows.map(row => row.s/60/60);
+    });
+    Plotly.d3.csv("benchmark_p.csv", (err, rows) => {
+        names1 = rows.map(row => row[""].includes("tertiary") ? "tertiary_structure" : row[""]);
+        values1 = rows.map(row => row.s/60/60);
         var layout = {
             width: 1500,
-            height: 500
+            height: 500,
+            "barmode": "group"
         };
-        Plotly.newPlot('time', [{"x": names, "y": values, "type": "bar"}], layout)
+        var trace = {
+          "x": names,
+          "y": values,
+          "name": "Struc. search",
+          "type": "bar"
+        };
+        var trace1 = {
+          "x": names1,
+          "y": values1,
+          "name": "Struc. pred.",
+          "type": "bar"
+        };
+        Plotly.newPlot('time', [trace, trace1], layout);
     });
+    // Plotly.d3.csv("benchmark.csv", (err, rows) => {
+    //     var names = rows.map(row => row[""]);
+    //     var values = rows.map(row => row.s/60/60);
+    //     var layout = {
+    //         width: 1500,
+    //         height: 500
+    //     };
+    //     Plotly.newPlot('time', [{"x": names, "y": values, "type": "bar"}], layout)
+    // });
 
     Plotly.d3.csv("roc_plotly2.csv", (err, rows) => {
         var mean_fpr = rows.map(row => row.mean_fpr);
@@ -1156,10 +1198,10 @@
 
 
 </script>
-<?xml version="1.0" encoding="UTF-8" standalone="no"?> <svg width="228.6mm" height="321.733mm"  viewBox="0 0 648.425 912.142"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny"> <title>Generated with ETE http://etetoolkit.org</title> <desc>Generated with ETE http://etetoolkit.org</desc> <defs> </defs> <g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >      <g fill="none" stroke="none" transform="matrix(5.27433,0,0,5.27433,0,0)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <rect x="0" y="0" width="122.94" height="172.94"/> </g>
+<!--<?xml version="1.0" encoding="UTF-8" standalone="no"?> <svg width="228.6mm" height="321.733mm"  viewBox="0 0 648.425 912.142"  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"  version="1.2" baseProfile="tiny"> <title>Generated with ETE http://etetoolkit.org</title> <desc>Generated with ETE http://etetoolkit.org</desc> <defs> </defs> <g fill="none" stroke="black" stroke-width="1" fill-rule="evenodd" stroke-linecap="square" stroke-linejoin="bevel" >      <g fill="none" stroke="none" transform="matrix(5.27433,0,0,5.27433,0,0)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <rect x="0" y="0" width="122.94" height="172.94"/> </g>-->
 <!--    <g fill="none" stroke="none" transform="matrix(5.27433,0,0,5.27433,324.213,324.213)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <rect x="-60.4699" y="-60.4699" width="120.94" height="120.94"/> </g>-->
 <!--    <g fill="#0030c1" fill-opacity="1" stroke="#0030c1" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(-4.96582,-1.77741,1.77741,-4.96582,292.007,321.088)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <circle cx="1.5" cy="1.5" r="1.5"/> </g>-->
-    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="bevel" transform="matrix(5.27433,0,0,5.27433,324.213,324.213)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M4.00399,-8.14448 C2.79634,-8.73931 1.43719,-9.07345 0,-9.07345 C-5.01113,-9.07345 -9.07345,-5.01113 -9.07345,0 C-9.07345,4.29691 -6.08659,7.8962 -2.07583,8.8349 "/> </g>
+<!--    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="bevel" transform="matrix(5.27433,0,0,5.27433,324.213,324.213)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M4.00399,-8.14448 C2.79634,-8.73931 1.43719,-9.07345 0,-9.07345 C-5.01113,-9.07345 -9.07345,-5.01113 -9.07345,0 C-9.07345,4.29691 -6.08659,7.8962 -2.07583,8.8349 "/> </g>-->
 <!--    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="bevel" transform="matrix(-1.20552,5.13471,-5.13471,-1.20552,320.976,372.61)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <polyline fill="none" vector-effect="non-scaling-stroke" points="0,1.5 5.94861,1.5 " /> </g>-->
 <!--    <g fill="#0030c1" fill-opacity="1" stroke="#0030c1" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(-1.20552,5.13471,-5.13471,-1.20552,313.805,403.155)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <circle cx="1.5" cy="1.5" r="1.5"/> </g>-->
 <!--    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="bevel" transform="matrix(5.27433,0,0,5.27433,324.213,324.213)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <path vector-effect="non-scaling-stroke" fill-rule="evenodd" d="M-17.1574,5.7312 C-14.7606,12.9098 -7.98457,18.0844 0,18.0844 C5.00805,18.0844 9.54065,16.0487 12.8155,12.7597 "/> </g>-->
@@ -1214,8 +1256,8 @@
 <!--    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="butt" stroke-linejoin="bevel" transform="matrix(4.2178,-3.16681,3.16681,4.2178,376.738,235.309)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <polyline fill="none" vector-effect="non-scaling-stroke" points="0,7.5 5.94861,7.5 " /> </g>-->
 <!--    <g fill="#0030c1" fill-opacity="1" stroke="#0030c1" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(4.2178,-3.16681,3.16681,4.2178,420.829,241.778)" font-family="Sans Serif" font-size="9pt" font-weight="400" font-style="normal"  > <circle cx="1.5" cy="1.5" r="1.5"/> </g>-->
 <!--    <g fill="none" stroke="#000000" stroke-opacity="1" stroke-width="1" stroke-linecap="square" stroke-linejoin="bevel" transform="matrix(4.2178,-3.16681,3.16681,4.2178,414.481,206.971)" font-family="Arial" font-size="10pt" font-weight="400" font-style="normal"  > <text fill="#000000" fill-opacity="1" stroke="none" xml:space="preserve" x="0" y="12" font-family="Arial" font-size="10pt" font-weight="400" font-style="normal"   >c3</text> </g>-->
-</g>
-</svg>
+<!--</g>-->
+<!--</svg>-->
 <div style="margin-left: 350px;">
     <svg id="map" width="100%"></svg>
     <div id="tree"></div>
