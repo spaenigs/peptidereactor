@@ -167,7 +167,7 @@ rule annotate_sequence_names:
                  seq_tup = tup[0]
                  df = pd.read_csv(f"data/temp/{TOKEN}/{seq_tup[0]}.csv", engine="c")
                  if not df.empty:
-                    seq_tup[1] = df["sseq"][0]
+                    seq_tup[1] = df["sseq"][0].replace("X", "")
                  res_seqs.append(seq_tup)
                  res_classes.append(tup[1])
              return res_seqs, res_classes

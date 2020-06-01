@@ -146,7 +146,7 @@ rule remove_non_hits:
                  if not df.empty:
                     seq = df["sseq"][0]
                  res_names.append(seq_name)
-                 res_seqs.append(seq)
+                 res_seqs.append(seq.replace("X", ""))
                  res_classes.append(class_)
 
          save_fasta(str(output[0]), sequences=res_seqs, names=res_names)
