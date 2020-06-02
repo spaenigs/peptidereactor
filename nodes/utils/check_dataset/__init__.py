@@ -12,10 +12,11 @@ def _get_benchmark(benchmark_out):
         "{benchmark_out}"'''
 
 
-def _get_main(fasta_in, report_out):
+def _get_main(fasta_in, classes_in, report_out):
     return f'''
     input:
-         fasta_in="{fasta_in}"
+         fasta_in="{fasta_in}",
+         classes_in="{classes_in}"
     output:
          report_out="{report_out}"
     threads:
@@ -31,11 +32,11 @@ def _get_main(fasta_in, report_out):
 '''
 
 
-def rule(fasta_in, report_out, benchmark_dir=None):
+def rule(fasta_in, classes_in, report_out, benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}utils_check_dataset_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(fasta_in, report_out)
+    rule += _get_main(fasta_in, classes_in, report_out)
     return rule

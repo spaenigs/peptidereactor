@@ -7,7 +7,8 @@ TOKEN = config["token"]
 
 rule check:
     input:
-         config["fasta_in"]
+         config["fasta_in"],
+         config["classes_in"]
     output:
          config["report_out"]
     run:
@@ -17,6 +18,16 @@ rule check:
          for name, seq in zip(names, seqs):
              if re.search("\d+", seq) is not None:
                  report += [f"found number in sequence {name}: {seq}"]
+
+         with open(input[1]) as f:
+             try:
+                 classes = [int(i.rstrip()) for i in f.readlines()]
+             except Exception:
+                 report += [f"Could read {input[1]}. Ensure binary classes of [0,1] in separate lines!"]
+             else:
+                 # check class integrity
+                 if len(list(set(classes))) != 2:
+                     report += [f"Ensure binary class values of exact [0,1]!"]
 
          if len(report) > 0:
              with open(output[0], "a") as f:
