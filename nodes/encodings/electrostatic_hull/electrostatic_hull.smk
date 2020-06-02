@@ -5,7 +5,7 @@ import numpy as np
 import yaml
 import os
 
-TOKEN = "5c8c84f2e646" # config["token"]
+TOKEN = config["token"]
 PDB_DIR = config["pdb_dir"]
 TARGET_FILES = config["csv_out"]
 
@@ -42,7 +42,7 @@ rule solvent_accessible_surface:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.sas.dx")
     threads:
-         int(workflow.cores/4)
+         2
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} smol"
 
@@ -65,7 +65,7 @@ rule electrostatic_potential:
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}.esp.dx")
     threads:
-         int(workflow.cores/4)
+         2
     shell:
          f"nodes/encodings/electrostatic_hull/scripts/run_apbs.sh {TOKEN} {{input}} {{output}} pot"
 
