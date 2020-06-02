@@ -1,9 +1,12 @@
-from Bio.PDB import Dice, PDBParser
+from Bio.PDB import Dice, PDBParser, PDBIO
 from modlamp.core import save_fasta, read_fasta
 
 import pandas as pd
 
 import os
+
+from nodes.utils.tertiary_structure_prediction.scripts.utils \
+    import XDeselect
 
 TOKEN = config["token"]
 TARGET_DIR = config["target_dir"]
@@ -104,7 +107,7 @@ rule slice_or_dump_ter:
          f"data/temp/{TOKEN}/{{seq_name}}.csv",
          f"data/temp/{TOKEN}/{{seq_name}}.pdbtmp"
     output:
-         TARGET_DIR + "{seq_name}.pdb"
+         f"data/temp/{TOKEN}/{{seq_name}}.pdb"
     run:
          if os.path.getsize(input[1]) != 0:
              df = pd.read_csv(input[0])
@@ -119,6 +122,17 @@ rule slice_or_dump_ter:
                  Dice.extract(structure, chain_id, start, end, output[0])
          else:
              shell("touch {output[0]}")
+
+rule remove_invalid_residues:
+    input:
+         f"data/temp/{TOKEN}/{{seq_name}}.pdb"
+    output:
+         TARGET_DIR + "{seq_name}.pdb"
+    run:
+         structure = PDBParser().get_structure(wildcards.seq_name, input[0])
+         io = PDBIO()
+         io.set_structure(structure)
+         io.save(output[0], XDeselect())
 
 rule remove_non_hits:
     input:
