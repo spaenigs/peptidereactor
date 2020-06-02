@@ -1,5 +1,5 @@
 from Bio import BiopythonWarning, SeqIO
-from Bio.PDB import MMCIFParser, Dice, Select, PDBIO, PDBParser
+from Bio.PDB import MMCIFParser, Dice, PDBParser
 from Bio.SeqUtils import seq1
 
 import time
@@ -30,14 +30,6 @@ def get_seq_names(path_to_fasta):
     else:
         _, names = values
         return names
-
-
-class XDeselect(Select):
-    def accept_residue(self, residue):
-        if residue.get_resname() == 'MSE':
-            return 0
-        else:
-            return 1
 
 
 class Cif:
