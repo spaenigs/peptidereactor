@@ -1,11 +1,19 @@
+from sklearn.metrics import classification_report, matthews_corrcoef
 from glob import glob
 
 import pandas as pd
-import numpy as np
 
 import os
 import re
-from sklearn.metrics import f1_score
+
+
+def collect_metrics(input_lst, out_path):
+    df_res = pd.DataFrame()
+    for p in input_lst:
+        df_tmp = pd.read_csv(p, index_col=0)
+        df_res = pd.concat([df_res, df_tmp])
+    df_res.transpose().to_csv(out_path)
+
 
 TOKEN = config["token"]
 
@@ -15,24 +23,62 @@ NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
 
 METRICS_DIR = config["metrics_dir_out"]
 
+rule all:
+    input:
+         f"{METRICS_DIR}f1.csv",
+         f"{METRICS_DIR}recall.csv",
+         f"{METRICS_DIR}precision.csv",
+         f"{METRICS_DIR}mcc.csv",
+         f"{METRICS_DIR}sens.csv",
+         f"{METRICS_DIR}spec.csv"
+
 rule f1:
     input:
          f"{CSV_DIR}{{name}}.csv"
     output:
-         f"data/temp/{TOKEN}/f1/{{name}}.csv"
+         f1=f"data/temp/{TOKEN}/f1/{{name}}.csv",
+         recall=f"data/temp/{TOKEN}/recall/{{name}}.csv",
+         precision=f"data/temp/{TOKEN}/precision/{{name}}.csv",
+         mcc=f"data/temp/{TOKEN}/mcc/{{name}}.csv",
+         sens=f"data/temp/{TOKEN}/sens/{{name}}.csv",
+         spec=f"data/temp/{TOKEN}/spec/{{name}}.csv"
     run:
          df_true = pd.read_csv(input[0], index_col=0)
          df_pred = pd.read_csv(input[0].replace("_true_", "_pred_"), index_col=0)
 
-         f1s = []
+         f1_lst, recall_lst, precision_lst, mcc_lst, sens_lst, spec_lst = \
+             [], [], [], [], [], []
          for i in range(50):
              y_true = df_true.iloc[i, :].dropna()
              y_pred = df_pred.iloc[i, :].dropna()
-             f1s += [f1_score(y_true, y_pred)]
+             clf_report = classification_report(y_true, y_pred, output_dict=True)["weighted avg"]["f1-score"]
+             f1_lst += [clf_report["weighted avg"]["f1-score"]]
+             recall_lst += [clf_report["weighted avg"]["recall"]]
+             precision_lst += [clf_report["weighted avg"]["precision"]]
+             mcc_lst += [matthews_corrcoef(y_true, y_pred)]
+             # see https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+             sens_lst += [clf_report["1"]["recall"]]
+             spec_lst += [clf_report["0"]["recall"]]
 
          n = re.findall(".*y_true_cv_(.*).csv", input[0])
-         df_tmp = pd.DataFrame({n: f1s})
-         df_tmp.transpose().to_csv(output[0])
+
+         df_f1 = pd.DataFrame({n: f1_lst})
+         df_f1.transpose().to_csv(output.f1)
+
+         df_recall = pd.DataFrame({n: recall_lst})
+         df_recall.transpose().to_csv(output.recall)
+
+         df_precision = pd.DataFrame({n: precision_lst})
+         df_precision.transpose().to_csv(output.precision)
+
+         df_mcc = pd.DataFrame({n: mcc_lst})
+         df_mcc.transpose().to_csv(output.mcc)
+
+         df_sens = pd.DataFrame({n: sens_lst})
+         df_sens.transpose().to_csv(output.sens)
+
+         df_spec = pd.DataFrame({n: spec_lst})
+         df_spec.transpose().to_csv(output.spec)
 
 rule collect_f1:
     input:
@@ -40,9 +86,44 @@ rule collect_f1:
     output:
          f"{METRICS_DIR}f1.csv"
     run:
-         df_res = pd.DataFrame()
-         for p in list(input):
-             df_tmp = pd.read_csv(p, index_col=0)
-             df_res = pd.concat([df_res, df_tmp])
+         collect_metrics(list(input), output[0])
 
-         df_res.transpose().to_csv(output[0])
+rule collect_recall:
+    input:
+         expand(f"data/temp/{TOKEN}/recall/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}recall.csv"
+    run:
+         collect_metrics(list(input), output[0])
+
+rule collect_precision:
+    input:
+         expand(f"data/temp/{TOKEN}/precision/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}precision.csv"
+    run:
+         collect_metrics(list(input), output[0])
+
+rule collect_mcc:
+    input:
+         expand(f"data/temp/{TOKEN}/mcc/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}mcc.csv"
+    run:
+         collect_metrics(list(input), output[0])
+
+rule collect_sens:
+    input:
+         expand(f"data/temp/{TOKEN}/sens/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}sens.csv"
+    run:
+         collect_metrics(list(input), output[0])
+
+rule collect_spec:
+    input:
+         expand(f"data/temp/{TOKEN}/spec/{{name}}.csv", name=NAMES)
+    output:
+         f"{METRICS_DIR}spec.csv"
+    run:
+         collect_metrics(list(input), output[0])
