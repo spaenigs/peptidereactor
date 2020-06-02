@@ -1,22 +1,20 @@
-import re
-import subprocess
-
 from rdkit import Chem
 from mordred import Calculator, descriptors
 from Bio.PDB import PDBParser, Dice
+from snakemake.shell import shell
+
 import pandas as pd
 import numpy as np
 import joblib as jl
-from snakemake.shell import shell
 
 
 def get_pdb_chunks(full_pdb, window_size, len_residues, token):
     len_residues += 1
-
     for chain in full_pdb.get_chains():
         chain_id = chain.get_id()
         start_idx, stop_idx = \
-            list(chain.get_residues())[0].get_id()[1], list(chain.get_residues())[-1].get_id()[1]
+            list(chain.get_residues())[0].get_id()[1], \
+            list(chain.get_residues())[-1].get_id()[1]
         if len_residues <= window_size:
             windows = [[start_idx, stop_idx]]
         else:
@@ -25,37 +23,7 @@ def get_pdb_chunks(full_pdb, window_size, len_residues, token):
         for start, end in windows:
             filename = f"data/temp/{token}/{full_pdb.get_id()}_{start}_{end}.pdb"
             Dice.extract(full_pdb, chain_id, start, end, filename)
-
-            not_valid = True
-            tmp_filename = filename
-
-            # in case several atoms exceed explicit valence
-            while not_valid:
-                cmd = f"from rdkit import Chem; Chem.MolFromPDBFile('{tmp_filename}')"
-                process = subprocess.Popen(["python", "-c", cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                stdout, stderr = process.communicate()
-                error_msg = stderr.decode()
-                if error_msg == "":
-                    not_valid = False
-                    mol_obj = Chem.MolFromPDBFile(tmp_filename)
-                else:
-                    hits = re.findall("Explicit valence for atom # (\d+)", error_msg)
-                    if len(hits) > 0:
-                        line_number = int(hits[0])
-                        import secrets
-                        id = secrets.token_hex(5)
-                        new_filename = filename.replace(".pdb", f".{id}.pdb")
-                        with open(tmp_filename) as f1, open(new_filename, "a") as f2:
-                            for i, l in enumerate(f1.readlines()):
-                                if i == line_number:
-                                    continue
-                                else:
-                                    f2.write(l)
-                                    f2.flush()
-                        tmp_filename = new_filename
-                    else:
-                        raise ValueError(f"Error parsing rdkit error message: {error_msg}!")
-
+            mol_obj = Chem.MolFromPDBFile(filename)
             yield filename, mol_obj
 
 

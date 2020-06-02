@@ -1,5 +1,6 @@
 from modlamp.core import read_fasta
 from functools import reduce
+from rdkit import Chem
 from sklearn.decomposition import PCA
 from simtk.openmm.app import *
 from simtk.openmm import *
@@ -8,6 +9,10 @@ from simtk.unit import *
 import joblib as jl
 import pandas as pd
 import numpy as np
+
+import secrets
+import subprocess
+import re
 
 # pipeline adapted from https://www.nature.com/articles/s41598-018-19669-4.pdf
 
@@ -57,9 +62,48 @@ rule split_input_data:
 #          positions = simulation.context.getState(getPositions=True).getPositions()
 #          PDBFile.writeFile(simulation.topology, positions, open(str(output), 'w'))
 
+rule check_structure:
+    input:
+         PDB_DIR + "{seq_name}.pdb"
+    output:
+         f"data/temp/{TOKEN}/{{seq_name}}.pdb"
+    run:
+         def get_error_msg(path):
+             cmd = f"from rdkit import Chem; Chem.MolFromPDBFile('{path}')"
+             process = subprocess.Popen(["python", "-c", cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+             stdout, stderr = process.communicate()
+             return stderr.decode()
+
+         not_valid = True
+         filename = input[0]
+         tmp_filename = filename
+
+         # in case several atoms exceed explicit valence
+         while not_valid:
+             error_msg = get_error_msg(tmp_filename)
+             if error_msg == "":
+                 not_valid = False
+                 shell(f"cp {tmp_filename} {output[0]}")
+             else:
+                 hits = re.findall("Explicit valence for atom # (\d+)", error_msg)
+                 if len(hits) > 0:
+                     line_number = int(hits[0])
+                     id = secrets.token_hex(5)
+                     new_filename = filename.replace(".pdb", f".{id}.pdb")
+                     with open(tmp_filename) as f1, open(new_filename, "a") as f2:
+                         for i, l in enumerate(f1.readlines()):
+                             if i == line_number:
+                                 continue
+                             else:
+                                 f2.write(l)
+                                 f2.flush()
+                     tmp_filename = new_filename
+                 else:
+                     raise ValueError(f"Error parsing rdkit error message: {error_msg}!")
+
 rule compute_molecular_descriptors:
     input:
-         PDB_DIR + "{seq_name}.pdb",
+         f"data/temp/{TOKEN}/{{seq_name}}.pdb",
          # f"data/temp/{TOKEN}/{{seq_name}}_minimized.pdb",
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
