@@ -60,7 +60,7 @@ class MetaWorkflowExecuter(WorkflowExecuter):
 
     def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
         super().__init__(input_files, output_files, path_to_configfile, cores, **kwargs)
-        self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores} --latency-wait 60"
+        self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores}"
 
 
 class WorkflowSetter:
