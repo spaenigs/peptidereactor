@@ -1,0 +1,36 @@
+from pathos.multiprocessing import ProcessingPool as Pool
+from more_itertools import chunked
+from functools import partial
+from glob import glob
+
+import numpy as np
+
+import os
+
+TOKEN = config["token"]
+
+rule copy_files:
+    input:
+         config["dirs_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/non_empty_filtered.txt")
+    run:
+         def filter_files(from_files, target_dir):
+             for csv_path in from_files:
+                 if os.path.getsize(csv_path) == 0:
+                     continue
+                 else:
+                     shell(f"cp {csv_path} {target_dir}")
+
+         def run(from_files, target_dir):
+             cores = workflow.cores
+             p = Pool(cores)
+             chunk_len = int(np.round(len(from_files)/cores))
+             chunks = chunked(from_files, chunk_len)
+             pfunc = partial(filter_files, target_dir=target_dir)
+             p.map(pfunc, chunks)
+
+         for d in list(input):
+             run(glob(d + "*.csv"), config["dir_out"])
+
+         shell("touch {output}")
