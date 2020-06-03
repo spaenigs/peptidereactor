@@ -1,5 +1,6 @@
 from Bio.PDB import Dice, PDBParser, PDBIO
 from modlamp.core import save_fasta, read_fasta
+from pandas.errors import EmptyDataError
 
 import pandas as pd
 
@@ -156,9 +157,13 @@ rule remove_non_hits:
              if os.path.getsize(file_path) > 0:
                  seq_name = os.path.basename(file_path).replace(".pdb", "")
                  seq, class_ = seq_tuples[seq_name]
-                 df = pd.read_csv(f"data/temp/{TOKEN}/{seq_name}.csv", engine="c")
-                 if not df.empty:
-                    seq = df["sseq"][0]
+                 try:
+                     df = pd.read_csv(f"data/temp/{TOKEN}/{seq_name}.csv", engine="c")
+                 except EmptyDataError:
+                     continue
+                 else:
+                     if not df.empty:
+                         seq = df["sseq"][0]  # replace original seq with blast results
                  res_names.append(seq_name)
                  res_seqs.append(seq.replace("X", ""))
                  res_classes.append(class_)
