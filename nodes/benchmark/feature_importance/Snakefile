@@ -27,7 +27,8 @@ TOKEN = config["token"]
 CSV_DIR = config["feat_imp_in"]
 CSVS_IN = glob(config["feat_imp_in"] + "*feat_imp_cv_*.csv")
 
-NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
+NAMES = [os.path.basename(p).replace(".csv", "").replace("feat_imp_cv", "")
+         for p in CSVS_IN]
 
 rule compute:
     input:
