@@ -9,15 +9,19 @@ import nodes.filter as dataset_filter
 import nodes.benchmark as benchmark
 
 import sys
+import secrets
 
 from peptidereactor.workflow_executer \
     import WorkflowExecuter, WorkflowSetter
 
+TOKEN = secrets.token_hex(6)
+
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad"]
+DATASETS = ["hiv_protease"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
+    # TODO move to map_sequence_names
     w.add(utils.check_dataset.rule(
         fasta_in="data/{dataset}/seqs.fasta", classes_in="data/{dataset}/classes.txt",
         report_out="data/{dataset}/misc/seqs_report.txt", benchmark_dir=w.benchmark_dir))
@@ -54,46 +58,78 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     w.add(utils.collect_encodings.rule(
         csv_seq_in=seqb.target_csvs, csv_str_in=strb.target_csvs,
-        csv_seq_out="data/temp/{dataset}/csv/original/sequence_based/",
-        csv_str_out="data/temp/{dataset}/csv/original/structure_based/"))
+        csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
+        csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
 
-    sequence_based_encodings_dir, structure_based_encodings_dir = \
-        "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/"
+    sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
+        "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/", "data/{dataset}/csv/all/"
 
     w.add(dataset_filter.non_empty.rule(
-        csv_in="data/temp/{dataset}/csv/original/sequence_based/",
-        csv_out="data/temp/{dataset}/csv/sequence_based/non_empty/", benchmark_dir=w.benchmark_dir))
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/", benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.curse_of_dim.rule(
-        csv_in="data/temp/{dataset}/csv/sequence_based/non_empty/",
-        csv_out="data/temp/{dataset}/csv/sequence_based/curse_of_dim/", benchmark_dir=w.benchmark_dir))
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/curse_of_dim/", benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.aaindex.rule(
-        csv_in="data/temp/{dataset}/csv/sequence_based/curse_of_dim/",
-        csv_out="data/temp/{dataset}/csv/sequence_based/aaindex/", benchmark_dir=w.benchmark_dir))
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/curse_of_dim/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/", benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.psekraac.rule(
-        csv_in="data/temp/{dataset}/csv/sequence_based/aaindex/",
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/",
         csv_out=sequence_based_encodings_dir, benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.non_empty.rule(
-        csv_in="data/temp/{dataset}/csv/original/structure_based/",
-        csv_out="data/temp/{dataset}/csv/structure_based/non_empty/", benchmark_dir=w.benchmark_dir))
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/", benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.curse_of_dim.rule(
-        csv_in="data/temp/{dataset}/csv/structure_based/non_empty/",
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/",
         csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.aggregate_directories.rule(
+        dirs_in=[sequence_based_encodings_dir, structure_based_encodings_dir],
+        dir_out=all_encodings_dir, benchmark_dir=w.benchmark_dir))
 
     w.add(benchmark.cross_validation.single.rule(
         csv_seq_in=sequence_based_encodings_dir, csv_str_in=structure_based_encodings_dir,
         csv_dir_out="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir))
 
-    w.add(benchmark.cross_validation.ensemble.rule(
-        csv_seq_in=sequence_based_encodings_dir,
-        csv_str_in=structure_based_encodings_dir,
-        csv_dir_out="data/{dataset}/benchmark/ensemble/", benchmark_dir=w.benchmark_dir))
+    w.add(benchmark.compute_metrics.rule(
+        csv_dir_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
+        metrics_dir_out="data/{dataset}/benchmark/metrics/"))
 
-    w.benchmark_target = ["data/{dataset}/benchmark/single/", "data/{dataset}/benchmark/ensemble/"]
+    w.add(benchmark.feature_importance.rule(
+        feat_imp_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
+        feat_imp_out="data/{dataset}/benchmark/feature_importance/"))
+
+    w.add(benchmark.cross_validation.ensemble.rule(
+        group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
+        group_1_out="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        group_2_out="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.cross_validation.ensemble.rule(
+        group_1_in="data/{dataset}/csv/all/", group_2_in="data/{dataset}/csv/all/",
+        group_1_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        group_2_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.diversity.rule(
+        group_1_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        group_2_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        csv_dir_out="data/{dataset}/benchmark/diversity/seq_vs_str/", benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.diversity.rule(
+        group_1_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        group_2_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        csv_dir_out="data/{dataset}/benchmark/diversity/all_vs_all/", benchmark_dir=w.benchmark_dir))
+
+    w.benchmark_target = ["data/{dataset}/benchmark/single/", "data/{dataset}/benchmark/metrics/",
+                          "data/{dataset}/benchmark/feature_importance/",
+                          "data/{dataset}/benchmark/diversity/seq_vs_str/",
+                          "data/{dataset}/benchmark/diversity/all_vs_all/"]
     target = \
         expand("data/{dataset}/misc/seqs_report.txt", dataset=DATASETS) + \
         expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
