@@ -14,13 +14,14 @@ def _get_benchmark(benchmark_out):
 '''
 
 
-def _get_main(csv_seq_in, csv_str_in, csv_dir_out):
+def _get_main(group_1_in, group_2_in, group_1_out, group_2_out):
     return f'''\
     input:
-        csv_seq_in="{csv_seq_in}",
-        csv_str_in="{csv_str_in}"
+        group_1_in="{group_1_in}",
+        group_2_in="{group_2_in}"
     output:
-        cv_dir_out=directory("{csv_dir_out}")
+        group_1_out=directory("{group_1_out}"),
+        group_2_out=directory("{group_2_out}")
     threads:
          1000      
     params:
@@ -32,11 +33,11 @@ def _get_main(csv_seq_in, csv_str_in, csv_dir_out):
 '''
 
 
-def rule(csv_seq_in, csv_str_in, csv_dir_out, benchmark_dir=None):
+def rule(group_1_in, group_2_in, group_1_out, group_2_out, benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}benchmark_cross_validation_ensemble_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(csv_seq_in, csv_str_in, csv_dir_out)
+    rule += _get_main(group_1_in, group_2_in, group_1_out, group_2_out)
     return rule

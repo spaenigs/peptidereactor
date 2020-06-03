@@ -5,31 +5,33 @@ import pandas as pd
 
 import os
 
+# Note, that we assume here group 2 as the group, where most likely are less training examples left
+
 TOKEN = config["token"]
 
-CSV_SEQ_DIR = config["csv_seq_in"]
-CSVS_SEQ_IN = glob(config["csv_seq_in"] + "*.csv")
+CSV_GROUP_1_DIR = config["group_1_in"]
+CSVS_GROUP_1_IN = glob(config["group_1_in"] + "*.csv")
 
-CSV_STR_DIR = config["csv_str_in"]
-CSVS_STR_IN = glob(config["csv_str_in"] + "*.csv")
+CSV_GROUP_2_DIR = config["group_2_in"]
+CSVS_GROUP_2_IN = glob(config["group_2_in"] + "*.csv")
 
-NAMES_SEQ = [os.path.basename(p).replace(".csv", "") for p in CSVS_SEQ_IN]
-NAMES_STR = [os.path.basename(p).replace(".csv", "") for p in CSVS_STR_IN]
+NAMES_GROUP_1 = [os.path.basename(p).replace(".csv", "") for p in CSVS_GROUP_1_IN]
+NAMES_GROUP_2 = [os.path.basename(p).replace(".csv", "") for p in CSVS_GROUP_2_IN]
 
 rule all:
     input:
-         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_SEQ),
-         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_SEQ),
-         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_SEQ),
-         expand(config["cv_dir_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_STR),
-         expand(config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_STR),
-         expand(config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_STR)
+         expand(config["group_1_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_GROUP_1),
+         expand(config["group_1_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_GROUP_1),
+         expand(config["group_1_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_GROUP_1),
+         expand(config["group_2_out"] + f"y_true_cv_{{name}}.csv", name=NAMES_GROUP_2),
+         expand(config["group_2_out"] + f"y_pred_cv_{{name}}.csv", name=NAMES_GROUP_2),
+         expand(config["group_2_out"] + f"y_prob_cv_{{name}}.csv", name=NAMES_GROUP_2)
 
 rule get_unique_ids:
     input:
-         config["csv_str_in"]
+         config["group_2_in"]
     output:
-         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+         f"data/temp/{TOKEN}/filtered_group_2_ids.txt"
     run:
          sets = \
              [set(pd.read_csv(p, index_col=0).index.values) for p in glob(input[0] + "*.csv")]
@@ -49,31 +51,42 @@ def filter_encodings(path_ids, path_in, path_out):
     ids = list(set(list(unique_ids)).intersection(list(df.index)))
     df.loc[ids, :].to_csv(path_out)
 
-rule filter_sequence_based_encodings:
+rule filter_group_1_encodings:
     input:
-         f"{CSV_SEQ_DIR}{{name}}.csv",
-         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+         f"{CSV_GROUP_1_DIR}{{name}}.csv",
+         f"data/temp/{TOKEN}/filtered_group_2_ids.txt"
     output:
-         f"data/temp/{TOKEN}/{{name}}.csv"
+         f"data/temp/{TOKEN}/group_1/{{name}}.csv"
     run:
          filter_encodings(input[1], input[0], output[0])
 
-rule filter_structure_based_encodings:
+rule filter_group_2_encodings:
     input:
-         f"{CSV_STR_DIR}{{name}}.csv",
-         f"data/temp/{TOKEN}/filtered_struc_based_ids.txt"
+         f"{CSV_GROUP_2_DIR}{{name}}.csv",
+         f"data/temp/{TOKEN}/filtered_group_2_ids.txt"
     output:
-         f"data/temp/{TOKEN}/{{name}}.csv"
+         f"data/temp/{TOKEN}/group_2/{{name}}.csv"
     run:
          filter_encodings(input[1], input[0], output[0])
 
-rule train:
+rule train_group_1:
     input:
-         f"data/temp/{TOKEN}/{{name}}.csv"
+         f"data/temp/{TOKEN}/group_1/{{name}}.csv"
     output:
-         config["cv_dir_out"] + f"y_true_cv_{{name}}.csv",
-         config["cv_dir_out"] + f"y_pred_cv_{{name}}.csv",
-         config["cv_dir_out"] + f"y_prob_cv_{{name}}.csv",
-         config["cv_dir_out"] + f"feat_imp_cv_{{name}}.csv"
+         config["group_1_out"] + f"y_true_cv_{{name}}.csv",
+         config["group_1_out"] + f"y_pred_cv_{{name}}.csv",
+         config["group_1_out"] + f"y_prob_cv_{{name}}.csv",
+         config["group_1_out"] + f"feat_imp_cv_{{name}}.csv"
+    script:
+         "../scripts/cv.py"
+
+rule train_group_2:
+    input:
+         f"data/temp/{TOKEN}/group_2/{{name}}.csv"
+    output:
+         config["group_2_out"] + f"y_true_cv_{{name}}.csv",
+         config["group_2_out"] + f"y_pred_cv_{{name}}.csv",
+         config["group_2_out"] + f"y_prob_cv_{{name}}.csv",
+         config["group_2_out"] + f"feat_imp_cv_{{name}}.csv"
     script:
          "../scripts/cv.py"
