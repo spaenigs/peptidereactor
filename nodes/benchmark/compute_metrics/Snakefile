@@ -1,10 +1,23 @@
-from sklearn.metrics import classification_report, matthews_corrcoef
+from sklearn.metrics import \
+    classification_report, matthews_corrcoef, confusion_matrix
 from glob import glob
 
 import pandas as pd
+import numpy as np
 
 import os
 import re
+
+# https://en.wikipedia.org/wiki/Phi_coefficient
+# https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
+
+
+def phi_score(tn, fp, fn, tp):
+    n = tn + fp + fn + tp
+    n_11 = tn
+    n_1_ = tp + fn
+    n__1 = tp + fp
+    return (n*n_11 - n_1_*n__1) / np.sqrt(n_1_*n__1 * (n-n_1_) * (n-n__1))
 
 
 def collect_metrics(input_lst, out_path):
@@ -19,111 +32,59 @@ TOKEN = config["token"]
 
 CSV_DIR = config["csv_dir_in"]
 CSVS_IN = glob(config["csv_dir_in"] + "y_true_cv_*.csv")
-NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
+NAMES = [os.path.basename(p).replace(".csv", "").replace("y_true_cv_", "")
+         for p in CSVS_IN]
 
 METRICS_DIR = config["metrics_dir_out"]
 
 rule all:
     input:
-         f"{METRICS_DIR}f1.csv",
-         f"{METRICS_DIR}recall.csv",
-         f"{METRICS_DIR}precision.csv",
-         f"{METRICS_DIR}mcc.csv",
-         f"{METRICS_DIR}sens.csv",
-         f"{METRICS_DIR}spec.csv"
+         expand(f"{METRICS_DIR}{{metric}}.csv",
+                metric=["f1", "recall", "precision", "mcc", "sens", "spec", "phi"])
 
-rule f1:
+rule compute_metric:
     input:
          f"{CSV_DIR}{{name}}.csv"
     output:
-         f1=f"data/temp/{TOKEN}/f1/{{name}}.csv",
-         recall=f"data/temp/{TOKEN}/recall/{{name}}.csv",
-         precision=f"data/temp/{TOKEN}/precision/{{name}}.csv",
-         mcc=f"data/temp/{TOKEN}/mcc/{{name}}.csv",
-         sens=f"data/temp/{TOKEN}/sens/{{name}}.csv",
-         spec=f"data/temp/{TOKEN}/spec/{{name}}.csv"
+         f"data/temp/{TOKEN}/{{metric}}/{{name}}.csv",
     run:
          df_true = pd.read_csv(input[0], index_col=0)
          df_pred = pd.read_csv(input[0].replace("_true_", "_pred_"), index_col=0)
 
-         f1_lst, recall_lst, precision_lst, mcc_lst, sens_lst, spec_lst = \
-             [], [], [], [], [], []
+         m = wildcards.metric
+
+         res = []
          for i in range(50):
              y_true = df_true.iloc[i, :].dropna()
              y_pred = df_pred.iloc[i, :].dropna()
-             clf_report = classification_report(y_true, y_pred, output_dict=True)["weighted avg"]["f1-score"]
-             f1_lst += [clf_report["weighted avg"]["f1-score"]]
-             recall_lst += [clf_report["weighted avg"]["recall"]]
-             precision_lst += [clf_report["weighted avg"]["precision"]]
-             mcc_lst += [matthews_corrcoef(y_true, y_pred)]
-             # see https://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html
-             sens_lst += [clf_report["1"]["recall"]]
-             spec_lst += [clf_report["0"]["recall"]]
+             clf_report = classification_report(y_true, y_pred, output_dict=True)
+             if m == "f1":
+                 res += [clf_report["weighted avg"]["f1-score"]]
+             elif m == "recall":
+                 res += [clf_report["weighted avg"]["recall"]]
+             elif m == "precision":
+                 res += [clf_report["weighted avg"]["precision"]]
+             elif m == "mcc":
+                 res += [matthews_corrcoef(y_true, y_pred)]
+             elif m == "sens":
+                 res += [clf_report["1"]["recall"]]
+             elif m == "spec":
+                 res += [clf_report["0"]["recall"]]
+             elif m == "phi":
+                 tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+                 res += [phi_score(tn, fp, fn, tp)]
+             else:
+                 raise ValueError(f"Unknown metric: {m}!")
 
          n = re.findall(".*y_true_cv_(.*).csv", input[0])
+         df_res = pd.DataFrame({n: res})
+         df_res.transpose().to_csv(output[0])
 
-         df_f1 = pd.DataFrame({n: f1_lst})
-         df_f1.transpose().to_csv(output.f1)
-
-         df_recall = pd.DataFrame({n: recall_lst})
-         df_recall.transpose().to_csv(output.recall)
-
-         df_precision = pd.DataFrame({n: precision_lst})
-         df_precision.transpose().to_csv(output.precision)
-
-         df_mcc = pd.DataFrame({n: mcc_lst})
-         df_mcc.transpose().to_csv(output.mcc)
-
-         df_sens = pd.DataFrame({n: sens_lst})
-         df_sens.transpose().to_csv(output.sens)
-
-         df_spec = pd.DataFrame({n: spec_lst})
-         df_spec.transpose().to_csv(output.spec)
-
-rule collect_f1:
+rule collect:
     input:
-         expand(f"data/temp/{TOKEN}/f1/{{name}}.csv", name=NAMES)
+         lambda wildcards: \
+             expand(f"data/temp/{TOKEN}/{wildcards.metric}/{{name}}.csv", name=NAMES)
     output:
-         f"{METRICS_DIR}f1.csv"
-    run:
-         collect_metrics(list(input), output[0])
-
-rule collect_recall:
-    input:
-         expand(f"data/temp/{TOKEN}/recall/{{name}}.csv", name=NAMES)
-    output:
-         f"{METRICS_DIR}recall.csv"
-    run:
-         collect_metrics(list(input), output[0])
-
-rule collect_precision:
-    input:
-         expand(f"data/temp/{TOKEN}/precision/{{name}}.csv", name=NAMES)
-    output:
-         f"{METRICS_DIR}precision.csv"
-    run:
-         collect_metrics(list(input), output[0])
-
-rule collect_mcc:
-    input:
-         expand(f"data/temp/{TOKEN}/mcc/{{name}}.csv", name=NAMES)
-    output:
-         f"{METRICS_DIR}mcc.csv"
-    run:
-         collect_metrics(list(input), output[0])
-
-rule collect_sens:
-    input:
-         expand(f"data/temp/{TOKEN}/sens/{{name}}.csv", name=NAMES)
-    output:
-         f"{METRICS_DIR}sens.csv"
-    run:
-         collect_metrics(list(input), output[0])
-
-rule collect_spec:
-    input:
-         expand(f"data/temp/{TOKEN}/spec/{{name}}.csv", name=NAMES)
-    output:
-         f"{METRICS_DIR}spec.csv"
+         f"{METRICS_DIR}{{metric}}.csv"
     run:
          collect_metrics(list(input), output[0])
