@@ -19,7 +19,7 @@ def feature_importance_ratio(folds, threshold=0.5):
     features = folds.shape[1]
     return \
         features_summing_to_threshold/features, \
-        df_imp_mean_sorted[:features_summing_to_threshold+1].index
+        list(df_imp_mean_sorted[:features_summing_to_threshold+1].index)
 
 
 TOKEN = config["token"]
@@ -27,32 +27,37 @@ TOKEN = config["token"]
 CSV_DIR = config["feat_imp_in"]
 CSVS_IN = glob(config["feat_imp_in"] + "*feat_imp_cv_*.csv")
 
-NAMES = [os.path.basename(p).replace(".csv", "").replace("feat_imp_cv", "")
-         for p in CSVS_IN]
+NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
+
+rule all:
+    input:
+         config["feat_imp_out"]
 
 rule compute:
     input:
          f"{CSV_DIR}{{name}}.csv"
     output:
-         f"data/temp/{TOKEN}/feat_imp_{{name}}.txt"
+         temp(f"data/temp/{TOKEN}/{{name}}.txt")
     run:
          df_folds = pd.read_csv(input[0], index_col=0)
          fir, if_indices = feature_importance_ratio(df_folds)
          with open(output[0], "w") as f:
-             yaml.safe_dump({"feat_imp_ratio": fir,
-                             "imp_feat_idx": if_indices})
+             data = {"feat_imp_ratio": fir, "imp_feat_idx": if_indices}
+             yaml.safe_dump(data, f)
 
 rule collect:
     input:
-         expand(f"data/temp/{TOKEN}/feat_imp_{{name}}.txt", name=NAMES)
+         expand(f"data/temp/{TOKEN}/{{name}}.txt", name=NAMES)
     output:
          config["feat_imp_out"]
     run:
-         df_res = pd.DataFrame
+         df_res = pd.DataFrame()
          for p in list(input):
              with open(p) as f:
                 d = yaml.safe_load(f)
-                name = os.path.basename(p).replace(".csv", "")
-                df_res = pd.concat([df_res, pd.DataFrame({name: [d["feat_imp_ratio"]]})])
+                name = os.path.basename(p).replace(".csv", "").replace("feat_imp_cv_", "")
+                df_tmp = pd.DataFrame({name: [d["feat_imp_ratio"]]})
+                df_res = pd.concat([df_res, df_tmp], axis=1)
 
-         df_res.to_csv(output[0])
+         df_res.index = ["feature_importance_ratio"]
+         df_res.transpose().to_csv(output[0])
