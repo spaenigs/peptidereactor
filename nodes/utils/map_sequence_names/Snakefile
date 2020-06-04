@@ -1,28 +1,62 @@
 from modlamp.core import read_fasta, save_fasta
+
 import yaml
+import re
+
+TOKEN = config["token"]
 
 rule all:
     input:
         config["fasta_out"],
         config["maps_out"]
 
+rule check:
+    input:
+         config["fasta_in"],
+         config["classes_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/checked.txt")
+    run:
+         seqs, names = read_fasta(input[0])
+
+         report = []
+         for name, seq in zip(names, seqs):
+             if re.search("\d+", seq) is not None:
+                 report += [f"found number in sequence {name}: {seq}"]
+
+         with open(input[1]) as f:
+             try:
+                 classes = [int(i.rstrip()) for i in f.readlines()]
+             except Exception:
+                 report += [f"Could read {input[1]}. Ensure binary classes of [0,1] in separate lines!"]
+             else:
+                 # check class integrity
+                 if len(list(set(classes))) != 2:
+                     report += [f"Ensure binary class values of exact [0,1]!"]
+
+         if len(report) > 0:
+             raise AssertionError("Found invalid sequences! Check report for details.".upper())
+         else:
+             shell("touch {output[0]}")
+
 rule map_names:
     input:
-         config["fasta_in"]
+         config["fasta_in"],
+         f"data/temp/{TOKEN}/checked.txt"
     output:
          config["fasta_out"],
          config["maps_out"]
     run:
-         seqs, _ = read_fasta(str(input))
+         seqs, _ = read_fasta(input[0])
 
-         with open(str(input)) as f:
+         with open(input[0]) as f:
              names = [l.rstrip().replace(">", "") for l in f.readlines() if l.startswith(">")]
 
          names_new = [f"Seq_{i}" for i in range(1, len(names)+1)]
 
-         save_fasta(str(output[0]), seqs, names_new)
+         save_fasta(output[0], seqs, names_new)
 
-         with open(str(output[1]), mode="w") as f:
+         with open(output[1], mode="w") as f:
              yaml.safe_dump(dict(zip(names_new, names)), f)
 
 

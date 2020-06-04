@@ -12,10 +12,11 @@ def _get_benchmark(benchmark_out):
         "{benchmark_out}"'''
 
 
-def _get_main(fasta_in, fasta_out, maps_out):
+def _get_main(fasta_in, classes_in, fasta_out, maps_out):
     return f'''
     input:
-         fasta_in="{fasta_in}"
+         fasta_in="{fasta_in}",
+         classes_in="{classes_in}"
     output:
          fasta_out="{fasta_out}",
          maps_out="{maps_out}"
@@ -30,12 +31,12 @@ def _get_main(fasta_in, fasta_out, maps_out):
 '''
 
 
-def rule(fasta_in, fasta_out, maps_out, benchmark_dir=None):
+def rule(fasta_in, fasta_out, classes_in, maps_out, benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}utils_map_sequence_names_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(fasta_in, fasta_out, maps_out)
+    rule += _get_main(fasta_in, classes_in, fasta_out, maps_out)
     return rule
 
