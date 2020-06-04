@@ -4,7 +4,6 @@ from shutil import rmtree
 import yaml
 import secrets
 import os
-import textwrap
 
 
 class WorkflowExecuter:
@@ -56,59 +55,50 @@ class WorkflowExecuter:
                 self.config[key] = value
 
 
-class MetaWorkflowExecuter(WorkflowExecuter):
-
-    def __init__(self, input_files, output_files, path_to_configfile, cores=1, **kwargs):
-        super().__init__(input_files, output_files, path_to_configfile, cores, **kwargs)
-        self.snakemake = f"snakemake --nolock --quiet -d $PWD --config cores={cores}"
-
-
 class WorkflowSetter:
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        scaffold = textwrap.dedent(
-            f"""\
-                from glob import glob
-            
-                from peptidereactor.workflow_executer import WorkflowExecuter
-                
-                CORES = {self.cores}
-                
-                rule all:
-                    input:
-                         config['{self.key_target_rule}']
-            """)
+        scaffold = f"""\
+from glob import glob
+import pandas as pd
+import re
+from peptidereactor.workflow_executer import WorkflowExecuter
+
+CORES = {self.cores}
+
+rule all:
+    input:
+         config['{self.key_target_rule}']"""
+
+        if self.benchmark_dir is not None:
+            scaffold += f"""
+    output:
+         "data/temp/benchmark.csv"
+    threads:
+         1000
+    run:
+         df_res = pd.DataFrame()
+         base_path = "data/*/misc/benchmark/"
+         for p1 in glob(base_path):
+             dataset = re.findall(base_path.replace("*", "(.*?)") , p1)[0]
+             df_res_tmp = pd.DataFrame() 
+             for p in glob(f"data/{{dataset}}/misc/benchmark/*/*.txt"):
+                 name = re.findall(".*/(.*)_\w+.txt", p)[0]
+                 df_tmp = pd.read_csv(p, sep="\t")
+                 df_tmp.index = [name]
+                 df_res_tmp = pd.concat([df_res_tmp, df_tmp])
+             df_res_tmp["dataset"] = dataset
+             df_res = pd.concat([df_res, df_res_tmp])
+         df_res.to_csv(output[0])
+                """
+        else:
+            scaffold += "\n"
 
         for r in self.rule_definitions:
             scaffold += r
-
-        if self.benchmark_dir is not None:
-            scaffold += textwrap.dedent(
-                f"""\
-
-                    rule collect_benchmark:
-                        input:
-                             {self.benchmark_target}
-                        output:
-                             "{self.benchmark_dir}benchmark.csv"
-                        threads:
-                             1000
-                        run:
-                             import re
-                             import pandas as pd
-
-                             df_res = pd.DataFrame()
-                             for p in glob(f"data/{{wildcards.dataset}}/misc/benchmark/*/*.txt"):
-                                 name = re.findall(".*/(.*)_\w+.txt", p)[0]
-                                 df_tmp = pd.read_csv(p, sep="\t")
-                                 df_tmp.index = [name]
-                                 df_res = pd.concat([df_res, df_tmp])
-
-                             df_res.to_csv(output[0])
-                """)
 
         with open(self.snakefile, mode="w") as f:
             f.write(scaffold)
@@ -121,6 +111,5 @@ class WorkflowSetter:
         self.cores = cores
         self.key_target_rule = key_target_rule
         self.snakefile = snakefile
-        self.benchmark_dir = \
-            None if benchmark_dir is None else f"{benchmark_dir}{secrets.token_hex(3)}/"
+        self.benchmark_dir = benchmark_dir
         self.benchmark_target = []
