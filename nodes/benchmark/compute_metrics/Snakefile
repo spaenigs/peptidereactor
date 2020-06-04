@@ -32,8 +32,7 @@ TOKEN = config["token"]
 
 CSV_DIR = config["csv_dir_in"]
 CSVS_IN = glob(config["csv_dir_in"] + "y_true_cv_*.csv")
-NAMES = [os.path.basename(p).replace(".csv", "").replace("y_true_cv_", "")
-         for p in CSVS_IN]
+NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
 
 METRICS_DIR = config["metrics_dir_out"]
 
@@ -46,7 +45,7 @@ rule compute_metric:
     input:
          f"{CSV_DIR}{{name}}.csv"
     output:
-         f"data/temp/{TOKEN}/{{metric}}/{{name}}.csv",
+         temp(f"data/temp/{TOKEN}/{{metric}}/{{name}}.csv")
     run:
          df_true = pd.read_csv(input[0], index_col=0)
          df_pred = pd.read_csv(input[0].replace("_true_", "_pred_"), index_col=0)
@@ -57,7 +56,7 @@ rule compute_metric:
          for i in range(50):
              y_true = df_true.iloc[i, :].dropna()
              y_pred = df_pred.iloc[i, :].dropna()
-             clf_report = classification_report(y_true, y_pred, output_dict=True)
+             clf_report = classification_report(y_true, y_pred, output_dict=True, target_names=["0", "1"])
              if m == "f1":
                  res += [clf_report["weighted avg"]["f1-score"]]
              elif m == "recall":
@@ -76,7 +75,7 @@ rule compute_metric:
              else:
                  raise ValueError(f"Unknown metric: {m}!")
 
-         n = re.findall(".*y_true_cv_(.*).csv", input[0])
+         n = re.findall(".*y_true_cv_(.*).csv", input[0])[0]
          df_res = pd.DataFrame({n: res})
          df_res.transpose().to_csv(output[0])
 
