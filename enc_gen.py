@@ -17,17 +17,13 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease"]
+DATASETS = ["hiv_protease", "ace_vaxinpad"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
-    w.add(utils.check_dataset.rule(
-        fasta_in="data/{dataset}/seqs.fasta", classes_in="data/{dataset}/classes.txt",
-        report_out="data/{dataset}/misc/seqs_report.txt", benchmark_dir=w.benchmark_dir))
-
     w.add(utils.map_sequence_names.rule(
-        fasta_in="data/{dataset}/seqs.fasta", fasta_out="data/{dataset}/seqs_mapped.fasta",
-        maps_out="data/{dataset}/misc/mapped_sequence_names.yaml", benchmark_dir=w.benchmark_dir))
+        fasta_in="data/{dataset}/seqs.fasta", classes_in="data/{dataset}/classes.txt", benchmark_dir=w.benchmark_dir,
+        fasta_out="data/{dataset}/seqs_mapped.fasta", maps_out="data/{dataset}/misc/mapped_sequence_names.yaml"))
 
     w.add(utils.tertiary_structure_search.rule(
         fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
@@ -87,10 +83,9 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/",
         csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
 
-    w.benchmark_target = [sequence_based_encodings_dir, structure_based_encodings_dir]
     target = \
-        expand("data/{dataset}/misc/seqs_report.txt", dataset=DATASETS) + \
-        expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
+        expand(sequence_based_encodings_dir, dataset=DATASETS) + \
+        expand(structure_based_encodings_dir, dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
