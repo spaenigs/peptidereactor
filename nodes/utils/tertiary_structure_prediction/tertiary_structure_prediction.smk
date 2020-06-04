@@ -154,7 +154,7 @@ rule remove_non_hits:
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          res_names, res_seqs, res_classes = [], [], []
          for file_path in input[2:]:
-             if os.path.getsize(file_path) > 0:
+             if os.path.getsize(file_path) > 4:
                  seq_name = os.path.basename(file_path).replace(".pdb", "")
                  seq, class_ = seq_tuples[seq_name]
                  try:
