@@ -9,11 +9,15 @@ import os
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         f"data/temp/{TOKEN}/dirs_aggregated.txt"
+
 rule copy_files:
     input:
          config["dirs_in"]
     output:
-         temp(f"data/temp/{TOKEN}/non_empty_filtered.txt")
+         temp(f"data/temp/{TOKEN}/dirs_aggregated.txt")
     run:
          def filter_files(from_files, target_dir):
              for csv_path in from_files:
