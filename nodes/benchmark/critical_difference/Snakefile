@@ -1,0 +1,49 @@
+from itertools import product
+
+import pandas as pd
+import numpy as np
+
+import yaml
+
+TOKEN = config["token"]
+
+DIR_OUT = config["cd_dir_out"]
+
+rule all:
+    input:
+         DIR_OUT + "friedman.yaml",
+         DIR_OUT + "nemenyi.yaml",
+         DIR_OUT + "diff_matrix.csv",
+         DIR_OUT + "abs_diff.csv"
+
+rule friedman_test:
+    input:
+         config["csv_dir_in"] + "f1.csv"
+    output:
+         fo=DIR_OUT + "friedman.yaml",
+         no=DIR_OUT + "nemenyi.yaml",
+         co=DIR_OUT + "diff_matrix.csv"
+    script:
+         "scripts/friedman.R"
+
+rule absolute_difference:
+    input:
+         DIR_OUT + "nemenyi.yaml",
+         DIR_OUT + "diff_matrix.csv"
+    output:
+         DIR_OUT + "abs_diff.csv"
+    run:
+         with open(input[0]) as f:
+             nm = yaml.safe_load(f)
+
+         df_cd = pd.read_csv(input[1], index_col=0)
+
+         df_res = pd.DataFrame()
+         for i, j in product(df_cd.index, df_cd.columns):
+             if i != j:
+                 df_tmp = pd.DataFrame({f"{i}_vs_{j}": [i ,j, df_cd.loc[i,j]]})
+                 df_res = pd.concat([df_res, df_tmp.transpose()])
+
+         # only keep those, which are critical different
+         df_res.loc[np.abs(df_res[2]) >= nm["cd"]].to_csv(output[0])
+
