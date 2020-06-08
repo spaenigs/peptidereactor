@@ -20,7 +20,7 @@ def _get_main(group_1_in, group_2_in, corr_dir_out):
         group_1_in="{group_1_in}",
         group_2_in="{group_2_in}"
     output:
-        corr_dir_out="{corr_dir_out}"
+        corr_dir_out=directory("{corr_dir_out}")
     threads:
          1000      
     params:

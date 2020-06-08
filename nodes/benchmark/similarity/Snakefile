@@ -1,6 +1,8 @@
+from more_itertools import chunked
 from sklearn.metrics import confusion_matrix
 from glob import glob
 from itertools import product, combinations
+from pathos.multiprocessing import ProcessingPool as Pool
 
 import pandas as pd
 import numpy as np
@@ -22,98 +24,146 @@ def phi_score(tn, fp, fn, tp):
     return (n*n_11 - n_1_*n__1) / np.sqrt(n_1_*n__1 * (n-n_1_) * (n-n__1))
 
 
+def get_final_df(input_lst):
+    indices, columns = [], []
+    for p in list(input_lst):
+        df = pd.read_csv(p, index_col=0)
+        idxs, cols = list(df.index), list(df.columns)
+        indices += idxs
+        columns += cols
+    df_res = pd.DataFrame(index=set(indices), columns=set(columns))
+    for p in list(input_lst):
+        df = pd.read_csv(p, index_col=0)
+        df_res.update(df)
+    # for i, c in zip(df_res.index, df_res.columns):
+    #      df_res.loc[i, c] = 0.0
+    return df_res
+
+
 TOKEN = config["token"]
 
-METRICS_GROUP_1_DIR = config["group_1_in"]
-METRICS_GROUP_1_CSVS = glob(config["group_1_in"] + "y_pred_cv_*.csv")
-NAMES_GROUP_1 = [os.path.basename(p).replace(".csv", "") for p in METRICS_GROUP_1_CSVS]
+METRICS_GROUP_1_DIR = \
+    config["group_1_in"]
+METRICS_GROUP_1_CSVS = \
+    glob(config["group_1_in"] + "y_pred_cv_*.csv")
+NAMES_GROUP_1 = \
+    [os.path.basename(p).replace(".csv", "") for p in METRICS_GROUP_1_CSVS]
 
-METRICS_GROUP_2_DIR = config["group_2_in"]
-METRICS_GROUP_2_CSVS = glob(config["group_2_in"] + "y_pred_cv_*.csv")
-NAMES_GROUP_2 = [os.path.basename(p).replace(".csv", "") for p in METRICS_GROUP_2_CSVS]
+METRICS_GROUP_2_DIR = \
+    config["group_2_in"]
+METRICS_GROUP_2_CSVS = \
+    glob(config["group_2_in"] + "y_pred_cv_*.csv")
+NAMES_GROUP_2 = [
+    os.path.basename(p).replace(".csv", "") for p in METRICS_GROUP_2_CSVS]
 
 if NAMES_GROUP_1 == NAMES_GROUP_2:
-    NAMES_G1, NAMES_G2 = zip(*combinations(NAMES_GROUP_1, 2))
+    NAMES_G1, NAMES_G2 = \
+        zip(*combinations(NAMES_GROUP_1, 2))
 else:
-    NAMES_G1, NAMES_G2 = zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
+    NAMES_G1, NAMES_G2 = \
+        zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
+
+FROMs, TOs = \
+    zip(*[(c[0], c[-1]) for c in chunked(range(len(NAMES_G1)), 2000)])
 
 rule all:
      input:
           f"data/temp/{TOKEN}/div.txt",
           f"data/temp/{TOKEN}/phi.txt"
 
-rule compute_similarity:
-     input:
-          f"{METRICS_GROUP_1_DIR}{{name_g1}}.csv",
-          f"{METRICS_GROUP_2_DIR}{{name_g2}}.csv"
-     output:
-          f"data/temp/{TOKEN}/diversity/{{name_g1}}_vs_{{name_g2}}.yaml",
-          f"data/temp/{TOKEN}/phi/{{name_g1}}_vs_{{name_g2}}.yaml"
-     run:
-          df_pred_1 = pd.read_csv(input[0], index_col=0)
-          df_pred_2 = pd.read_csv(input[1], index_col=0)
+rule split_batches:
+    output:
+         f"data/temp/{TOKEN}/batch_{{fr}}_{{to}}.yaml"
+    run:
+         fr, to = int(wildcards.fr), int(wildcards.to)
 
-          div_lst, phi_lst = [], []
-          for i in range(50):
-              y_pred_1 = df_pred_1.iloc[i, :].dropna()
-              y_pred_2 = df_pred_2.iloc[i, :].dropna()
-              div_lst += [diversity_score(y_pred_1, y_pred_2)]
-              try:
-                  tn, fp, fn, tp = confusion_matrix(y_pred_1, y_pred_2).ravel()
-              except ValueError:
-                  phi_lst += [1.0]
-              else:
-                  phi_lst += [phi_score(tn, fp, fn, tp)]
+         res = []
+         for n1, n2 in zip(NAMES_G1[fr:to], NAMES_G2[fr:to]):
+            res += [[n1, n2]]
 
-          ng1, ng2 = \
-            wildcards.name_g1.replace("y_pred_cv_", ""), \
-            wildcards.name_g2.replace("y_pred_cv_", "")
+         with open(output[0], "w") as f:
+             yaml.safe_dump(res, f)
 
-          with open(output[0], "w") as f:
-               res = float(np.mean(div_lst))
-               data = {ng1: {ng2: res}, ng2: {ng1: res}}
-               yaml.safe_dump(data, f)
+rule compute:
+    input:
+         f"data/temp/{TOKEN}/batch_{{fr}}_{{to}}.yaml"
+    output:
+         f"data/temp/{TOKEN}/div_{{fr}}_{{to}}.csv",
+         f"data/temp/{TOKEN}/phi_{{fr}}_{{to}}.csv"
+    threads:
+         1000
+    run:
+         def get_div(tuple):
+             df_pred_1 = pd.read_csv(f"{METRICS_GROUP_1_DIR}{tuple[0]}.csv", index_col=0)
+             df_pred_2 = pd.read_csv(f"{METRICS_GROUP_2_DIR}{tuple[1]}.csv", index_col=0)
+             div_lst = []
+             for i in range(50):
+                 y_pred_1 = df_pred_1.iloc[i, :].dropna()
+                 y_pred_2 = df_pred_2.iloc[i, :].dropna()
+                 div_lst += [diversity_score(y_pred_1, y_pred_2)]
+             ng1, ng2 = \
+                 tuple[0].replace("y_pred_cv_", ""), \
+                 tuple[1].replace("y_pred_cv_", "")
+             res = float(np.mean(div_lst))
+             return {ng1: {ng2: res}, ng2: {ng1: res}}
 
-          with open(output[1], "w") as f:
-               res = float(np.mean(phi_lst))
-               data = {ng1: {ng2: res}, ng2: {ng1: res}}
-               yaml.safe_dump(data, f)
+         def get_phi(tuple):
+             df_pred_1 = pd.read_csv(f"{METRICS_GROUP_1_DIR}{tuple[0]}.csv", index_col=0)
+             df_pred_2 = pd.read_csv(f"{METRICS_GROUP_2_DIR}{tuple[1]}.csv", index_col=0)
+             phi_lst = []
+             for i in range(50):
+                 y_pred_1 = df_pred_1.iloc[i, :].dropna()
+                 y_pred_2 = df_pred_2.iloc[i, :].dropna()
+                 try:
+                     tn, fp, fn, tp = confusion_matrix(y_pred_1, y_pred_2).ravel()
+                 except ValueError:
+                     phi_lst += [1.0]
+                 else:
+                     phi_lst += [phi_score(tn, fp, fn, tp)]
+             ng1, ng2 = \
+                 tuple[0].replace("y_pred_cv_", ""), \
+                 tuple[1].replace("y_pred_cv_", "")
+             res = float(np.mean(phi_lst))
+             return {ng1: {ng2: res}, ng2: {ng1: res}}
+
+         with open(input[0]) as f:
+            tuples = yaml.safe_load(f)
+
+         p = Pool(workflow.cores)
+
+         div_lst = p.map(get_div, tuples)
+         phi_lst = p.map(get_phi, tuples)
+
+         idx_names, col_names = zip(*tuples)
+
+         df_phi = pd.DataFrame(
+             columns=set([p.replace("y_pred_cv_", "") for p in col_names]),
+             index=set([p.replace("y_pred_cv_", "") for p in idx_names]))
+
+         df_div = df_phi.copy()
+
+         for d in div_lst:
+               df_div.update(d)
+         for p in phi_lst:
+               df_phi.update(p)
+
+         df_div.to_csv(output[0])
+         df_phi.to_csv(output[1])
 
 rule collect_diversity:
-     input:
-          expand(f"data/temp/{TOKEN}/diversity/{{name_g1}}_vs_{{name_g2}}.yaml",
-                 zip, name_g1=NAMES_G1, name_g2=NAMES_G2)
-     output:
-          temp(f"data/temp/{TOKEN}/div.txt")
-     run:
-          df_res = pd.DataFrame(
-               columns=set([p.replace("y_pred_cv_", "") for p in NAMES_G1]),
-               index=set([p.replace("y_pred_cv_", "") for p in NAMES_G2]))
-
-          for p in list(input):
-               with open(p) as f:
-                    df_res.update(yaml.safe_load(f))
-
-          # for i, c in zip(df_res.index, df_res.columns):
-          #      df_res.loc[i, c] = 0.0
-
-          df_res.to_csv(config["corr_dir_out"] + "diversity.csv")
-          shell("touch {output[0]}")
+    input:
+         expand(f"data/temp/{TOKEN}/div_{{fr}}_{{to}}.csv", zip, fr=FROMs, to=TOs)
+    output:
+         temp(f"data/temp/{TOKEN}/div.txt")
+    run:
+         get_final_df(list(input)).to_csv(config["corr_dir_out"] + "diversity.csv")
+         shell("touch {output[0]}")
 
 rule collect_phi:
-     input:
-          expand(f"data/temp/{TOKEN}/phi/{{name_g1}}_vs_{{name_g2}}.yaml",
-                 zip, name_g1=NAMES_G1, name_g2=NAMES_G2)
-     output:
-          temp(f"data/temp/{TOKEN}/phi.txt")
-     run:
-          df_res = pd.DataFrame(
-               columns=set([p.replace("y_pred_cv_", "") for p in NAMES_G1]),
-               index=set([p.replace("y_pred_cv_", "") for p in NAMES_G2]))
-
-          for p in list(input):
-               with open(p) as f:
-                    df_res.update(yaml.safe_load(f))
-
-          df_res.to_csv(config["corr_dir_out"] + "phi.csv")
-          shell("touch {output[0]}")
+    input:
+         expand(f"data/temp/{TOKEN}/phi_{{fr}}_{{to}}.csv", zip, fr=FROMs, to=TOs)
+    output:
+         temp(f"data/temp/{TOKEN}/phi.txt")
+    run:
+         get_final_df(list(input)).to_csv(config["corr_dir_out"] + "phi.csv")
+         shell("touch {output[0]}")
