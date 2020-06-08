@@ -1,6 +1,6 @@
 from sklearn.metrics import confusion_matrix
 from glob import glob
-from itertools import product
+from itertools import product, combinations
 
 import pandas as pd
 import numpy as np
@@ -32,14 +32,20 @@ METRICS_GROUP_2_DIR = config["group_2_in"]
 METRICS_GROUP_2_CSVS = glob(config["group_2_in"] + "y_pred_cv_*.csv")
 NAMES_GROUP_2 = [os.path.basename(p).replace(".csv", "") for p in METRICS_GROUP_2_CSVS]
 
-NAMES_G1, NAMES_G2 = zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
+if NAMES_GROUP_1 == NAMES_GROUP_2:
+    NAMES_G1, NAMES_G2 = zip(*combinations(NAMES_GROUP_1, 2))
+else:
+    NAMES_G1, NAMES_G2 = zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
+
+import pydevd_pycharm
+pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
 
 rule all:
      input:
           f"data/temp/{TOKEN}/div.txt",
           f"data/temp/{TOKEN}/phi.txt"
 
-rule compute_similarities:
+rule compute_similarity:
      input:
           f"{METRICS_GROUP_1_DIR}{{name_g1}}.csv",
           f"{METRICS_GROUP_2_DIR}{{name_g2}}.csv"
