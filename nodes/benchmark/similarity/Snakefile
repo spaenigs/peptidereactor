@@ -37,9 +37,6 @@ if NAMES_GROUP_1 == NAMES_GROUP_2:
 else:
     NAMES_G1, NAMES_G2 = zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
 
-import pydevd_pycharm
-pydevd_pycharm.settrace('localhost', port=8889, stdoutToServer=True, stderrToServer=True)
-
 rule all:
      input:
           f"data/temp/{TOKEN}/div.txt",
