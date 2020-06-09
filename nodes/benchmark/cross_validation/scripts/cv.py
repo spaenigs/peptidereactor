@@ -18,9 +18,12 @@ def append_values(y, split_id):
 df = pd.read_csv(snakemake.input[0], index_col=0)
 X, y = df.iloc[:, :-1].values, df["y"].values
 
-brf = BalancedRandomForestClassifier(n_estimators=100, random_state=0)
+brf = \
+    BalancedRandomForestClassifier(n_estimators=100, random_state=0)
 
-cv = RepeatedStratifiedKFold(n_splits=get_splits(df.shape[0]), n_repeats=10)
+cv = \
+    RepeatedStratifiedKFold(n_splits=get_splits(df.shape[0]),
+                            n_repeats=10, random_state=42)
 
 df_y_true, df_y_pred, df_y_prob, df_imp = \
     pd.DataFrame(), pd.DataFrame(), pd.DataFrame(), pd.DataFrame()

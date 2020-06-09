@@ -17,13 +17,10 @@ def diversity_score(y_pred_1, y_pred_2):
 
 
 def phi_score(tn, fp, fn, tp):
-    n = tn + fp + fn + tp
-    n_11 = tn
-    n_1_ = tp + fn
-    n__1 = tp + fp
-    return (n*n_11 - n_1_*n__1) / np.sqrt(n_1_*n__1 * (n-n_1_) * (n-n__1))
+    return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp )* (fn+tp) * (tn+fp))
 
 
+# TODO check all vs all
 def get_final_df(input_lst):
     indices, columns = [], []
     for p in list(input_lst):
@@ -117,7 +114,7 @@ rule compute:
                  try:
                      tn, fp, fn, tp = confusion_matrix(y_pred_1, y_pred_2).ravel()
                  except ValueError:
-                     phi_lst += [1.0]
+                     phi_lst += [0.0]
                  else:
                      phi_lst += [phi_score(tn, fp, fn, tp)]
              ng1, ng2 = \

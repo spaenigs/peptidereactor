@@ -49,6 +49,7 @@ def filter_encodings(path_ids, path_in, path_out):
         unique_ids = [i.rstrip() for i in f.readlines()]
     # take care of missing indices in df, due to .dropna() call
     ids = list(set(list(unique_ids)).intersection(list(df.index)))
+    ids = sorted(ids, key=lambda v: int(v.replace("Seq_", "")))
     df.loc[ids, :].to_csv(path_out)
 
 rule filter_group_1_encodings:
