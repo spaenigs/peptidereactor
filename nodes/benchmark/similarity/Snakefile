@@ -157,7 +157,7 @@ rule collect_diversity:
          temp(f"data/temp/{TOKEN}/div.txt")
     run:
          df_res = get_final_df(list(input))
-         if all(df_res.index == df_res.columns):
+         if NAMES_GROUP_1 == NAMES_GROUP_2:
             for i, c in zip(df_res.index, df_res.columns):
                 df_res.loc[i, c] = 0.0
          df_res.to_csv(config["corr_dir_out"] + "diversity.csv")
@@ -170,7 +170,7 @@ rule collect_phi:
          temp(f"data/temp/{TOKEN}/phi.txt")
     run:
          df_res = get_final_df(list(input))
-         if all(df_res.index == df_res.columns):
+         if NAMES_GROUP_1 == NAMES_GROUP_2:
             for i, c in zip(df_res.index, df_res.columns):
                 df_res.loc[i, c] = 1.0
          df_res.to_csv(config["corr_dir_out"] + "phi.csv")
