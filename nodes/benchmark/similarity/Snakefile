@@ -27,11 +27,16 @@ def get_final_df(input_lst):
         idxs, cols = list(df.index), list(df.columns)
         indices += idxs
         columns += cols
-    df_res = pd.DataFrame(index=sorted(set(indices)), columns=sorted(set(columns)))
+    if NAMES_GROUP_1 == NAMES_GROUP_2:
+        tmp = sorted(set(indices).union(columns))
+        df_res = pd.DataFrame(index=tmp, columns=tmp)
+    else:
+        df_res = pd.DataFrame(index=sorted(set(indices)), columns=sorted(set(columns)))
     for p in list(input_lst):
         df = pd.read_csv(p, index_col=0)
         df_res.update(df)
         df_res.update(df.transpose())
+        # df_res.loc[df_res.iloc[:, 0].notnull(), df_res.iloc[0, :].notnull()]
     return df_res
 
 
@@ -152,7 +157,7 @@ rule collect_diversity:
          temp(f"data/temp/{TOKEN}/div.txt")
     run:
          df_res = get_final_df(list(input))
-         if df_res.index == df_res.columns:
+         if all(df_res.index == df_res.columns):
             for i, c in zip(df_res.index, df_res.columns):
                 df_res.loc[i, c] = 0.0
          df_res.to_csv(config["corr_dir_out"] + "diversity.csv")
@@ -165,7 +170,7 @@ rule collect_phi:
          temp(f"data/temp/{TOKEN}/phi.txt")
     run:
          df_res = get_final_df(list(input))
-         if df_res.index == df_res.columns:
+         if all(df_res.index == df_res.columns):
             for i, c in zip(df_res.index, df_res.columns):
                 df_res.loc[i, c] = 1.0
          df_res.to_csv(config["corr_dir_out"] + "phi.csv")
