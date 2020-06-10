@@ -20,7 +20,6 @@ def phi_score(tn, fp, fn, tp):
     return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp )* (fn+tp) * (tn+fp))
 
 
-# TODO check all vs all
 def get_final_df(input_lst):
     indices, columns = [], []
     for p in list(input_lst):
@@ -28,12 +27,11 @@ def get_final_df(input_lst):
         idxs, cols = list(df.index), list(df.columns)
         indices += idxs
         columns += cols
-    df_res = pd.DataFrame(index=set(indices), columns=set(columns))
+    df_res = pd.DataFrame(index=sorted(set(indices)), columns=sorted(set(columns)))
     for p in list(input_lst):
         df = pd.read_csv(p, index_col=0)
         df_res.update(df)
-    # for i, c in zip(df_res.index, df_res.columns):
-    #      df_res.loc[i, c] = 0.0
+        df_res.update(df.transpose())
     return df_res
 
 
@@ -61,7 +59,7 @@ else:
         zip(*product(NAMES_GROUP_1, NAMES_GROUP_2))
 
 FROMs, TOs = \
-    zip(*[(c[0], c[-1]) for c in chunked(range(len(NAMES_G1)), 2000)])
+    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(NAMES_G1)), 2000)])
 
 rule all:
      input:
@@ -153,7 +151,11 @@ rule collect_diversity:
     output:
          temp(f"data/temp/{TOKEN}/div.txt")
     run:
-         get_final_df(list(input)).to_csv(config["corr_dir_out"] + "diversity.csv")
+         df_res = get_final_df(list(input))
+         if df_res.index == df_res.columns:
+            for i, c in zip(df_res.index, df_res.columns):
+                df_res.loc[i, c] = 0.0
+         df_res.to_csv(config["corr_dir_out"] + "diversity.csv")
          shell("touch {output[0]}")
 
 rule collect_phi:
@@ -162,5 +164,9 @@ rule collect_phi:
     output:
          temp(f"data/temp/{TOKEN}/phi.txt")
     run:
-         get_final_df(list(input)).to_csv(config["corr_dir_out"] + "phi.csv")
+         df_res = get_final_df(list(input))
+         if df_res.index == df_res.columns:
+            for i, c in zip(df_res.index, df_res.columns):
+                df_res.loc[i, c] = 1.0
+         df_res.to_csv(config["corr_dir_out"] + "phi.csv")
          shell("touch {output[0]}")
