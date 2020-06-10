@@ -2,11 +2,11 @@ import altair as alt
 import pandas as pd
 import numpy as np
 
-rule generate_json:
+rule generate_svg:
     input:
          config["metrics_dir_in"]
     output:
-         config["json_out"]
+         config["svg_out"]
     run:
          def get_melt(df):
              return pd.melt(df, id_vars=["fold"], value_vars=list(df.columns)[:-1],

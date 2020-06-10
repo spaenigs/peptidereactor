@@ -1,0 +1,9 @@
+#brand {
+  margin: auto;
+  height: 30px;
+  width: 311px;
+  background-repeat: no-repeat;
+  background-size: 311px 30px;
+  background-image: url("peptide-reactor.svg");
+  /*background-color: white;*/
+}
