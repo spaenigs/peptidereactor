@@ -36,6 +36,7 @@ dependencies:
   - pygraphviz
   - pygments
   - imagemagick
+  - altair
   - pip:
     - modlamp
     - joblib
