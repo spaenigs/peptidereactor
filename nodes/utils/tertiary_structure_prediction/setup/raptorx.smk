@@ -10,8 +10,8 @@ PATH_TO_MODELLER_LICENSE = \
     "nodes/utils/tertiary_structure_prediction/license/modeller.txt"
 
 if not os.path.exists("peptidereactor/RaptorX/setup.pl") and \
-    not os.path.exists("peptidereactor/RaptorX/modeller/config.py") and \
-    len(glob("peptidereactor/RaptorX/databases/*/*.moved.txt")) != 6:
+        not os.path.exists("peptidereactor/RaptorX/modeller/config.py") and \
+        len(glob("peptidereactor/RaptorX/databases/*/*.moved.txt")) != 6:
 
     rule download_index_html:
         input:
@@ -19,11 +19,9 @@ if not os.path.exists("peptidereactor/RaptorX/setup.pl") and \
         output:
              temp(f"data/temp/{TOKEN}/index.html")
         priority:
-            1000
-        run:
-             with open(str(input)) as file_in:
-                  link_to_index_html = list(file_in.readlines())[0].rstrip()
-                  shell(f"wget {link_to_index_html} -P data/temp/{TOKEN}/ 2> /dev/null")
+             1000
+        script:
+             "../scripts/download_index_html.py"
 
     rule parse_download_links:
         input:
@@ -31,16 +29,9 @@ if not os.path.exists("peptidereactor/RaptorX/setup.pl") and \
         output:
              temp(f"data/temp/{TOKEN}/{{database}}_download_link.txt")
         priority:
-            1000
-        run:
-             import re
-             with open(str(input)) as index_html:
-                 for line in index_html.readlines():
-                     if re.match(f".*?({wildcards.database}).*", line) is not None:
-                         download_link = re.match(".*href='(.*?)'", line).group(1)
-             with open(str(output), mode="w") as file_out:
-                 file_out.write(download_link)
-                 file_out.flush()
+             1000
+        script:
+             "../scripts/parse_download_links.py"
 
     rule init_raptorx:
         input:
@@ -105,14 +96,8 @@ if not os.path.exists("peptidereactor/RaptorX/setup.pl") and \
              1000
         threads:
              1000
-        run:
-             db = wildcards.database
-             if db in ["nr70", "nr90"]:
-                 target_dir = f"peptidereactor/RaptorX/databases/" + db
-             else:
-                 target_dir = f"peptidereactor/RaptorX/databases/"
-             shell(f"""tar -zxf {{input}} -C {target_dir};
-                       touch {str(output)}""")
+        script:
+             "../scripts/unzip_databases.py"
 
     rule move_databases:
         input:
@@ -121,24 +106,5 @@ if not os.path.exists("peptidereactor/RaptorX/setup.pl") and \
              "peptidereactor/RaptorX/databases/{database}/{database}.moved.txt"
         priority:
              1000
-        run:
-             db = wildcards.database
-             move_files = True
-
-             if "Remain" in db:
-                 target = db.replace("Remain", "BC100")
-                 target_dir = f"peptidereactor/RaptorX/databases/{target}/"
-                 shell(f"mkdir -p {target_dir}")
-             elif "nr" in db:
-                 target_dir = "peptidereactor/RaptorX/databases/NR_new/"
-                 shell("mkdir -p peptidereactor/RaptorX/databases/NR_new")
-             else:
-                 move_files = False
-                 print(f"Got {db}. Nothing to do.")
-
-             if move_files:
-                shell(f"""for file in `ls -1 peptidereactor/RaptorX/databases/{db}/`; do
-                                mv peptidereactor/RaptorX/databases/{db}/$file {target_dir};
-                          done""")
-
-             shell("touch {output}")
+        script:
+             "../scripts/move_databases.py"
