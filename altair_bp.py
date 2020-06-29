@@ -70,31 +70,41 @@ third = \
         selection
     ).add_selection(selection4).properties(width=600, height=800)
 
-chart = alt.hconcat(alt.vconcat(
-    # alt.Chart(dfm).transform_aggregate(
-    #     mean_f1='average(F1)',
-    #     groupby=["Encoding"],
-    # ).mark_bar().add_selection(
-    #     selection
-    # ).encode(
-    #     x=alt.X("mean_f1:N", bin=alt.Bin(extent=[0.0, 1.0], step=0.01)),
-    #     y=alt.Y("count():Q")
-    # ).properties(width=1000),
-    # alt.Chart(dfm).mark_bar().add_selection(
-    #     selection
-    # ).encode(
-    #     x=alt.X("group:Q"),
-    #     y=alt.Y("count():Q")
-    # )
-    first, second,
-        alt.Chart(dfm).mark_bar().encode(
-            x=alt.X("F1", bin=alt.Bin(maxbins=20)),
-            y="count()",
-            opacity=alt.condition(selection4, alt.value(1.0), alt.value(0.1)),
-        ).transform_filter(selection4)
-), third
-)
+# chart = alt.hconcat(alt.vconcat(
+#     # alt.Chart(dfm).transform_aggregate(
+#     #     mean_f1='average(F1)',
+#     #     groupby=["Encoding"],
+#     # ).mark_bar().add_selection(
+#     #     selection
+#     # ).encode(
+#     #     x=alt.X("mean_f1:N", bin=alt.Bin(extent=[0.0, 1.0], step=0.01)),
+#     #     y=alt.Y("count():Q")
+#     # ).properties(width=1000),
+#     # alt.Chart(dfm).mark_bar().add_selection(
+#     #     selection
+#     # ).encode(
+#     #     x=alt.X("group:Q"),
+#     #     y=alt.Y("count():Q")
+#     # )
+#     first, second,
+#         alt.Chart(dfm).mark_bar().encode(
+#             x=alt.X("F1", bin=alt.Bin(maxbins=20)),
+#             y="count()",
+#             opacity=alt.condition(selection4, alt.value(1.0), alt.value(0.1)),
+#         ).transform_filter(selection4)
+# ), third
+# )
 
+chart = alt.hconcat(
+    alt.vconcat(first, second),
+    third
+).properties(
+    title="HIV protease"
+).configure_title(
+    anchor="middle",
+    fontSize=26,
+    color="purple"
+)
 
 # import json
 # import pprint
