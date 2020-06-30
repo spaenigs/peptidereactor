@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+dir_to_clean="data/$1/"
+
+read -p "Remove all data in $dir_to_clean? (y/n)" -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+  rm -rf $dir_to_clean"benchmark/"
+  rm -rf $dir_to_clean"csv/"
+  rm -rf $dir_to_clean"misc/"
+  rm -rf $dir_to_clean"pdb/"
+  rm -rf $dir_to_clean"profile/"
+  rm -f $dir_to_clean"seqs_*"
+  rm -f $dir_to_clean"classes_*"
+fi
