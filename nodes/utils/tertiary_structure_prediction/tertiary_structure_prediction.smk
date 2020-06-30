@@ -130,10 +130,13 @@ rule remove_invalid_residues:
     output:
          TARGET_DIR + "{seq_name}.pdb"
     run:
-         structure = PDBParser().get_structure(wildcards.seq_name, input[0])
-         io = PDBIO()
-         io.set_structure(structure)
-         io.save(output[0], XDeselect())
+         if os.path.getsize(input[0]) != 0:
+             structure = PDBParser().get_structure(wildcards.seq_name, input[0])
+             io = PDBIO()
+             io.set_structure(structure)
+             io.save(output[0], XDeselect())
+         else:
+             shell("touch {output[0]}")
 
 rule remove_non_hits:
     input:
@@ -154,7 +157,7 @@ rule remove_non_hits:
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
          res_names, res_seqs, res_classes = [], [], []
          for file_path in input[2:]:
-             if os.path.getsize(file_path) > 4:
+             if os.path.getsize(file_path) > 0:
                  seq_name = os.path.basename(file_path).replace(".pdb", "")
                  seq, class_ = seq_tuples[seq_name]
                  try:
