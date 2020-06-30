@@ -74,9 +74,8 @@ rule check_structure:
              stdout, stderr = process.communicate()
              return stderr.decode()
 
+         tmp_filename = input[0]
          not_valid = True
-         filename = input[0]
-         tmp_filename = filename
 
          # in case several atoms exceed explicit valence
          while not_valid:
@@ -89,7 +88,7 @@ rule check_structure:
                  if len(hits) > 0:
                      line_number = int(hits[0])
                      id = secrets.token_hex(5)
-                     new_filename = filename.replace(".pdb", f".{id}.pdb")
+                     new_filename = output[0].replace(".pdb", f".{id}.pdb")
                      with open(tmp_filename) as f1, open(new_filename, "a") as f2:
                          for i, l in enumerate(f1.readlines()):
                              if i == line_number:
