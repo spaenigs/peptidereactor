@@ -6,9 +6,10 @@ Sys.setlocale("LC_NUMERIC","en_US.UTF-8")
 d <- read.csv(snakemake@input[[1]], row.names = 1)
 
 idt <- imanDavenportTest(d)
+
 write_yaml(
   list(
-    method = idt$method, , statistic = idt$statistic, p.value = idt$p.value
+    method = idt$method, statistic = idt$statistic, p.value = idt$p.value
   ), snakemake@output[["fo"]]
 )
 

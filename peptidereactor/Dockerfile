@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y pdb2pqr apbs
 RUN apt-get update && apt-get install -y dssp
 
 RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr', 'pROC'), repos = 'https://cran.uni-muenster.de/')"
+RUN R -e "install.packages('BiocManager'); BiocManager::install('Rgraphviz', ask = FALSE); install.packages('scmamp')"
 
 ADD iFeature/ iFeature/
 RUN chmod -R 777 iFeature/data/

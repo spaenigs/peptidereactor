@@ -1,4 +1,4 @@
-from itertools import product
+from itertools import combinations
 
 import pandas as pd
 import numpy as np
@@ -6,7 +6,6 @@ import numpy as np
 import yaml
 
 TOKEN = config["token"]
-
 DIR_OUT = config["cd_dir_out"]
 
 rule all:
@@ -18,7 +17,7 @@ rule all:
 
 rule friedman_test:
     input:
-         config["csv_dir_in"] + "f1.csv"
+         config["metrics_dir_in"] + "f1.csv"
     output:
          fo=DIR_OUT + "friedman.yaml",
          no=DIR_OUT + "nemenyi.yaml",
@@ -39,11 +38,13 @@ rule absolute_difference:
          df_cd = pd.read_csv(input[1], index_col=0)
 
          df_res = pd.DataFrame()
-         for i, j in product(df_cd.index, df_cd.columns):
+         for i, j in combinations(df_cd.index, 2):
              if i != j:
-                 df_tmp = pd.DataFrame({f"{i}_vs_{j}": [i ,j, df_cd.loc[i,j]]})
+                 df_tmp = pd.DataFrame({f"{i}_vs_{j}": [i ,j, df_cd.loc[i, j]]})
                  df_res = pd.concat([df_res, df_tmp.transpose()])
 
+         df_res.columns= ["e1", "e2", "difference"]
+
          # only keep those, which are critical different
-         df_res.loc[np.abs(df_res[2]) >= nm["cd"]].to_csv(output[0])
+         df_res.loc[np.abs(df_res["difference"]) >= nm["cd"]].to_csv(output[0])
 
