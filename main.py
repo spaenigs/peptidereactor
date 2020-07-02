@@ -129,7 +129,8 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS) + \
         expand("data/{dataset}/benchmark/feature_importance.csv", dataset=DATASETS) + \
         expand("data/{dataset}/benchmark/similarity/seq_vs_str/", dataset=DATASETS) + \
-        expand("data/{dataset}/benchmark/similarity/all_vs_all/", dataset=DATASETS)
+        expand("data/{dataset}/benchmark/similarity/all_vs_all/", dataset=DATASETS) + \
+        expand("data/{dataset}/benchmark/friedman/", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
