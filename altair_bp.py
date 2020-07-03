@@ -49,7 +49,6 @@ def main():
     df_f1 = pd.read_csv(f"data/{dataset}/benchmark/metrics/f1.csv", index_col=0)
     df_mcc = pd.read_csv(f"data/{dataset}/benchmark/metrics/mcc.csv", index_col=0)
     dfm = pd.concat([get_overview_data(df_f1, "F1"), get_overview_data(df_mcc, "MCC")])
-    print(dfm.head())
 
     df_div = pd.read_csv(f"data/{dataset}/benchmark/similarity/seq_vs_str/diversity.csv", index_col=0)
     df_phi = pd.read_csv(f"data/{dataset}/benchmark/similarity/seq_vs_str/phi.csv", index_col=0)
@@ -75,7 +74,7 @@ def main():
             vegalite_version=alt.VEGALITE_VERSION,
             vegaembed_version=alt.VEGAEMBED_VERSION,
             dataset=dataset,
-            spec1=get_overview_chart(dfm).to_json(indent=None),
+            spec1=get_overview_chart(df_f1).to_json(indent=None),
             spec2=get_roc_chart(res).to_json(indent=None),
             spec3=get_metrics_chart(dfm).to_json(indent=None),
             spec4=get_similarity_chart(source).to_json(indent=None)
@@ -197,33 +196,100 @@ def get_metrics_chart(dfm):
 
 def get_overview_chart(dfm):
 
-    encodings = sorted(list(set(dfm["Encoding"])))
+    def is_struc_based(e):
+        if "asa" in e:
+            return True
+        elif "delaun" in e:
+            return True
+        elif "disor" in e:
+            return True
+        elif "elect" in e:
+            return True
+        elif "qsar" in e:
+            return True
+        elif "sse" in e:
+            return True
+        elif "ta" in e:
+            return True
+        else:
+            return False
 
-    dropdown = alt.binding_select(options=[None] + encodings)
-    dd_selector = alt.selection_single(fields=["Encoding"], bind=dropdown, name="Value of")
+    dfm = dfm.drop("fold", axis=1)
+    dfm_count = dfm.apply(np.mean).groupby(by=lambda x: x[:6]).count().to_frame("Count")
+    dfm_max = dfm.apply(np.mean).groupby(by=lambda x: x[:6]).max().to_frame("F1")
+    dfm = pd.concat([dfm_max, dfm_count], axis=1)
+    dfm["Group"] = dfm.index
 
-    slider = alt.binding_range(min=-1.0, max=1.0, step=0.05, name='cutoff:')
-    selector = alt.selection_single(fields=['avg_value'], bind=slider, init={'avg_value': 0.0})
+    print(dfm.head())
 
-    return alt.Chart(dfm).transform_joinaggregate(
-        groupby=["Encoding", "metric"],
-        avg_value="average(Value)"
-    ).mark_point().encode(
-        x=alt.X("Encoding", sort="-y", axis=alt.Axis(labels=True, ticks=True)),
-        y=alt.Y("average(Value)", scale=alt.Scale(domain=[-1.0, 1.0])),
-        color=alt.Color("type:N", scale=alt.Scale(domain=["structure based", "sequence based"], range=["#e7ba52", "#1f77b4"])),
-        shape="metric:N",
-        tooltip="Encoding:N"
-    ).add_selection(
-        selector, dd_selector
-    ).transform_filter(
-        alt.datum.avg_value > selector.avg_value
-    ).transform_filter(
-        dd_selector
-    ).properties(
-        width=1430,
-        height=300
+    dfm["type"] = ["structure based" if is_struc_based(e) else "sequence based" for e in dfm["Group"]]
+
+    base = alt.Chart(dfm)
+
+    c1 = base.mark_circle(color="blue", filled=True, size=50, opacity=1.0).encode(
+        x="Group:N",
+        y=alt.Y("F1", scale=alt.Scale(domain=[0.0, 1.0])),
+        size=alt.Size("Count", legend=None),
+        tooltip="Count"
     )
+
+    c2 = base.mark_rule(color="blue", opacity=0.3).encode(
+        x="Group:N",
+        y="F1"
+    )
+
+    r1 = (c2 + c1).transform_filter(
+        alt.datum.type == "sequence based"
+    ).properties(width=600)
+
+    c1 = base.mark_circle(color="orange", filled=True, size=50, opacity=1.0).encode(
+        x="Group:N",
+        y=alt.Y("F1", scale=alt.Scale(domain=[0.0, 1.0])),
+        size=alt.Size("Count"),
+        tooltip="Count"
+    )
+
+    c2 = base.mark_rule(color="orange", opacity=0.3).encode(
+        x="Group:N",
+        y="F1"
+    )
+
+    r2 = (c2 + c1).encode(
+        x="Group:N",
+        y="F1"
+    ).transform_filter(
+        alt.datum.type == "structure based"
+    ).properties(width=600)
+
+    return r1 | r2
+
+    # encodings = sorted(list(set(dfm["Encoding"])))
+    #
+    # dropdown = alt.binding_select(options=[None] + encodings)
+    # dd_selector = alt.selection_single(fields=["Encoding"], bind=dropdown, name="Value of")
+    #
+    # slider = alt.binding_range(min=-1.0, max=1.0, step=0.05, name='cutoff:')
+    # selector = alt.selection_single(fields=['avg_value'], bind=slider, init={'avg_value': 0.0})
+    #
+    # return alt.Chart(dfm).transform_joinaggregate(
+    #     groupby=["Encoding", "metric"],
+    #     avg_value="average(Value)"
+    # ).mark_point().encode(
+    #     x=alt.X("Encoding", sort="-y", axis=alt.Axis(labels=True, ticks=True)),
+    #     y=alt.Y("average(Value)", scale=alt.Scale(domain=[-1.0, 1.0])),
+    #     color=alt.Color("type:N", scale=alt.Scale(domain=["structure based", "sequence based"], range=["#e7ba52", "#1f77b4"])),
+    #     shape="metric:N",
+    #     tooltip="Encoding:N"
+    # ).add_selection(
+    #     selector, dd_selector
+    # ).transform_filter(
+    #     alt.datum.avg_value > selector.avg_value
+    # ).transform_filter(
+    #     dd_selector
+    # ).properties(
+    #     width=1430,
+    #     height=300
+    # )
 
 
 def get_overview_data(df, metric):
