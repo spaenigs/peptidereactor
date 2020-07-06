@@ -1,5 +1,5 @@
 from sklearn.metrics import \
-    classification_report, matthews_corrcoef, confusion_matrix
+    matthews_corrcoef, confusion_matrix, f1_score, precision_score, recall_score
 from glob import glob
 
 import pandas as pd
@@ -56,21 +56,20 @@ rule compute_metric:
          for i in range(50):
              y_true = df_true.iloc[i, :].dropna()
              y_pred = df_pred.iloc[i, :].dropna()
-             clf_report = classification_report(y_true, y_pred, output_dict=True, target_names=["0", "1"])
+             tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
              if m == "f1":
-                 res += [clf_report["weighted avg"]["f1-score"]]
+                 res += [f1_score(y_true, y_pred)]
              elif m == "recall":
-                 res += [clf_report["weighted avg"]["recall"]]
+                 res += [recall_score(y_true, y_pred)]
              elif m == "precision":
-                 res += [clf_report["weighted avg"]["precision"]]
+                 res += [precision_score(y_true, y_pred)]
              elif m == "mcc":
                  res += [matthews_corrcoef(y_true, y_pred)]
              elif m == "sens":
-                 res += [clf_report["1"]["recall"]]
+                 res += [tp / (tp + fn)]
              elif m == "spec":
-                 res += [clf_report["0"]["recall"]]
+                 res += [tn / ( tn + fp)]
              elif m == "phi":
-                 tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
                  res += [phi_score(tn, fp, fn, tp)]
              else:
                  raise ValueError(f"Unknown metric: {m}!")
