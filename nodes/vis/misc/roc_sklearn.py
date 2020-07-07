@@ -50,8 +50,8 @@ tprs = []
 aucs = []
 mean_fpr = np.linspace(0, 1, 100)
 
-df_test = pd.read_csv("data/hiv_protease/benchmark/ensemble/y_true_cv_egaac_window_8.csv", index_col=0)
-df_prob = pd.read_csv("data/hiv_protease/benchmark/ensemble/y_prob_cv_egaac_window_8.csv", index_col=0)
+df_test = pd.read_csv("data/hiv_protease/benchmark/single/y_true_cv_ngram_a3_300.csv", index_col=0)
+df_prob = pd.read_csv("data/hiv_protease/benchmark/single/y_prob_cv_ngram_a3_300.csv", index_col=0)
 for i in range(df_test.shape[0]):
     y_true = df_test.iloc[i, :].dropna().values
     y_pred = df_prob.iloc[i, :].dropna().values
