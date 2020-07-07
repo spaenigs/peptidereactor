@@ -107,6 +107,8 @@ rule compute_molecular_descriptors:
          f"data/temp/{TOKEN}/{{seq_name}}.joblib"
     output:
          temp(f"data/temp/{TOKEN}/{{seq_name}}_molecular_descriptors.csv")
+    threads:
+         2
     script:
          "scripts/compute_qsar.py"
 
