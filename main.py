@@ -17,7 +17,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi"]
+DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "npp_profet"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
