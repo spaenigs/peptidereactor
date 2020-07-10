@@ -25,9 +25,9 @@ def overview_chart(df_f1, df_mcc):
 
     def get_data(dfm, metric):
         dfm_count = dfm.apply(np.mean).groupby(
-            by=lambda x: "psekraac" if "lambda" in x or "g-gap" in x else x[:6]).count().to_frame("count")
+            by=lambda x: "psekraac" if "lambda-corr" in x or "g-gap" in x else x[:6]).count().to_frame("count")
         dfm_max = dfm.apply(np.mean).groupby(
-            by=lambda x: "psekraac" if "lambda" in x or "g-gap" in x else x[:6]).max().to_frame("max_metric")
+            by=lambda x: "psekraac" if "lambda-corr" in x or "g-gap" in x else x[:6]).max().to_frame("max_metric")
         dfm = pd.concat([dfm_max, dfm_count], axis=1)
         dfm["group"] = dfm.index
         dfm["type"] = ["structure based" if is_struc_based(e) else "sequence based" for e in dfm["group"]]
