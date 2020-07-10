@@ -66,6 +66,7 @@ def scatter_div_chart(df_f1, df_div, dataset):
                                 f1_e1=medians[i_low], f1_e2=medians[c_low])
 
     # mid
+    # TODO search for mid point automatically
     i_mid, c_mid, div_mid = sorted([(i, j, df_div_sub.loc[i, j])
                                     for i, j in [(i, j) for i in df_div_sub.index for j in df_div_sub.columns]
                                     if 0.25 < df_div_sub.loc[i, j] < 0.26], key=lambda x: x[2])[0]
