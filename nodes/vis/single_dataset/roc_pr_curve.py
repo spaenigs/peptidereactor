@@ -68,7 +68,7 @@ def is_struc_based(e):
         return False
 
 
-def get_data(encodings):
+def get_data(encodings, dataset):
     test_dfs, prob_dfs, names = [], [], []
     for e in encodings:
         test_dfs += [pd.read_csv(f"data/{dataset}/benchmark/single/y_true_cv_{e}.csv", index_col=0)]
@@ -81,53 +81,52 @@ def get_data(encodings):
     return df_roc, df_prc
 
 
-dataset = "hiv_protease"
+def roc_chart(df_f1, dataset):
 
-df_f1 = pd.read_csv(f"data/{dataset}/benchmark/metrics/f1.csv", index_col=0)
-indices = df_f1.apply(np.median).sort_values(ascending=False).index.tolist()
+    indices = df_f1.apply(np.median).sort_values(ascending=False).index.tolist()
 
-top_six_encodings = indices[:6]
-df_roc_t6, df_prc_t6 = get_data(top_six_encodings)
+    top_six_encodings = indices[:6]
+    df_roc_t6, df_prc_t6 = get_data(top_six_encodings, dataset)
 
-top_three_seq = indices[:3]
-top_three_str = [i for i in indices if is_struc_based(i)][:3]
-df_roc_t33, df_prc_t33 = get_data(top_three_seq + top_three_str)
+    top_three_seq = indices[:3]
+    top_three_str = [i for i in indices if is_struc_based(i)][:3]
+    df_roc_t33, df_prc_t33 = get_data(top_three_seq + top_three_str, dataset)
 
-random_guess_line = alt.Chart(
-    pd.DataFrame({"x": [0.0, 1.0],
-                  "y": [0.0, 1.0]})
-).mark_line(
-    color="lightgrey",
-    strokeDash=[3, 1]
-).encode(
-    x="x",
-    y="y"
-)
+    random_guess_line = alt.Chart(
+        pd.DataFrame({"x": [0.0, 1.0],
+                      "y": [0.0, 1.0]})
+    ).mark_line(
+        color="lightgrey",
+        strokeDash=[3, 1]
+    ).encode(
+        x="x",
+        y="y"
+    )
 
-c1 = alt.Chart(df_roc_t6).mark_line().encode(
-    x=alt.X("x:Q", axis=alt.Axis(title=None)),
-    y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
-    color=alt.Color("Encoding:N")
-) + random_guess_line
+    c1 = alt.Chart(df_roc_t6).mark_line().encode(
+        x=alt.X("x:Q", axis=alt.Axis(title=None)),
+        y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
+        color=alt.Color("Encoding:N")
+    ) + random_guess_line
 
-c2 = alt.Chart(df_prc_t6).mark_line().encode(
-    x=alt.X("x:Q", axis=alt.Axis(title=None)),
-    y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
-    color="Encoding:N"
-)
+    c2 = alt.Chart(df_prc_t6).mark_line().encode(
+        x=alt.X("x:Q", axis=alt.Axis(title=None)),
+        y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
+        color="Encoding:N"
+    )
 
-cA = alt.Chart(df_roc_t33).mark_line().encode(
-    x=alt.X("x:Q", axis=alt.Axis(title="1 - Specificity")),
-    y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
-    color="Encoding:N",
-    strokeDash="type:N"
-) + random_guess_line
+    cA = alt.Chart(df_roc_t33).mark_line().encode(
+        x=alt.X("x:Q", axis=alt.Axis(title="1 - Specificity")),
+        y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
+        color="Encoding:N",
+        strokeDash="type:N"
+    ) + random_guess_line
 
-cB = alt.Chart(df_prc_t33).mark_line().encode(
-    x=alt.X("x:Q", axis=alt.Axis(title="Recall")),
-    y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
-    color="Encoding:N",
-    strokeDash="type:N"
-)
+    cB = alt.Chart(df_prc_t33).mark_line().encode(
+        x=alt.X("x:Q", axis=alt.Axis(title="Recall")),
+        y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
+        color="Encoding:N",
+        strokeDash="type:N"
+    )
 
-((c1 | c2) & (cA | cB)).save("roc.html")
+    return (c1 | c2) & (cA | cB)
