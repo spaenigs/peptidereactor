@@ -3,7 +3,7 @@ library(yaml)
 
 Sys.setlocale("LC_NUMERIC","en_US.UTF-8")
 
-d <- read.csv(snakemake@input[[1]], row.names = 1)
+d <- read.csv(snakemake@input[[1]], row.names = 1, check.names = FALSE)
 
 idt <- imanDavenportTest(d)
 
