@@ -1,4 +1,4 @@
-from imblearn.ensemble import BalancedRandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
 
 import numpy as np
@@ -19,7 +19,7 @@ df = pd.read_csv(snakemake.input[0], index_col=0)
 X, y = df.iloc[:, :-1].values, df["y"].values
 
 brf = \
-    BalancedRandomForestClassifier(n_estimators=100, random_state=0)
+    RandomForestClassifier(n_estimators=100, random_state=0)
 
 cv = \
     RepeatedStratifiedKFold(n_splits=get_splits(df.shape[0]),
