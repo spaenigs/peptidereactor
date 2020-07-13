@@ -36,7 +36,7 @@ def _get_clustering(df):
 
 
 def _hm(source, show_x_title=True, show_y_title=True):
-    d, r = ["<= 0.5", "<= 0.7", "<= 1.0"], ["white", "#9ecae1", "#3182bd"]
+    d, r = ["<= 0.5", "<= 0.7", "<= 1.0"], ["white", "gainsboro", "black"]
     x_config = alt.Axis(labels=False, ticks=False)
     y_config = alt.Axis(labels=False, ticks=False)
     if not show_x_title:
