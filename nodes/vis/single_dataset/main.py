@@ -5,6 +5,8 @@ from roc_pr_curve import *
 from similarity import *
 from scatter_div import *
 from crit_diff import *
+from elapsed_time import *
+from par_coord import *
 
 import pandas as pd
 
@@ -18,9 +20,12 @@ two_charts_template = """
 </head>
 <body>
 
+<p align = "left">
+    <img src="/home/spaenigs/Downloads/peptide-reactor/peptide-reactor/peptide-reactor.005.png" alt="logo" width="7%" height="7%"/>
+    <hr>
+</p>
+
 <center>
-<img src="/home/spaenigs/Downloads/peptide-reactor/peptide-reactor/peptide-reactor.005.png" alt="logo" width="7%" height="7%"/>
-<hr>
 
 <p><b>{dataset}</b></p>
 
@@ -42,22 +47,27 @@ two_charts_template = """
 <p><u>Critical difference</u></p>
 <center><div id="vis6"></div></center>
 
+<p><u>Misc</u></p>
+<center><div id="vis7"></div></center>
+<center><div id="vis8"></div></center>
+
 <script type="text/javascript">
     vegaEmbed('#vis1', {spec1}).catch(console.error);    
     vegaEmbed('#vis2', {spec2}).catch(console.error);
     vegaEmbed('#vis3', {spec3}).catch(console.error);
     vegaEmbed('#vis4', {spec4}).catch(console.error);
     vegaEmbed('#vis5', {spec5}).catch(console.error);
-    vegaEmbed('#vis6', {spec6}).catch(console.error);
+    vegaEmbed('#vis6', {spec6}).catch(console.error);  
+    vegaEmbed('#vis7', {spec7}).catch(console.error);
+    vegaEmbed('#vis8', {spec8}).catch(console.error);
 </script>
-
 </body>
 </html>
 """
 
 
 """
-  
+    
 """
 
 def main():
@@ -89,9 +99,14 @@ def main():
     df_cd = pd.read_csv("data/hiv_protease/benchmark/friedman/diff_matrix.csv", index_col=0)
     with open("data/hiv_protease/benchmark/friedman/nemenyi.yaml") as f:
         nm = yaml.safe_load(f)
-    cdc = dot_chart(df_f1, df_cd, nm["cd"]).to_json(indent=None)
+    cdc = dot_chart(df_f1, df_cd, nm["cd"], dataset).to_json(indent=None)
 
-    # TODO add execution time
+    df_time = pd.read_csv("nodes/vis/misc/benchmark_p.csv", index_col=0)
+    tc = elapsed_time_chart(df_time).to_json(indent=None)
+
+    df_f1 = pd.read_csv(f"data/{dataset}/benchmark/metrics/f1.csv", index_col=0)
+    df_fir = pd.read_csv(f"data/{dataset}/benchmark/feature_importance.csv", index_col=0)
+    pcc = par_coord_chart(df_f1, df_fir).to_json(indent=None)
 
     with open('bp2.html', 'w') as f:
         f.write(two_charts_template.format(
@@ -104,7 +119,9 @@ def main():
             spec3=rc,
             spec4=sc,
             spec5=sdc,
-            spec6=cdc
+            spec6=cdc,
+            spec7=tc,
+            spec8=pcc
         ))
 
 
