@@ -17,7 +17,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "npp_profet"]
+DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -125,12 +125,20 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
         cd_dir_out="data/{dataset}/benchmark/friedman/"))
 
+    w.add(utils.collect_benchmark.rule(
+        final_dirs_in=[
+            "data/{dataset}/benchmark/metrics/",
+            "data/{dataset}/benchmark/similarity/seq_vs_str/",
+            "data/{dataset}/benchmark/similarity/all_vs_all/",
+            "data/{dataset}/benchmark/friedman/"
+        ],
+        final_files_in=[
+            "data/{dataset}/benchmark/feature_importance.csv"
+        ],
+        csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
+
     target = \
-        expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS) + \
-        expand("data/{dataset}/benchmark/feature_importance.csv", dataset=DATASETS) + \
-        expand("data/{dataset}/benchmark/similarity/seq_vs_str/", dataset=DATASETS) + \
-        expand("data/{dataset}/benchmark/similarity/all_vs_all/", dataset=DATASETS) + \
-        expand("data/{dataset}/benchmark/friedman/", dataset=DATASETS)
+        expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
