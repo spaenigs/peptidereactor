@@ -25,7 +25,7 @@ def feature_importance_ratio(folds, threshold=0.5):
 TOKEN = config["token"]
 
 CSV_DIR = config["feat_imp_in"]
-CSVS_IN = glob(config["feat_imp_in"] + "*feat_imp_cv_*.csv")
+CSVS_IN = glob(CSV_DIR + "*feat_imp_cv_*.csv")
 
 NAMES = [os.path.basename(p).replace(".csv", "") for p in CSVS_IN]
 
@@ -37,7 +37,7 @@ rule compute:
     input:
          f"{CSV_DIR}{{name}}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{name}}.txt")
+         temp(f"data/temp/{TOKEN}/{{name}}.yaml")
     run:
          df_folds = pd.read_csv(input[0], index_col=0)
          fir, if_indices = feature_importance_ratio(df_folds)
@@ -47,7 +47,7 @@ rule compute:
 
 rule collect:
     input:
-         expand(f"data/temp/{TOKEN}/{{name}}.txt", name=NAMES)
+         expand(f"data/temp/{TOKEN}/{{name}}.yaml", name=NAMES)
     output:
          config["feat_imp_out"]
     run:
@@ -55,7 +55,7 @@ rule collect:
          for p in list(input):
              with open(p) as f:
                 d = yaml.safe_load(f)
-                name = os.path.basename(p).replace(".csv", "").replace("feat_imp_cv_", "")
+                name = os.path.basename(p).replace(".yaml", "").replace("feat_imp_cv_", "")
                 df_tmp = pd.DataFrame({name: [d["feat_imp_ratio"]]})
                 df_res = pd.concat([df_res, df_tmp], axis=1)
 
