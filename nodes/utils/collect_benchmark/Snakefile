@@ -1,0 +1,28 @@
+from glob import glob
+
+import pandas as pd
+
+import re
+
+rule collect:
+    input:
+         final_dirs=config["final_dirs_in"],
+         final_files=config["final_files_in"]
+    output:
+         config["csv_out"]
+    run:
+         if len(input.final_dirs) > 0:
+             dataset = input.final_dirs[0].split("/")[1]
+         else:
+             dataset = input.final_files[0].split("/")[1]
+
+         df_res = pd.DataFrame()
+         for p in glob(f"data/{dataset}/misc/benchmark/*.txt"):
+             full_name = re.findall(".*/(.*)_\w+.txt", p)[0]
+             df_tmp = pd.read_csv(p, sep="\t")
+             category, name = full_name.split("_")[0], "".join(full_name.split("_", 1)[1])
+             df_tmp.index = [name]
+             df_tmp.loc[name, "category"] = category
+             df_res = pd.concat([df_res, df_tmp])
+
+         df_res.to_csv(output[0])

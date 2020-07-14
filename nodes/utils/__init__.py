@@ -5,3 +5,4 @@ from . import dim_size
 from . import tertiary_structure_search
 from . import tertiary_structure_prediction
 from . import collect_encodings
+from . import collect_benchmark

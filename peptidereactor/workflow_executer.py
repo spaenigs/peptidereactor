@@ -62,40 +62,14 @@ class WorkflowSetter:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         scaffold = f"""\
-from glob import glob
-import pandas as pd
-import re
 from peptidereactor.workflow_executer import WorkflowExecuter
 
 CORES = {self.cores}
 
 rule all:
     input:
-         config['{self.key_target_rule}']"""
-
-        if self.benchmark_dir is not None:
-            scaffold += f"""
-    output:
-         "data/temp/benchmark.csv"
-    threads:
-         1000
-    run:
-         df_res = pd.DataFrame()
-         base_path = "data/*/misc/benchmark/"
-         for p1 in glob(base_path):
-             dataset = re.findall(base_path.replace("*", "(.*?)") , p1)[0]
-             df_res_tmp = pd.DataFrame() 
-             for p in glob(f"data/{{dataset}}/misc/benchmark/*/*.txt"):
-                 name = re.findall(".*/(.*)_\w+.txt", p)[0]
-                 df_tmp = pd.read_csv(p, sep="\t")
-                 df_tmp.index = [name]
-                 df_res_tmp = pd.concat([df_res_tmp, df_tmp])
-             df_res_tmp["dataset"] = dataset
-             df_res = pd.concat([df_res, df_res_tmp])
-         df_res.to_csv(output[0])
-                """
-        else:
-            scaffold += "\n"
+         config['{self.key_target_rule}']
+"""
 
         for r in self.rule_definitions:
             scaffold += r
