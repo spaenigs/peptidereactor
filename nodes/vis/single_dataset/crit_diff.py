@@ -44,8 +44,8 @@ def dot_chart(df_f1, df_cd, cd, dataset):
         df_le = df_cd_sub.le(-cd)
         df_ge = df_cd_sub.ge(cd)
 
-        r = sum(df_le.values[np.triu_indices_from(df_le.values)]) + \
-            sum(df_ge.values[np.triu_indices_from(df_ge.values)])
+        r = sum(df_le.values[np.triu_indices_from(df_le.values, k=1)]) + \
+            sum(df_ge.values[np.triu_indices_from(df_ge.values, k=1)])
 
         dfm_count.loc[i, "cd_count"] = r
         dfm_count.loc[i, "cd_count_max"] = \
@@ -87,7 +87,7 @@ def dot_chart(df_f1, df_cd, cd, dataset):
 
     bars = (bars1 + bars2).properties(height=740)
 
-    dots_data = df_cd.values[np.triu_indices_from(df_cd.values)]
+    dots_data = df_cd.values[np.triu_indices_from(df_cd.values, k=1)]
     df_dots = pd.DataFrame({"x": dots_data, "y": [dataset] * len(dots_data)})
 
     dots = alt.Chart(df_dots).mark_circle(color=r[0]).encode(
