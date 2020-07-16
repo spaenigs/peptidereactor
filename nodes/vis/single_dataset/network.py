@@ -1,3 +1,11 @@
+from pathos.multiprocessing import ProcessingPool as Pool
+from statsmodels.stats.multitest import multipletests
+from scipy import stats
+from itertools import combinations
+
+import numpy as np
+import pandas as pd
+
 import json
 
 
@@ -15,7 +23,7 @@ def network_chart(df_cd):
                 {"name": "nodeRadius", "value": 8, "bind": {"input": "range", "min": 1, "max": 50, "step": 1}},
                 {"name": "nodeCharge", "value": -30, "bind": {"input": "range", "min": -100, "max": 10, "step": 1}},
                 {"name": "linkDistance", "value": 30, "bind": {"input": "range", "min": 5, "max": 100, "step": 1}},
-                {"name": "static", "value": False, "bind": {"input": "checkbox"}},
+                {"name": "static", "value": True, "bind": {"input": "checkbox"}},
                 {"description": "State variable for active node fix status.",
                  "name": "fix", "value": False,
                  "on": [
@@ -115,10 +123,21 @@ def network_chart(df_cd):
     node_values = [{"name": "Myriel", "group": 1, "index": 0}, {"name": "Napoleon", "group": 1, "index": 1}]
     link_values = [{"source": 1, "target": 0, "value": 10}]
 
-    node_values1 = []
-    for i, e in enumerate(df_cd.index):
-        node_values1 += [{"name": e, "group": 1, "index": i}]
+    # TODO replace '.' in 'lambda.corr' in x or 'g.gap'
+    groups = ["psekraac" if "lambda.corr" in x or "g.gap" in x else x[:6] for x in df_cd.index]
 
-    v = vega(node_values1, [])
+    node_values1 = []
+    indices = {}
+    for i, (e, g) in enumerate(zip(df_cd.index, groups)):
+        node_values1 += [{"name": e, "group": g, "index": i}]
+        indices[e] = i
+
+    link_values1 = []
+    for x, y in np.column_stack(np.triu_indices_from(df_cd.values, k=1)):
+        i, c, v = df_cd.index[x], df_cd.columns[y], df_cd.iloc[x, y]
+        if np.abs(v) >= 0.7:
+            link_values1 += [{"source": indices[i], "target": indices[c], "value": v}]
+
+    v = vega(node_values1, link_values1)
 
     return json.dumps(v)
