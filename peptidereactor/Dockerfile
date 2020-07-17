@@ -12,6 +12,9 @@ RUN apt-get update && apt-get install -y dssp
 
 RUN R -e "install.packages(c('Interpol', 'yaml', 'kaos', 'seqinr', 'pROC'), repos = 'https://cran.uni-muenster.de/')"
 RUN R -e "install.packages('BiocManager'); BiocManager::install('Rgraphviz', ask = FALSE); install.packages('scmamp')"
+RUN R -e "install.packages(c('gtools', 'foreach', 'doParallel'), dependencies = T, repos = 'https://cran.uni-muenster.de/')"
+RUN R -e "install.packages(c('dplyr', 'jsonlite'), dependencies = T, repos = 'https://cran.uni-muenster.de/')"
+RUN R -e "install.packages(c('MatrixCorrelation', 'data.tree'), dependencies = T, repos = 'https://cran.uni-muenster.de/')"
 
 ADD iFeature/ iFeature/
 RUN chmod -R 777 iFeature/data/
