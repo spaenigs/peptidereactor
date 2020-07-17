@@ -1,5 +1,5 @@
 from pathos.multiprocessing import ProcessingPool as Pool
-from statsmodels.stats.multitest import multipletests
+
 from scipy import stats
 from itertools import combinations
 
