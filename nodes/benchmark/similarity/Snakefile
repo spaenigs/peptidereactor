@@ -17,7 +17,7 @@ def diversity_score(y_pred_1, y_pred_2):
 
 
 def phi_score(tn, fp, fn, tp):
-    return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp )* (fn+tp) * (tn+fp))
+    return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp)* (fn+tp) * (tn+fp))
 
 
 def get_final_df(input_lst):
@@ -36,7 +36,6 @@ def get_final_df(input_lst):
         df = pd.read_csv(p, index_col=0)
         df_res.update(df)
         df_res.update(df.transpose())
-        # df_res.loc[df_res.iloc[:, 0].notnull(), df_res.iloc[0, :].notnull()]
     return df_res
 
 
@@ -117,9 +116,12 @@ rule compute:
                  try:
                      tn, fp, fn, tp = confusion_matrix(y_pred_1, y_pred_2).ravel()
                  except ValueError:
-                     phi_lst += [0.0]
+                     continue
                  else:
-                     phi_lst += [phi_score(tn, fp, fn, tp)]
+                     ps = phi_score(tn, fp, fn, tp)
+                     if np.isnan(ps):
+                         continue
+                     phi_lst += [ps]
              ng1, ng2 = \
                  tuple[0].replace("y_pred_cv_", ""), \
                  tuple[1].replace("y_pred_cv_", "")
