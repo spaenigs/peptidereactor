@@ -13,11 +13,7 @@ import re
 
 
 def phi_score(tn, fp, fn, tp):
-    n = tn + fp + fn + tp
-    n_11 = tn
-    n_1_ = tp + fn
-    n__1 = tp + fp
-    return (n*n_11 - n_1_*n__1) / np.sqrt(n_1_*n__1 * (n-n_1_) * (n-n__1))
+    return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp )* (fn+tp) * (tn+fp))
 
 
 def collect_metrics(input_lst, out_path):
