@@ -35,6 +35,8 @@ rule check:
                      report += [f"Ensure binary class values of exact [0,1]!"]
 
          if len(report) > 0:
+             print("### Report ###")
+             print("\n".join(report))
              raise AssertionError("Found invalid sequences! Check report for details.".upper())
          else:
              shell("touch {output[0]}")
