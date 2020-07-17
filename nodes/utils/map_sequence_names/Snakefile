@@ -28,7 +28,9 @@ rule check:
              try:
                  classes = [int(i.rstrip()) for i in f.readlines()]
              except Exception:
-                 report += [f"Could read {input[1]}. Ensure binary classes of [0,1] in separate lines!"]
+                 report += [f"Could not read {input[1]}."]
+                 report += ["Ensure binary classes of [0,1] in separate lines!"]
+                 report += ["No empty lines allowed!"]
              else:
                  # check class integrity
                  if len(list(set(classes))) != 2:
@@ -37,6 +39,7 @@ rule check:
          if len(report) > 0:
              print("### Report ###")
              print("\n".join(report))
+             print("##############")
              raise AssertionError("Found invalid sequences! Check report for details.".upper())
          else:
              shell("touch {output[0]}")
