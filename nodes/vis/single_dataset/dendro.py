@@ -1,10 +1,9 @@
-import numpy as np
-
 import json
 
 
-def dendro_chart(df_f1):
-    def vega(values):
+def dendro_chart(json_file):
+
+    def vega_dendrogram(values):
         json_dict = {
             "$schema": "https://vega.github.io/schema/vega/v5.json",
             "description": "An example of a radial layout for a node-link diagram of hierarchical data.",
@@ -18,8 +17,8 @@ def dendro_chart(df_f1):
                     "bind": {"input": "checkbox"}
                 },
                 {
-                    "name": "radius", "value": 600,
-                    "bind": {"input": "range", "min": 300, "max": 1000}
+                    "name": "radius", "value": 300,
+                    "bind": {"input": "range", "min": 100, "max": 1000}
                 },
                 {
                     "name": "extent", "value": 360,
@@ -106,7 +105,7 @@ def dendro_chart(df_f1):
                 {
                     "name": "color",
                     "type": "linear",
-                    "range": {"scheme": "viridis"},
+                    "range": {"scheme": "tableau20"},
                     "domain": {"data": "tree", "field": "color"},
                     "zero": True
                 }
@@ -161,43 +160,11 @@ def dendro_chart(df_f1):
                 }
             ]
         }
-
         return json_dict
 
-    data = [{"id": 1, "color": 0},
-            {"id": 2, "parent": 1, "color": 0},
-            {"id": 3, "name": "cluster", "parent": 1, "color": 1},
-            {"id": 4, "name": "cluster1", "parent": 1, "color": 1},
-            {"id": 5, "name": "AgglomerativeCluster", "parent": 2, "size": 3938, "color": 2},
-            {"id": 6, "name": "Agglomerative1Cluster", "parent": 2, "size": 3938, "color": 2}]
 
-    with open("rv.json") as f:
-        data = json.load(f)
-
-    # TODO filter encodings (top 20), create df in R, json here
-    # TODO check if network works for all encodings (network.py)
-
-    df_f1.apply(np.median).to_frame("median").groupby(
-        by=lambda x: "psekraac" if "lambda-corr" in x or "g-gap" in x else x[:6]).max().sort_values(by="median",
-                                                                                                    ascending=False).iloc[
-    :20, ]
-
-    v = vega(data)
+    with open(json_file) as f:
+        v = vega_dendrogram(json.load(f))
 
     return json.dumps(v)
 
-
-"""
-{
-    "id": 218,
-    "name": "Encoder",
-    "parent": 216,
-    "size": 4060
-  },
-  {
-    "id": 198,
-    "name": "ShapeRenderer",
-    "parent": 194,
-    "size": 2247
-  },
-"""
