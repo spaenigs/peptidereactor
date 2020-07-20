@@ -3,7 +3,11 @@ def is_struc_based(e):
         return True
     elif "delaunay" in e:
         return True
+    elif "delaun" in e:
+        return True
     elif "disorder" in e:
+        return True
+    elif "disord" in e:
         return True
     elif "elect" in e:
         return True

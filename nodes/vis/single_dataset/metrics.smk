@@ -10,16 +10,12 @@ TOKEN = config["token"]
 
 NR_TOP_ENCODINGS = 20
 
-rule all:
-    input:
-         config["json_out"]
-
-rule transform_data:
+rule metrics_transform_data:
     input:
          config["metrics_dir_in"] + "{metric}.csv"
     output:
-         f"data/temp/{TOKEN}/{{metric}}.scatter_plot_data",
-         f"data/temp/{TOKEN}/{{metric}}.box_plot_data"
+         temp(f"data/temp/{TOKEN}/{{metric}}.scatter_plot_data"),
+         temp(f"data/temp/{TOKEN}/{{metric}}.box_plot_data")
     run:
          def melt_and_annotate(df, metric):
              df["fold"] = df.index
@@ -52,7 +48,7 @@ rule create_metrics_chart:
          f"data/temp/{TOKEN}/{{metric}}.scatter_plot_data",
          f"data/temp/{TOKEN}/{{metric}}.box_plot_data"
     output:
-         f"data/temp/{TOKEN}/{{metric}}.joblib"
+         temp(f"data/temp/{TOKEN}/{{metric}}.joblib")
     run:
          scatter_plot_data = pd.read_csv(input[0], index_col=0)
          box_plot_data = pd.read_csv(input[1], index_col=0)
@@ -70,7 +66,7 @@ rule create_metrics_chart:
                  ),
                  y=alt.Y(
                      "Value:Q", title=wildcards.metric,
-                     axis=alt.Axis(grid=False), scale=alt.Scale(domain=[0.0, 1.0])
+                     axis=alt.Axis(grid=False), scale=alt.Scale(domain=[-1.0 if wildcards.metric == "mcc" else 0.0, 1.0])
                  ),
                  size=alt.value(20),
                  opacity=alt.condition(
@@ -83,13 +79,27 @@ rule create_metrics_chart:
              ).properties(
                 width=600
              ),
-             alt.Chart(hline_data).mark_rule(color="grey", strokeDash=[1, 1], opacity=0.5).encode(y="a:Q"),
+             alt.Chart(hline_data).mark_rule(
+                 color="grey",
+                 strokeDash=[1, 1],
+                 opacity=0.5).encode(
+                 y="a:Q"
+             ),
              alt.Chart(anno_struc).mark_rule(opacity=0.3).encode(
                  x=alt.X("Encoding:N", sort="-y"),
                  y="Value:Q",
                  color="type:N"
              )
          )
+
+         if wildcards.metric == "mcc":
+             vline_data = pd.DataFrame({'y': [0.0]})
+             scatter = scatter + alt.Chart(vline_data).mark_rule(
+                 color="black",
+                 opacity=0.5
+             ).encode(
+                 y="y:Q"
+             )
 
          bp = alt.Chart(box_plot_data).mark_boxplot().encode(
              x=alt.X("Encoding", title=None),
@@ -106,7 +116,7 @@ rule concat_charts:
          expand(f"data/temp/{TOKEN}/{{metric}}.joblib",
                 metric=["f1", "mcc", "precision", "recall", "sens", "spec"])
     output:
-         config["json_out"]
+         temp(f"data/temp/{TOKEN}/metrics.json")
     run:
          charts = [joblib.load(p) for p in list(input)]
 

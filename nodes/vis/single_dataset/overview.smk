@@ -7,15 +7,11 @@ from nodes.vis.single_dataset.scripts.utils \
 
 TOKEN = config["token"]
 
-rule all:
-    input:
-         config["json_out"]
-
-rule transform_data:
+rule overview_transform_data:
     input:
          config["metrics_dir_in"] + "{metric}.csv"
     output:
-         f"data/temp/{TOKEN}/{{metric}}.data"
+         temp(f"data/temp/{TOKEN}/{{metric}}.data")
     run:
          df = pd.read_csv(input[0], index_col=0)
 
@@ -40,7 +36,7 @@ rule collect_data:
          expand(f"data/temp/{TOKEN}/{{metric}}.data",
                 metric=["f1", "mcc", "precision", "recall", "sens", "spec"])
     output:
-         f"data/temp/{TOKEN}/all_metrics.csv"
+         temp(f"data/temp/{TOKEN}/all_metrics.csv")
     run:
          df_res = pd.DataFrame()
          for p in list(input):
@@ -52,7 +48,7 @@ rule create_overview_chart:
     input:
          f"data/temp/{TOKEN}/all_metrics.csv"
     output:
-         config["json_out"]
+         temp(f"data/temp/{TOKEN}/overview.json")
     run:
          dfm = pd.read_csv(input[0], index_col=0)
 
@@ -61,7 +57,7 @@ rule create_overview_chart:
          chart_json =  alt.layer(
              base.mark_circle(filled=True, size=50, opacity=1.0).encode(
                  x=alt.X("group:N", axis=alt.Axis(title=None)),
-                 y=alt.Y("max_metric", axis=alt.Axis(title=None), scale=alt.Scale(domain=[0.0, 1.0])),
+                 y=alt.Y("max_metric", axis=alt.Axis(title=None), scale=alt.Scale(domain=[-0.2, 1.0])),
                  size=alt.Size("count"),
                  color=alt.Color(
                      "type:N",
