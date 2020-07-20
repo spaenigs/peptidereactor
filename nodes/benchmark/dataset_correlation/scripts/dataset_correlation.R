@@ -16,7 +16,7 @@ chunks <- split(1:dim(name_pairs)[1], sort(1:dim(name_pairs)[1]%%10000))
 
 df_res <- data.frame()
 
-for (chunk in chunks[1:10]) {
+for (chunk in chunks) {
 
   finalMatrix <- foreach(i=chunk, .combine=rbind) %dopar% {
 
