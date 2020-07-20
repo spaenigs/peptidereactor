@@ -7,6 +7,7 @@ import nodes.utils as utils
 import nodes.encodings as encodings
 import nodes.filter as dataset_filter
 import nodes.benchmark as benchmark
+import nodes.vis as vis
 
 import sys
 import secrets
@@ -17,7 +18,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi"]
+DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -125,6 +126,17 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
         cd_dir_out="data/{dataset}/benchmark/friedman/"))
 
+    w.add(benchmark.dataset_correlation.rule(
+        group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
+        dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
+
+    w.add(vis.single_dataset.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
+        dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation_dummy.csv",
+        similarity_dir_in="data/{dataset}/benchmark/similarity/",
+        html_out="data/{dataset}/vis/single_dataset.html"))
+
     w.add(utils.collect_benchmark.rule(
         final_dirs_in=[
             "data/{dataset}/benchmark/metrics/",
@@ -133,7 +145,9 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
             "data/{dataset}/benchmark/friedman/"
         ],
         final_files_in=[
-            "data/{dataset}/benchmark/feature_importance.csv"
+            "data/{dataset}/benchmark/feature_importance.csv",
+            "data/{dataset}/benchmark/dataset_correlation.csv",
+            "data/{dataset}/vis/single_dataset.html"
         ],
         csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
 
