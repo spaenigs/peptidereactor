@@ -21,3 +21,7 @@ def is_struc_based(e):
         return True
     else:
         return False
+
+
+def path(paths, prop1, prop2): \
+    return [p for p in paths if prop1 in p and prop2 in p][0]
