@@ -1,0 +1,61 @@
+import re
+
+from nodes.vis.single_dataset.scripts.html_template \
+    import get_template
+
+TOKEN = config["token"]
+
+include:
+    "overview.smk"
+
+include:
+    "metrics.smk"
+
+include:
+    "roc_pr.smk"
+
+include:
+    "similarity.smk"
+
+include:
+    "amino_acid_comp.smk"
+
+include:
+    "datasets_dendrogram.smk"
+
+rule aggregate_charts:
+    input:
+         expand(f"data/temp/{TOKEN}/{{chart}}.json",
+                chart=[
+                    "overview",
+                    "metrics",
+                    "roc_pr",
+                    "similarity",
+                    "amino_acid_comp",
+                    "datasets_dendrogram"
+                ])
+    output:
+         config["html_out"]
+    run:
+         headers, specs = [], []
+         for p in list(input):
+             with open(p) as f:
+                 specs += [f.read()]
+                 if "overview" in p:
+                     headers += ["General overview"]
+                 elif "metrics" in p:
+                     headers += ["Metrics"]
+                 elif "roc_pr" in p:
+                     headers += ["ROC/PR"]
+                 elif "similarity" in p:
+                     headers += ["Similarity"]
+                 elif "amino_acid_comp" in p:
+                     headers += ["Amino acid composition"]
+                 elif "datasets_dendrogram" in p:
+                     headers += ["Datasets correlation"]
+
+         with open(output[0], "w") as f:
+             dataset = re.findall("data/(.*?)/", output[0])[0]
+             html_string = get_template(zip(headers, specs), dataset=dataset)
+             f.write(html_string)
+             f.flush()

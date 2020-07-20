@@ -1,0 +1,55 @@
+import secrets
+
+
+def _get_header(token):
+    return f'''
+rule vis_single_dataset_{token}:'''
+
+
+def _get_benchmark(benchmark_out):
+    return f'''
+    benchmark:
+        "{benchmark_out}"'''
+
+
+def _get_main(fasta_in,
+              classes_in,
+              metrics_dir_in,
+              dataset_correlation_in,
+              similarity_dir_in,
+              html_out):
+    return f'''
+    input:
+         fasta_in="{fasta_in}",
+         classes_in="{classes_in}",
+         metrics_dir_in="{metrics_dir_in}",
+         dataset_correlation_in="{dataset_correlation_in}",
+         similarity_dir_in="{similarity_dir_in}"
+    output:
+         html_out="{html_out}"
+    threads:
+         1000
+    params:
+         snakefile="nodes/vis/single_dataset/Snakefile",
+         configfile="nodes/vis/single_dataset/config.yaml"
+    run:
+         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
+             shell(f"""{{e.snakemake}} -s {{params.snakefile}} --configfile {{params.configfile}}""")
+'''
+
+
+def rule(fasta_in,
+         classes_in,
+         metrics_dir_in,
+         dataset_correlation_in,
+         similarity_dir_in,
+         html_out,
+         benchmark_dir=None):
+    token = secrets.token_hex(4)
+    rule = _get_header(token)
+    if benchmark_dir is not None:
+        benchmark_out = f"{benchmark_dir}vis_single_dataset_{token}.txt"
+        rule += _get_benchmark(benchmark_out)
+    rule += _get_main(fasta_in, classes_in, metrics_dir_in,
+                      dataset_correlation_in, similarity_dir_in, html_out)
+    return rule
