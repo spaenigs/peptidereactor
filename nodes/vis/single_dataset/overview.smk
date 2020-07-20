@@ -55,7 +55,7 @@ rule create_overview_chart:
          base = alt.Chart(dfm)
 
          chart_json =  alt.layer(
-             base.mark_circle(filled=True, size=50, opacity=1.0).encode(
+             base.mark_circle(filled=True, size=50, opacity=0.7).encode(
                  x=alt.X("group:N", axis=alt.Axis(title=None)),
                  y=alt.Y("max_metric", axis=alt.Axis(title=None), scale=alt.Scale(domain=[-0.2, 1.0])),
                  size=alt.Size("count"),
@@ -67,7 +67,7 @@ rule create_overview_chart:
                  ),
                  tooltip="count"
              ),
-             base.mark_rule(opacity=0.3).encode(
+             base.mark_rule(opacity=1.0).encode(
                  x=alt.X("group:N"), y="max_metric", color="type:N"
              )
          ).facet(
