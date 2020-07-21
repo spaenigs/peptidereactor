@@ -30,6 +30,8 @@ rule copy_files:
              cores = workflow.cores
              p = Pool(cores)
              chunk_len = int(np.round(len(from_files)/cores))
+             if chunk_len == 0:
+                 chunk_len = 1
              chunks = chunked(from_files, chunk_len)
              pfunc = partial(filter_files, target_dir=target_dir)
              p.map(pfunc, chunks)
