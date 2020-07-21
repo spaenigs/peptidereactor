@@ -6,14 +6,18 @@ import pandas as pd
 import numpy as np
 
 import joblib
+import os
 
 from nodes.vis.single_dataset.scripts.utils import *
 
 TOKEN = config["token"]
 
+SIMILARITY_DIR_IN = os.path.commonpath(
+    [config["similarity_dir_group_1_in"], config["similarity_dir_group_2_in"]]) + "/"
+
 rule similarity_transform_data:
     input:
-         config["similarity_dir_in"] + "{comparision}/{metric}.csv"
+         SIMILARITY_DIR_IN + "{comparision}/{metric}.csv"
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.data")
     run:
@@ -47,7 +51,7 @@ rule create_heatmap:
     input:
          f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.data"
     output:
-         temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.json")
+         temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.hmjl")
     run:
          d, r = ["<= 0.15", "<= 0.3", "<= 0.6", "<= 1.0"], ["white", "gainsboro", "grey", "black"]
 
@@ -91,7 +95,7 @@ rule create_heatmap:
 
 rule create_similarity_chart:
     input:
-         expand(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.json",
+         expand(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.hmjl",
                 comparision=["all_vs_all", "seq_vs_str"],
                 metric=["diversity", "phi"])
     output:
