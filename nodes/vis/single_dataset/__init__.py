@@ -12,11 +12,11 @@ def _get_benchmark(benchmark_out):
         "{benchmark_out}"'''
 
 
-def _get_main(fasta_in,
-              classes_in,
-              metrics_dir_in,
-              dataset_correlation_in,
-              similarity_dir_in,
+def _get_main(fasta_in, classes_in,
+              metrics_dir_in, dataset_correlation_in,
+              similarity_dir_group_1_in, similarity_dir_group_2_in,
+              ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
+              ensemble_cv_group_1b_in, ensemble_cv_group_2b_in,
               html_out):
     return f'''
     input:
@@ -24,7 +24,12 @@ def _get_main(fasta_in,
          classes_in="{classes_in}",
          metrics_dir_in="{metrics_dir_in}",
          dataset_correlation_in="{dataset_correlation_in}",
-         similarity_dir_in="{similarity_dir_in}"
+         similarity_dir_group_1_in="{similarity_dir_group_1_in}",
+         similarity_dir_group_2_in="{similarity_dir_group_2_in}",
+         ensemble_cv_group_1a_in="{ensemble_cv_group_1a_in}", 
+         ensemble_cv_group_2a_in="{ensemble_cv_group_2a_in}",
+         ensemble_cv_group_1b_in="{ensemble_cv_group_1b_in}", 
+         ensemble_cv_group_2b_in="{ensemble_cv_group_2b_in}"                
     output:
          html_out="{html_out}"
     threads:
@@ -38,11 +43,11 @@ def _get_main(fasta_in,
 '''
 
 
-def rule(fasta_in,
-         classes_in,
-         metrics_dir_in,
-         dataset_correlation_in,
-         similarity_dir_in,
+def rule(fasta_in, classes_in,
+         metrics_dir_in, dataset_correlation_in,
+         similarity_dir_group_1_in, similarity_dir_group_2_in,
+         ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
+         ensemble_cv_group_1b_in, ensemble_cv_group_2b_in,
          html_out,
          benchmark_dir=None):
     token = secrets.token_hex(4)
@@ -50,6 +55,9 @@ def rule(fasta_in,
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}vis_single_dataset_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(fasta_in, classes_in, metrics_dir_in,
-                      dataset_correlation_in, similarity_dir_in, html_out)
+    rule += _get_main(fasta_in, classes_in, metrics_dir_in, dataset_correlation_in,
+                      similarity_dir_group_1_in, similarity_dir_group_2_in,
+                      ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
+                      ensemble_cv_group_1b_in, ensemble_cv_group_2b_in,
+                      html_out)
     return rule
