@@ -1,9 +1,5 @@
-from scipy.cluster import hierarchy
-from scipy.spatial.distance import pdist
-
 import altair as alt
 import pandas as pd
-import numpy as np
 
 import joblib
 import os
@@ -21,12 +17,6 @@ rule similarity_transform_data:
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.data")
     run:
-         def cluster(values, axis):
-             if axis == 1:
-                 values = values.T
-             linkage = hierarchy.linkage(pdist(values), method="average", metric="euclidean")
-             return hierarchy.dendrogram(linkage, no_plot=True, color_threshold=-np.inf)["leaves"]
-
          df = pd.read_csv(input[0], index_col=0)
 
          row_indices = cluster(df.values, axis=0)

@@ -21,7 +21,7 @@ rule pairwise_div_transform_data:
          SIMILARITY_DIR_IN + "{comparision}/diversity.csv",
          ENSEMBLE_CV_DIR_IN + "{comparision}/"
     output:
-         f"data/temp/{TOKEN}/{{comparision}}.csv"
+         temp(f"data/temp/{TOKEN}/{{comparision}}.csv")
     run:
          df_f1 = pd.read_csv(input[0], index_col=0)
          df_div = pd.read_csv(input[1], index_col=0)
@@ -52,7 +52,7 @@ rule create_scatter_chart:
     input:
          f"data/temp/{TOKEN}/{{comparision}}.csv"
     output:
-         f"data/temp/{TOKEN}/{{comparision}}.scjl"
+         temp(f"data/temp/{TOKEN}/{{comparision}}.scjl")
     run:
          df = pd.read_csv(input[0], index_col=0)
 
@@ -89,7 +89,7 @@ rule create_pairwise_diversity_chart:
          expand(f"data/temp/{TOKEN}/{{comparision}}.scjl",
                 comparision=["all_vs_all", "seq_vs_str"])
     output:
-         f"data/temp/{TOKEN}/pairwise_diversity.json"
+         temp(f"data/temp/{TOKEN}/pairwise_diversity.json")
     run:
          paths = list(input)
 
