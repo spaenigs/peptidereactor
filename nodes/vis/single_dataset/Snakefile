@@ -21,6 +21,9 @@ include:
     "pairwise_diversity.smk"
 
 include:
+    "critical_difference.smk"
+
+include:
     "amino_acid_comp.smk"
 
 include:
@@ -30,13 +33,14 @@ rule aggregate_charts:
     input:
          expand(f"data/temp/{TOKEN}/{{chart}}.json",
                 chart=[
-                    # "overview",
-                    # "metrics",
-                    # "roc_pr",
-                    # "similarity",
+                    "overview",
+                    "metrics",
+                    "roc_pr",
+                    "similarity",
                     "pairwise_diversity",
-                    # "amino_acid_comp",
-                    # "datasets_dendrogram"
+                    "critical_difference",
+                    "amino_acid_comp",
+                    "datasets_dendrogram"
                 ])
     output:
          config["html_out"]
@@ -55,6 +59,8 @@ rule aggregate_charts:
                      headers += ["Similarity"]
                  elif "pairwise_diversity" in p:
                      headers += ["Pairwise diversity"]
+                 elif "critical_difference" in p:
+                     headers += ["Critical difference"]
                  elif "amino_acid_comp" in p:
                      headers += ["Amino acid composition"]
                  elif "datasets_dendrogram" in p:
