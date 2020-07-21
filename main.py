@@ -18,7 +18,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"]
+DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"] # ["acp_anticp"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -130,12 +130,17 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
         dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
 
-    w.add(vis.single_dataset.rule(
-        fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
-        metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
-        dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation_dummy.csv",
-        similarity_dir_in="data/{dataset}/benchmark/similarity/",
-        html_out="data/{dataset}/vis/single_dataset.html"))
+    # w.add(vis.single_dataset.rule(
+    #     fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
+    #     metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
+    #     dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
+    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
+    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
+    #     ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+    #     ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+    #     ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+    #     ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+    #     html_out="data/{dataset}/vis/single_dataset.html"))
 
     w.add(utils.collect_benchmark.rule(
         final_dirs_in=[
@@ -147,7 +152,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         final_files_in=[
             "data/{dataset}/benchmark/feature_importance.csv",
             "data/{dataset}/benchmark/dataset_correlation.csv",
-            "data/{dataset}/vis/single_dataset.html"
+            # "data/{dataset}/vis/single_dataset.html"
         ],
         csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
 
