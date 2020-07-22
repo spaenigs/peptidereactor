@@ -29,6 +29,9 @@ include:
 include:
     "datasets_dendrogram.smk"
 
+include:
+    "elapsed_time.smk"
+
 rule aggregate_charts:
     input:
          expand(f"data/temp/{TOKEN}/{{chart}}.json",
@@ -40,7 +43,8 @@ rule aggregate_charts:
                     "pairwise_diversity",
                     "critical_difference",
                     "amino_acid_comp",
-                    "datasets_dendrogram"
+                    "datasets_dendrogram",
+                    "elapsed_time"
                 ])
     output:
          config["html_out"]
@@ -65,6 +69,8 @@ rule aggregate_charts:
                      headers += ["Amino acid composition"]
                  elif "datasets_dendrogram" in p:
                      headers += ["Datasets correlation"]
+                 elif "elapsed_time" in p:
+                     headers += ["Elapsed time"]
 
          with open(output[0], "w") as f:
              dataset = re.findall("data/(.*?)/", output[0])[0]
