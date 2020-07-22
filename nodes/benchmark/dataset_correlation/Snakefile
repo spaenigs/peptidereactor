@@ -1,13 +1,59 @@
+from glob import glob
+from itertools import combinations
+from more_itertools import chunked
+
+import pandas as pd
+
+import yaml
+
 TOKEN = config["token"]
+
+FILES = \
+    glob(config["group_1_in"] + "*.csv") + \
+    glob(config["group_2_in"] + "*.csv")
+
+FILES_PRODUCT_1, FILES_PRODUCT_2 = \
+    zip(*combinations(FILES[:10], 2))
+
+FROMs, TOs = \
+    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 20)])
+
+rule all:
+    input:
+         config["dataset_corr_out"]
+
+rule split_batches:
+    output:
+         f"data/temp/{TOKEN}/batch_{{fr}}_{{to}}.yaml"
+    run:
+         fr, to = int(wildcards.fr), int(wildcards.to)
+
+         res = []
+         for f1, f2 in zip(FILES_PRODUCT_1[fr:to], FILES_PRODUCT_2[fr:to]):
+            res += [[f1, f2]]
+
+         with open(output[0], "w") as f:
+             yaml.safe_dump(res, f)
 
 rule compute_dataset_correlation:
     input:
-         group_1=config["group_1_in"],
-         group_2=config["group_2_in"]
+         f"data/temp/{TOKEN}/batch_{{fr}}_{{to}}.yaml"
     output:
-         config["dataset_corr_out"],
-         temp(directory(f"data/temp/{TOKEN}/"))
+         f"data/temp/{TOKEN}/dataset_correlation_{{fr}}_{{to}}.csv"
     params:
          cores=workflow.cores
     script:
          "scripts/dataset_correlation.R"
+
+rule collect:
+    input:
+         expand(f"data/temp/{TOKEN}/dataset_correlation_{{fr}}_{{to}}.csv",
+                 zip, fr=FROMs, to=TOs)
+    output:
+         config["dataset_corr_out"]
+    run:
+         df_res = pd.DataFrame()
+         for p in list(input):
+             df_res = pd.concat([df_res, pd.read_csv(p, index_col=0)])
+
+         df_res.to_csv(output[0])

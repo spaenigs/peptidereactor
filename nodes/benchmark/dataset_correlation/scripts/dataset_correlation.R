@@ -1,26 +1,19 @@
+suppressPackageStartupMessages(library(dplyr))
 library(gtools)
-library(foreach)
-library(doParallel)
+library(yaml)
+library(MatrixCorrelation)
 
-files <- c(
-  Sys.glob(paste0(snakemake@input[["group_1"]], "*.csv")),
-  Sys.glob(paste0(snakemake@input[["group_2"]], "*.csv"))
-)
+res <- read_yaml(snakemake@input[[1]])
 
-name_pairs <- combinations(length(files),2, files, repeats=FALSE)
+dfs <- lapply(res, function(e) {
+  data.frame(x = e[1], y = e[2])
+})
 
-cl <- makeCluster(snakemake@params$cores)
-registerDoParallel(cl)
-
-chunks <- split(1:dim(name_pairs)[1], sort(1:dim(name_pairs)[1]%%10000))
+name_pairs <- bind_rows(dfs)
 
 df_res <- data.frame()
 
-for (chunk in chunks) {
-
-  finalMatrix <- foreach(i=chunk, .combine=rbind) %dopar% {
-
-    library(MatrixCorrelation)
+for (i in 1:dim(name_pairs)[1]) {
 
     n1 <- as.character(name_pairs[i, 1])
     n2 <- as.character(name_pairs[i, 2])
@@ -45,14 +38,7 @@ for (chunk in chunks) {
       res = 1 - RVadjMaye(m1, m2)
     )
 
-    na.omit(df)
-  }
-
-  token <- paste0(sample(c(0:9, LETTERS[1:6]), 8, T), collapse = '')
-  df_res <- rbind(df_res, finalMatrix)
-  write.csv(df_res, paste0(snakemake@output[[2]], "/dataset_correlation_part_", token, ".csv"))
+    df_res <- rbind(df_res, na.omit(df))
 }
-
-stopCluster(cl)
 
 write.csv(df_res, snakemake@output[[1]])
