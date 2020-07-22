@@ -3,7 +3,7 @@
 smk_args=$@
 
 if docker image inspect peptidereactor-img > /dev/null 2>&1; then
-  docker run -v $PWD:/snakemake \
+  docker run -t -i -v $PWD:/snakemake \
            -v $PWD/data:/snakemake/data \
            -v $DB_DIR:/snakemake/db_tmp \
            -u `id -u $USER` \
