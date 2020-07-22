@@ -32,12 +32,8 @@ rule transform_heat_map_data:
          source = pd.DataFrame({"x": x.ravel(), "y": y.ravel(), "cd": heatmap_data.values.ravel()})
          source["cd_cat"] = source["cd"].apply((lambda x: "critical different" if np.abs(x) > CD else "no difference"))
 
-         e1, e2 = [], []
-         for n, s in source.iterrows():
-             e1 += [df_cd.index[int(s["y"])]]
-             e2 += [df_cd.columns[int(s["x"])]]
-
-         source["Encoding1"], source["Encoding2"] = e1, e2
+         source["Encoding1"] = source["x"].apply(lambda i: heatmap_data.columns[i])
+         source["Encoding2"] = source["y"].apply(lambda i: heatmap_data.index[i])
 
          source.to_csv(output[0])
 

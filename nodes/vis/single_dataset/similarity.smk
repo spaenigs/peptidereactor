@@ -26,12 +26,9 @@ rule similarity_transform_data:
          x, y = np.meshgrid(range(0, heatmap_data.shape[1]), range(0, heatmap_data.shape[0]))
          source = pd.DataFrame({"x": x.ravel(), "y": y.ravel(), "Similarity": heatmap_data.values.ravel()})
 
-         e1, e2 = [], []
-         for n, s in source.iterrows():
-             e1 += [df.index[int(s["y"])]]
-             e2 += [df.columns[int(s["x"])]]
+         source["Encoding1"] = source["x"].apply(lambda i: heatmap_data.columns[i])
+         source["Encoding2"] = source["y"].apply(lambda i: heatmap_data.index[i])
 
-         source["Encoding1"], source["Encoding2"] = e1, e2
          source["Similarity_cat"] = source.Similarity.apply(
              lambda x: "<= 0.1" if x <= 0.1 else "<= 0.3" if x <= 0.3 else "<= 0.6" if x <= 0.6 else "<= 1.0")
 
@@ -43,7 +40,7 @@ rule create_heatmap:
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.hmjl")
     run:
-         d, r = ["<= 0.15", "<= 0.3", "<= 0.6", "<= 1.0"], ["white", "gainsboro", "grey", "black"]
+         d, r = ["<= 0.1", "<= 0.3", "<= 0.6", "<= 1.0"], ["white", "gainsboro", "grey", "black"]
 
          x_config = alt.Axis(labels=False, ticks=False)
          y_config = alt.Axis(labels=False, ticks=False)
