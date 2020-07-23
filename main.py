@@ -18,7 +18,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"] # ["acp_anticp"]
+DATASETS = ["acp_anticp"]#, "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"] # ["acp_anticp"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -107,7 +107,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         benchmark_dir=w.benchmark_dir))
 
     w.add(benchmark.cross_validation.ensemble.rule(
-        group_1_in="data/{dataset}/csv/all/", group_2_in="data/{dataset}/csv/all/",
+        group_1_in=all_encodings_dir, group_2_in=all_encodings_dir,
         group_1_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
         group_2_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
         benchmark_dir=w.benchmark_dir))
@@ -130,18 +130,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
         dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
 
-    # w.add(vis.single_dataset.rule(
-    #     fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
-    #     dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
-    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
-    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
-    #     ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
-    #     ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
-    #     ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
-    #     ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-    #     html_out="data/{dataset}/vis/single_dataset.html"))
-
     w.add(utils.collect_benchmark.rule(
         final_dirs_in=[
             "data/{dataset}/benchmark/metrics/",
@@ -151,13 +139,20 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         ],
         final_files_in=[
             "data/{dataset}/benchmark/feature_importance.csv",
-            "data/{dataset}/benchmark/dataset_correlation.csv",
-            # "data/{dataset}/vis/single_dataset.html"
+            "data/{dataset}/benchmark/dataset_correlation.csv"
         ],
         csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
 
+    # TODO check vis API!!
+    raise ValueError("check vis API!!")
+    w.add(vis.single_dataset.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
+        encoding_benchmark_dir_in="data/{dataset}/benchmark/", html_out="data/{dataset}/vis/single_dataset.html",
+        benchmark_dir=w.benchmark_dir, benchmark_csv_in=w.benchmark_dir + "benchmark.csv"))
+
     target = \
-        expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
+        expand("data/{dataset}/vis/single_dataset.html", dataset=DATASETS)
+        # expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
