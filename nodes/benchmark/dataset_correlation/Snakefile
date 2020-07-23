@@ -5,6 +5,7 @@ from more_itertools import chunked
 import pandas as pd
 
 import yaml
+from numpy.distutils.system_info import dfftw_info
 
 TOKEN = config["token"]
 
@@ -13,10 +14,10 @@ FILES = \
     glob(config["group_2_in"] + "*.csv")
 
 FILES_PRODUCT_1, FILES_PRODUCT_2 = \
-    zip(*combinations(FILES, 2))
+    zip(*combinations(FILES[:10], 2))
 
 FROMs, TOs = \
-    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 200)])
+    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 5)])
 
 rule all:
     input:
@@ -56,4 +57,5 @@ rule collect:
          for p in list(input):
              df_res = pd.concat([df_res, pd.read_csv(p, index_col=0)])
 
+         df_res.index = range(0, df_res.shape[0])
          df_res.to_csv(output[0])
