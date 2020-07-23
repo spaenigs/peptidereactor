@@ -9,6 +9,7 @@ import numpy as np
 
 import os
 import yaml
+import warnings
 
 
 def diversity_score(y_pred_1, y_pred_2):
@@ -17,6 +18,7 @@ def diversity_score(y_pred_1, y_pred_2):
 
 
 def phi_score(tn, fp, fn, tp):
+    warnings.filterwarnings("ignore")
     return (tn*tp - fn*fp) / np.sqrt((tn+fn) * (fp+tp)* (fn+tp) * (tn+fp))
 
 
@@ -125,7 +127,7 @@ rule compute:
              ng1, ng2 = \
                  tuple[0].replace("y_pred_cv_", ""), \
                  tuple[1].replace("y_pred_cv_", "")
-             res = float(np.mean(phi_lst))
+             res = 0.0 if len(phi_lst) == 0 else float(np.mean(phi_lst))
              return {ng1: {ng2: res}, ng2: {ng1: res}}
 
          with open(input[0]) as f:
