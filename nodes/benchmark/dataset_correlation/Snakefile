@@ -14,10 +14,10 @@ FILES = \
     glob(config["group_2_in"] + "*.csv")
 
 FILES_PRODUCT_1, FILES_PRODUCT_2 = \
-    zip(*combinations(FILES[:10], 2))
+    zip(*combinations(FILES, 2))
 
 FROMs, TOs = \
-    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 5)])
+    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 200)])
 
 rule all:
     input:
