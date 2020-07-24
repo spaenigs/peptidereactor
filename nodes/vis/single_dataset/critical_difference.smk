@@ -10,7 +10,9 @@ from nodes.vis.single_dataset.scripts.utils import cluster
 
 TOKEN = config["token"]
 
-with open(config["nemenyi_in"]) as f:
+CRIT_DIFF_DIR_IN = config["crit_diff_dir_in"]
+
+with open(CRIT_DIFF_DIR_IN + "nemenyi.yaml") as f:
     nm = yaml.safe_load(f)
     CD = nm["cd"]
 
@@ -18,7 +20,7 @@ DOMAIN, RANGE = ["critical different", "no difference"], ["black", "gainsboro"]
 
 rule transform_heat_map_data:
     input:
-         config["crit_diff_in"]
+         CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
          temp(f"data/temp/{TOKEN}/heatmap.csv")
     run:
@@ -40,7 +42,7 @@ rule transform_heat_map_data:
 rule transform_bar_chart_data:
     input:
          config["metrics_dir_in"] + "f1.csv",
-         config["crit_diff_in"]
+         CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
          temp(f"data/temp/{TOKEN}/barchart.csv")
     run:
@@ -78,7 +80,7 @@ rule transform_bar_chart_data:
 
 rule transform_dots_chart_data:
     input:
-         config["crit_diff_in"]
+         CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
          temp(f"data/temp/{TOKEN}/dotschart.csv")
     run:

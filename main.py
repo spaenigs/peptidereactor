@@ -18,7 +18,7 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["acp_anticp"]#, "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"] # ["acp_anticp"]
+DATASETS = ["hiv_protease", "ace_vaxinpad", "hiv_ddi", "hiv_nvp", "hiv_sqv"] #, "acp_anticp"]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -143,8 +143,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         ],
         csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
 
-    # TODO check vis API!!
-    raise ValueError("check vis API!!")
     w.add(vis.single_dataset.rule(
         fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
         encoding_benchmark_dir_in="data/{dataset}/benchmark/", html_out="data/{dataset}/vis/single_dataset.html",

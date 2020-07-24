@@ -25,8 +25,7 @@ def _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in,
          ensemble_cv_group_2a_in="{encoding_benchmark_dir_in + "ensemble/seq_vs_str/structure_based/"}",
          ensemble_cv_group_1b_in="{encoding_benchmark_dir_in + "ensemble/all_vs_all/group_1/"}", 
          ensemble_cv_group_2b_in="{encoding_benchmark_dir_in + "ensemble/all_vs_all/group_2/"}",
-         crit_diff_in="{encoding_benchmark_dir_in + "friedman/diff_matrix.csv"}", 
-         nemenyi_in="{encoding_benchmark_dir_in + "friedman/nemenyi.yaml"}",
+         crit_diff_dir_in="{encoding_benchmark_dir_in + "friedman/"}",
          benchmark_csv_in="{benchmark_csv_in}"
     output:
          html_out="{html_out}"

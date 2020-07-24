@@ -1,76 +1,111 @@
-from sklearn.metrics import davies_bouldin_score
+from more_itertools import chunked
+from iFeature import AAC
+from scipy.spatial import ConvexHull
+from modlamp.core import read_fasta
+from glob import glob
+from sklearn.manifold import TSNE
 
 import pandas as pd
 import altair as alt
-import numpy as np
 
-df_tsne = pd.read_csv("datasets_tsne.csv", index_col=0)
-df_tsne["group"] = df_tsne["dataset"].apply(lambda e: e[:3])
+import re
 
-# df_tsne.groupby().apply(lambda x: davies_bouldin_score(X, labels)
+fastas = glob("data/*/seqs.fasta")
+classes = glob("data/*/classes.txt")
 
-from scipy.spatial import ConvexHull, convex_hull_plot_2d
-points = df_tsne.loc[df_tsne["dataset"].isin(["amp_csamp"]), :].iloc[:, :-2].values
-hull = ConvexHull(points)
-print(hull.area)
-# print(df_tsne.head())
+df_res = pd.DataFrame()
+for fasta_path, class_path in zip(fastas, classes):
+    seqs, names = read_fasta(fasta_path)
+    with open(class_path) as f:
+        classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
+    seq_tuples = [[name, tup[0]]
+                  for name, tup in zip(names, zip(seqs, classes))
+                  if tup[1] == 1]
+    df_tmp = pd.DataFrame([res[1:] for res in AAC.AAC(seq_tuples, order=None)][1:])
+    df_tmp["dataset"] = re.findall("data/(.*?)/", fasta_path)[0]
+    df_res = pd.concat([df_res, df_tmp])
 
-base = alt.Chart(df_tsne.loc[df_tsne["dataset"].isin(["amp_csamp"]), :])\
+df_res.columns = [res[1:] for res in AAC.AAC(seq_tuples, order=None)][0] + [df_res.columns[-1]]
 
-scatter = base.mark_circle().encode(
-    x="0:Q",
-    y="1:Q",
-    color="group:N",
-    # facet=alt.Facet('dataset:N', columns=6)
-).resolve_scale(
-    x="independent",
-    y="independent"
-).properties(
-    height=100,
-    width=100
-)
+X_embedded = TSNE(n_components=2, n_jobs=10).fit_transform(df_res.iloc[:, :-1].values)
 
-hullc = alt.Chart().mark_point(color="red").encode(
-    x="0:Q",
-    y="1:Q"
-)
+df_tsne = pd.DataFrame(X_embedded)
+df_tsne.columns = ["x", "y"]
+df_tsne["dataset"] = df_res["dataset"].to_list()
 
-# import matplotlib.pyplot as plt
-# # plt.plot(points[:,0], points[:,1], 'o')
-# for simplex in hull.simplices:
-#     print((points[simplex, 0], points[simplex, 1]))
-#
-# print(hull.simplices)
-#
-# plt.show()
+# df_tsne.to_csv("datasets_tsne.csv")
+# df_tsne = pd.read_csv("datasets_tsne.csv", index_col=0)
 
-d = df_tsne.loc[df_tsne["dataset"].isin(["amp_csamp"]), :].iloc[hull.vertices, :-2]
-source1 = pd.DataFrame({"x": d["0"], "y": d["1"]})
-source1["order"] = range(1, source1.shape[0]+1)
-source1.index = range(0, source1.shape[0])
+df_convex_hull = df_tsne.groupby(by="dataset")\
+    .apply(lambda df: ConvexHull(df.iloc[:, :-1].values))\
+    .to_frame("convex_hull")
+df_convex_hull["area"] = df_convex_hull["convex_hull"].apply(lambda h: h.area)
+df_convex_hull.sort_values(by="area", inplace=True)
 
-print(source1)
+xs, ys = [], []
+for i in df_convex_hull.index:
+    df_tmp = df_tsne.loc[df_tsne["dataset"].isin([i]), :]
+    x = df_tmp.iloc[df_convex_hull.loc[i, "convex_hull"].vertices, 0]
+    y = df_tmp.iloc[df_convex_hull.loc[i, "convex_hull"].vertices, 1]
+    xs += x.to_list()
+    ys += y.to_list()
 
-hullc = alt.Chart(source1).mark_line().encode(
-    x="x:Q",
-    y="y:Q",
-    order="order",
-    tooltip=["order", "x", "y"]
-)
+xs, ys = sorted(xs), sorted(ys)
+x_min, x_max,y_min, y_max = xs[0], xs[-1], ys[0], ys[-1]
 
-# hullc.save("chart.html")
+chart_rows = []
+for c in chunked(range(15), 5):
 
-source = pd.DataFrame({
-    "x": source1["x"].to_list() + [source1["x"].to_list()[0]],
-    "y": source1["y"].to_list() + [source1["y"].to_list()[0]],
-    "order": source1["order"].to_list() + [10]}
-)
+    chart_column = []
+    for n in df_convex_hull.index[c[0]:c[-1]]:
 
-print(source)
+        df_tmp = df_tsne.loc[df_tsne["dataset"].isin([n]), :]
+        scatterc = alt.Chart(df_tmp).mark_circle(size=3, color="#fdc086").encode(
+            x=alt.X(
+                "x:Q",
+                title="tSNE-1",
+                axis=alt.Axis(grid=False),
+                scale=alt.Scale(domain=[x_min, x_max])
+            ),
+            y=alt.Y(
+                "y:Q",
+                title="tSNE-2",
+                axis=alt.Axis(grid=False),
+                scale=alt.Scale(domain=[y_min, y_max])
+            ),
+            tooltip="dataset:N"
+        ).properties(
+            height=130,
+            width=130
+        )
 
-c2 = alt.Chart(source).mark_line().encode(
-    x="x:Q",
-    y="y:Q",
-    order="order"
-)
-(hullc | c2).save("chart.html")
+        hull = df_convex_hull.loc[n, "convex_hull"]
+        points = df_tmp.iloc[hull.vertices, :]
+        source = pd.DataFrame({"x": points["x"], "y": points["y"]})
+        source = pd.concat([source, source.iloc[:1, :]])
+        source["order"] = range(1, source.shape[0]+1)
+        source.index = range(0, source.shape[0])
+        hullc = alt.Chart(source).mark_line(
+            color="#386cb0",
+            strokeDash=[5, 3],
+            strokeWidth=1
+        ).encode(
+            x="x:Q",
+            y="y:Q",
+            order="order"
+        )
+
+        df_text = pd.DataFrame({"x": [0], "y": [0], "area": [hull.area]})
+        textc = alt.Chart(df_text).mark_text().encode(
+            x="x:Q",
+            y="y:Q",
+            text="text:N"
+        ).transform_calculate(
+            text="join(['area=', round(datum.area)], '')"
+        )
+
+        chart_column += [alt.layer(scatterc, hullc, textc, title=alt.TitleParams(text=n, anchor="middle"))]
+
+    chart_rows += [alt.hconcat(*chart_column)]
+
+alt.vconcat(*chart_rows).save("chart.html")
