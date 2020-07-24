@@ -2,12 +2,23 @@ import altair as alt
 
 def get_template(spec_tuples, dataset):
 
-    divs, specs = "", ""
+    links, divs, specs = "", "", ""
     for i, (header, spec) in enumerate(spec_tuples, start=1):
+        id = header.replace(" ", "").lower()
+        links += f"""
+            <li class="nav-item">
+                <a aria-controls="{id}" aria-selected="true" class="nav-link" data-toggle="tab" href="#{id}"
+                   id="{id}-tab" role="tab">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-bar-chart-2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    {header}
+                </a>
+            </li>
+        """
         divs += f"""
-            <h5>{header}</h5>
-            <div>
-                <div class="border-bottom mb-3 text-center"><div id='vis{i}'></div></div>
+            <div aria-labelledby="{id}-tab" class="tab-pane fade show" id="{id}" role="tabpanel">
+                <div >
+                    <div class="border-bottom mb-3 text-center"><div id='vis{i}'></div></div>
+                </div>            
             </div>
         """
         specs += f"vegaEmbed('#vis{i}', {spec}).catch(console.error);\n"
@@ -178,34 +189,14 @@ def get_template(spec_tuples, dataset):
         <nav class="col-md-3 col-lg-1 d-md-block bg-white sidebar collapse" id="sidebarMenu">
             <div class="sidebar-sticky pt-5">
                 <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a aria-controls="home" aria-selected="true" class="nav-link active" data-toggle="tab" href="#home"
-                           id="home-tab" role="tab">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-folder"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                            Home
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a aria-controls="profile" aria-selected="false" class="nav-link" data-toggle="tab" href="#profile"
-                           id="profile-tab" role="tab">Profile</a>
-                    </li>
-                    <li class="nav-item">
-                        <a aria-controls="contact" aria-selected="false" class="nav-link" data-toggle="tab" href="#contact"
-                           id="contact-tab" role="tab">Contact</a>
-                    </li>
+                    {links}
                 </ul>
             </div>
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-11 px-md-4" role="main">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
                 <div class="tab-content" id="myTabContent">
-                    <div aria-labelledby="home-tab" class="tab-pane fade show active" id="home" role="tabpanel">
-                        {divs}
-                    </div>
-                    <div aria-labelledby="profile-tab" class="tab-pane fade" id="profile" role="tabpanel">
-                        {divs}
-                    </div>
-                    <div aria-labelledby="contact-tab" class="tab-pane fade" id="contact" role="tabpanel">.yxcc</div>
+                    {divs}
                 </div>
             </div>
         </main>
