@@ -1,3 +1,4 @@
+from sklearn.metrics import davies_bouldin_score
 from glob import glob
 
 import pandas as pd
@@ -9,8 +10,13 @@ def _ravel_and_annotate(df1, df2, df1_class, cat, div, e1, e2, f1_e1, f1_e2):
         "x": df1.values.ravel(),
         "y": df2.values.ravel(),
         "class": df1_class.values.ravel()})
+    df.dropna(inplace=True)
+    dbs = davies_bouldin_score(df.iloc[:, :2].values, df["class"])
     df["diversity"] = \
-        f"{cat} ({np.round(div, 2)}), e1: {e1} ({np.round(f1_e1, 1)}), e2: {e2} ({np.round(f1_e2, 1)})"
+        f"{cat} ({np.round(div, 2)}), " \
+        f"e1: {e1} ({np.round(f1_e1, 1)}), " \
+        f"e2: {e2} ({np.round(f1_e2, 1)}) - " \
+        f"DBS: {np.round(dbs, 2)}"
     return df
 
 

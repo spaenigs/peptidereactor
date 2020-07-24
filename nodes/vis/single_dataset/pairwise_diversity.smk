@@ -62,8 +62,8 @@ rule create_scatter_chart:
              title = "Sequence vs. structure based encoding"
 
          chart = alt.Chart(df).mark_point(text=title, filled=True, size=5, opacity=1).encode(
-             x=alt.X("x", title=f"Predicted probability e1"),
-             y=alt.Y("y", title=f"Predicted probability e2"),
+             x=alt.X("x", title=f"Predicted probability e1", scale=alt.Scale(domain=[0.0, 1.0])),
+             y=alt.Y("y", title=f"Predicted probability e2", scale=alt.Scale(domain=[0.0, 1.0])),
              color=alt.Color(
                  "class:N",
                  scale=alt.Scale(domain=[0, 1], range=["#7570b3", "#d95f02"])),
