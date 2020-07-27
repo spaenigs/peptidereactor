@@ -1,7 +1,7 @@
-import re
+import jinja2 as j2
 
-from nodes.vis.single_dataset.scripts.html_template \
-    import get_template
+import json
+import re
 
 TOKEN = config["token"]
 
@@ -49,31 +49,41 @@ rule aggregate_charts:
     output:
          config["html_out"]
     run:
-         headers, specs = [], []
-         for p in list(input):
+         objects = []
+         for i, p in enumerate(list(input), start=1):
+             tmp = {}
              with open(p) as f:
-                 specs += [f.read()]
+                 tmp["i"] = i
+                 tmp["spec"] = json.load(f)
                  if "overview" in p:
-                     headers += ["General overview"]
+                     tmp["header"] = "General overview"
                  elif "metrics" in p:
-                     headers += ["Metrics"]
+                     tmp["header"] = "Metrics"
                  elif "roc_pr" in p:
-                     headers += ["ROC/PR"]
+                     tmp["header"] = "ROC and PR"
                  elif "similarity" in p:
-                     headers += ["Similarity"]
+                     tmp["header"] = "Similarity"
                  elif "pairwise_diversity" in p:
-                     headers += ["Pairwise diversity"]
+                     tmp["header"] = "Pairwise diversity"
                  elif "critical_difference" in p:
-                     headers += ["Critical difference"]
+                     tmp["header"] = "Critical difference"
                  elif "amino_acid_comp" in p:
-                     headers += ["Amino acid composition"]
+                     tmp["header"] = "Amino acid composition"
                  elif "datasets_dendrogram" in p:
-                     headers += ["Datasets correlation"]
+                     tmp["header"] = "Datasets correlation"
                  elif "elapsed_time" in p:
-                     headers += ["Elapsed time"]
+                     tmp["header"] = "Elapsed time"
+                 tmp["id"] = tmp["header"].replace(" ", "").lower()
+                 objects += [tmp]
 
-         with open(output[0], "w") as f:
-             dataset = re.findall("data/(.*?)/", output[0])[0]
-             html_string = get_template(zip(headers, specs), dataset=dataset)
-             f.write(html_string)
-             f.flush()
+         env = j2.Environment(
+             loader=j2.FileSystemLoader("nodes/vis/single_dataset/templates/"),
+             autoescape=j2.select_autoescape(["html", "xml"])
+         )
+
+         dataset = re.findall("data/(.*?)/", output[0])[0]
+
+         template = env.get_template("single_dataset.html")
+         template\
+             .stream(dataset=dataset, objects=objects)\
+             .dump(output[0])
