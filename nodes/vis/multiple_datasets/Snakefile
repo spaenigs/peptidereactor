@@ -1,0 +1,49 @@
+from glob import glob
+
+import jinja2 as j2
+
+import re
+import os
+
+TOKEN = config["token"]
+HTML_BASE_DIR = os.path.dirname(config["html_out"]) + "/"
+HTML_DIR = HTML_BASE_DIR + "html/"
+
+rule all:
+    input:
+         config["html_out"]
+
+rule copy_single_html_files:
+    input:
+         config["html_files_in"]
+    output:
+         directory(HTML_DIR)
+    run:
+         for p in list(input):
+             dataset = re.findall("data/(.*?)/", p)[0]
+             shell(f"""
+                mkdir -p {{output[0]}}{dataset};
+                cp {p} {{output[0]}}{dataset}/single_dataset.html;
+             """)
+
+rule create_overview_site:
+    input:
+         HTML_DIR
+    output:
+         config["html_out"]
+    run:
+         objects = []
+         for p in glob(input[0] + "*/single_dataset.html"):
+             if ".html" in p:
+                dataset = re.findall(input[0] + "(.*?)/", p)[0]
+                objects +=  [{"dataset": dataset, "p": p.replace(HTML_BASE_DIR, "")}]
+
+         env = j2.Environment(
+              loader=j2.FileSystemLoader("nodes/vis/multiple_datasets/templates/"),
+              autoescape=j2.select_autoescape(["html", "xml"])
+         )
+
+         template = env.get_template("multiple_datasets.html")
+         template\
+             .stream(objects=objects)\
+             .dump(output[0])
