@@ -11,7 +11,7 @@ TOKEN = config["token"]
 
 rule all:
     input:
-         f"data/temp/{TOKEN}/dirs_aggregated.txt"
+         f"data/temp/{TOKEN}/files_checked.txt"
 
 rule copy_files:
     input:
@@ -38,5 +38,31 @@ rule copy_files:
 
          for d in list(input):
              run(glob(d + "*.csv"), config["dir_out"])
+
+         shell("touch {output}")
+
+rule check_files:
+    input:
+         config["dirs_in"],
+         f"data/temp/{TOKEN}/dirs_aggregated.txt"
+    output:
+         temp(f"data/temp/{TOKEN}/files_checked.txt")
+    run:
+         final_csvs_1 = [os.path.basename(f)
+                         for f in os.listdir(config["dir_out"]) if ".csv" in f]
+
+         final_csvs_2 = []
+         for d in input[:2]:
+             for f in os.listdir(d):
+                 path = d + f
+                 if ".csv" in path and os.path.getsize(path) > 0:
+                     final_csvs_2 += [f]
+
+         s1, s2 = sorted(final_csvs_1), sorted(final_csvs_2)
+         if s1 != s2:
+             missing_files = set(s2).difference(s1)
+             raise ValueError(f"Number of files differ! ".upper() + \
+                              f"Should: {len(s2)}, but is {len(s1)}. "
+                              f"Failed to copy: {list(missing_files)}")
 
          shell("touch {output}")
