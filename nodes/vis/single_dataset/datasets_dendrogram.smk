@@ -1,7 +1,6 @@
-import json
+import jinja2 as j2
 
-from nodes.vis.single_dataset.scripts.vega_specs.dendrogram \
-    import vega_dendrogram
+import json
 
 TOKEN = config["token"]
 
@@ -20,11 +19,13 @@ rule create_dendrogram:
     output:
          temp(f"data/temp/{TOKEN}/datasets_dendrogram.json")
     run:
+         env = j2.Environment(
+             loader=j2.FileSystemLoader("nodes/vis/single_dataset/templates/"),
+             autoescape=j2.select_autoescape(["json"])
+         )
+
          with open(input[0]) as f:
-             v = vega_dendrogram(json.load(f))
-
-         with open(output[0], "w") as f:
-            f.write(json.dumps(v))
-            f.flush()
-
-
+             template = env.get_template("dendrogram.json")
+             template\
+                 .stream(values=json.load(f))\
+                 .dump(output[0])
