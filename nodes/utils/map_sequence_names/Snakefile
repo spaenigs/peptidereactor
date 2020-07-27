@@ -1,4 +1,5 @@
 from modlamp.core import read_fasta, save_fasta
+from Bio.Data.IUPACData import protein_letters
 
 import yaml
 import re
@@ -23,6 +24,8 @@ rule check:
          for name, seq in zip(names, seqs):
              if re.search("\d+", seq) is not None:
                  report += [f"found number in sequence {name}: {seq}"]
+             elif len([aa for aa in seq if aa not in protein_letters]) > 0:
+                 report += [f"found invalid amino acid in sequence {name}: {seq}"]
 
          with open(input[1]) as f:
              try:
