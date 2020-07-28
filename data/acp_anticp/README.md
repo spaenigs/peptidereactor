@@ -2,7 +2,7 @@
 
 ##### Description
 
-    The dataset is taken from [1]. Downloaded from https://webs.iiitd.edu.in/raghava/anticp/datasets.php.
+    The dataset (balanced 1) is taken from [1]. Downloaded from https://webs.iiitd.edu.in/raghava/anticp/datasets.php.
     
 ##### Reference
 
