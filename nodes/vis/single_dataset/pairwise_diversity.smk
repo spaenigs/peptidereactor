@@ -8,6 +8,8 @@ from nodes.vis.single_dataset.scripts.pairwise_diversity import *
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 SIMILARITY_DIR_IN = os.path.commonpath(
     [config["similarity_dir_group_1_in"], config["similarity_dir_group_2_in"]]) + "/"
 
@@ -21,7 +23,7 @@ rule pairwise_div_transform_data:
          SIMILARITY_DIR_IN + "{comparision}/diversity.csv",
          ENSEMBLE_CV_DIR_IN + "{comparision}/"
     output:
-         temp(f"data/temp/{TOKEN}/{{comparision}}.csv")
+         config["html_dir_out"] + f"pairwise_similarity/{{comparision}}.json"
     run:
          df_f1 = pd.read_csv(input[0], index_col=0)
          df_div = pd.read_csv(input[1], index_col=0)
@@ -46,29 +48,30 @@ rule pairwise_div_transform_data:
              get_highest_f1_combination(input[2], indices_1[0], indices_2[0], df_div_sub, medians)
 
          df = pd.concat([df_crap, df_low, df_mid, df_high, df_highest_f1])
-         df.dropna().to_csv(output[0])
+         df.dropna().to_json(output[0], orient="records")
 
 rule create_scatter_chart:
     input:
-         f"data/temp/{TOKEN}/{{comparision}}.csv"
+         config["html_dir_out"] + f"pairwise_similarity/{{comparision}}.json"
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}.scjl")
     run:
-         df = pd.read_csv(input[0], index_col=0)
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
          if wildcards.comparision == "all_vs_all":
              title = "All vs. all encodings"
          else:
              title = "Sequence vs. structure based encoding"
 
-         chart = alt.Chart(df).mark_point(text=title, filled=True, size=5, opacity=1).encode(
-             x=alt.X("x", title=f"Predicted probability e1", scale=alt.Scale(domain=[0.0, 1.0])),
-             y=alt.Y("y", title=f"Predicted probability e2", scale=alt.Scale(domain=[0.0, 1.0])),
+         chart = alt.Chart(url).mark_point(text=title, filled=True, size=5, opacity=1).encode(
+             x=alt.X("x:Q", title=f"Predicted probability e1", scale=alt.Scale(domain=[0.0, 1.0])),
+             y=alt.Y("y:Q", title=f"Predicted probability e2", scale=alt.Scale(domain=[0.0, 1.0])),
              color=alt.Color(
                  "class:N",
                  scale=alt.Scale(domain=[0, 1], range=["#7570b3", "#d95f02"])),
              column=alt.Column(
-                 "diversity",
+                 "diversity:N",
                  header=alt.Header(labelOrient='left'),
                  title=None
              )

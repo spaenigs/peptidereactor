@@ -12,7 +12,7 @@ def _get_benchmark(benchmark_out):
         "{benchmark_out}"'''
 
 
-def _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_out):
+def _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_dir_out):
     return f'''
     input:
          fasta_in="{fasta_in}",
@@ -28,7 +28,7 @@ def _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in,
          crit_diff_dir_in="{encoding_benchmark_dir_in + "friedman/"}",
          benchmark_csv_in="{benchmark_csv_in}"
     output:
-         html_out="{html_out}"
+         html_dir_out=directory("{html_dir_out}")
     threads:
          1000
     params:
@@ -40,12 +40,12 @@ def _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in,
 '''
 
 
-def rule(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_out,
+def rule(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_dir_out,
          benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}vis_single_dataset_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_out)
+    rule += _get_main(fasta_in, classes_in, encoding_benchmark_dir_in, benchmark_csv_in, html_dir_out)
     return rule

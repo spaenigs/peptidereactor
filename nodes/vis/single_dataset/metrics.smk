@@ -8,14 +8,15 @@ from nodes.vis.single_dataset.scripts.utils \
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
 NR_TOP_ENCODINGS = 20
 
 rule metrics_transform_data:
     input:
          config["metrics_dir_in"] + "{metric}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{metric}}.scatter_plot_data"),
-         temp(f"data/temp/{TOKEN}/{{metric}}.box_plot_data")
+         config["html_dir_out"] + f"metrics/{{metric}}_scatter_plot_data.json",
+         config["html_dir_out"] + f"metrics/{{metric}}_box_plot_data.json"
     run:
          def melt_and_annotate(df, metric):
              df["fold"] = df.index
@@ -40,33 +41,48 @@ rule metrics_transform_data:
          box_plot_data["type"] = \
              ["structure based" if is_struc_based(e) else "sequence based" for e in box_plot_data["Encoding"]]
 
-         scatter_plot_data.to_csv(output[0])
-         box_plot_data.to_csv(output[1])
+         scatter_plot_data.to_json(output[0], orient="records")
+         box_plot_data.to_json(output[1], orient="records")
 
 rule create_metrics_chart:
     input:
-         f"data/temp/{TOKEN}/{{metric}}.scatter_plot_data",
-         f"data/temp/{TOKEN}/{{metric}}.box_plot_data"
+         config["html_dir_out"] + f"metrics/{{metric}}_scatter_plot_data.json",
+         config["html_dir_out"] + f"metrics/{{metric}}_box_plot_data.json"
     output:
+         config["html_dir_out"] + f"metrics/{{metric}}_hline_plot_data.json",
+         config["html_dir_out"] + f"metrics/{{metric}}_anno_plot_data.json",
+         config["html_dir_out"] + f"metrics/{{metric}}_vline_plot_data.json",
          temp(f"data/temp/{TOKEN}/{{metric}}.joblib")
     run:
-         scatter_plot_data = pd.read_csv(input[0], index_col=0)
-         box_plot_data = pd.read_csv(input[1], index_col=0)
+         scatter_plot_data = pd.read_json(input[0])
+         box_plot_data = pd.read_json(input[1])
 
          hline_data = pd.DataFrame({'a': [scatter_plot_data["Value"][NR_TOP_ENCODINGS]]})
          anno_struc = scatter_plot_data.loc[scatter_plot_data["type"] == "structure based", :]
+         vline_data = pd.DataFrame({'y': [0.0]})
+
+         metric = wildcards.metric
+
+         # adopt url, such that it can be found from server
+         repl_path = \
+             lambda path: DATASET + "/" + path.replace(config["html_dir_out"], "")
+
+         url_scatter, url_box, url_hline, url_anno, url_vline = \
+             input[0], input[1], output[0], output[1], output[2]
 
          d, r = ["sequence based", "structure based"], ["#7570b3", "#d95f02"]
 
          scatter = alt.layer(
-             alt.Chart(scatter_plot_data).mark_circle().encode(
+             alt.Chart(repl_path(url_scatter)).mark_circle().encode(
                  x=alt.X(
                      "Encoding:N", sort="-y",
                      axis=alt.Axis(labels=False, ticks=False, title=None)
                  ),
                  y=alt.Y(
-                     "Value:Q", title=wildcards.metric,
-                     axis=alt.Axis(grid=False), scale=alt.Scale(domain=[-1.0 if wildcards.metric == "mcc" else 0.0, 1.0])
+                     "Value:Q", title=metric,
+                     axis=alt.Axis(grid=False), scale=alt.Scale(
+                         domain=[-1.0 if metric == "mcc" else 0.0, 1.0]
+                     )
                  ),
                  size=alt.value(20),
                  opacity=alt.condition(
@@ -79,37 +95,40 @@ rule create_metrics_chart:
              ).properties(
                 width=600
              ),
-             alt.Chart(hline_data).mark_rule(
+             alt.Chart(repl_path(url_hline)).mark_rule(
                  color="grey",
                  strokeDash=[1, 1],
                  opacity=0.5).encode(
                  y="a:Q"
              ),
-             alt.Chart(anno_struc).mark_rule(opacity=0.3).encode(
+             alt.Chart(repl_path(url_anno)).mark_rule(opacity=0.3).encode(
                  x=alt.X("Encoding:N", sort="-y"),
                  y="Value:Q",
                  color="type:N"
              )
          )
 
-         if wildcards.metric == "mcc":
-             vline_data = pd.DataFrame({'y': [0.0]})
-             scatter = scatter + alt.Chart(vline_data).mark_rule(
+         if metric == "mcc":
+             scatter = scatter + alt.Chart(repl_path(url_vline)).mark_rule(
                  color="black",
                  opacity=0.5
              ).encode(
                  y="y:Q"
              )
 
-         bp = alt.Chart(box_plot_data).mark_boxplot().encode(
-             x=alt.X("Encoding", title=None),
-             y=alt.Y("Value", title=None, scale=alt.Scale(domain=[0.0, 1.0])),
+         bp = alt.Chart(repl_path(url_box)).mark_boxplot().encode(
+             x=alt.X("Encoding:N", title=None),
+             y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[0.0, 1.0])),
              color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),
          ).properties(
              width=600
          )
 
-         joblib.dump(scatter | bp, output[0])
+         hline_data.to_json(url_hline, orient="records")
+         anno_struc.to_json(url_anno, orient="records")
+         vline_data.to_json(url_vline, orient="records")
+
+         joblib.dump(scatter | bp, output[3])
 
 rule concat_charts:
     input:

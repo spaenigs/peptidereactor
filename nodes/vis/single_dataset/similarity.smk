@@ -8,6 +8,8 @@ from nodes.vis.single_dataset.scripts.utils import *
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 SIMILARITY_DIR_IN = os.path.commonpath(
     [config["similarity_dir_group_1_in"], config["similarity_dir_group_2_in"]]) + "/"
 
@@ -15,7 +17,7 @@ rule similarity_transform_data:
     input:
          SIMILARITY_DIR_IN + "{comparision}/{metric}.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.data")
+         config["html_dir_out"] + f"similarity/{{comparision}}_{{metric}}_data.json"
     run:
          df = pd.read_csv(input[0], index_col=0)
 
@@ -32,11 +34,11 @@ rule similarity_transform_data:
          source["Similarity_cat"] = source.Similarity.apply(
              lambda x: "<= 0.1" if x <= 0.1 else "<= 0.3" if x <= 0.3 else "<= 0.6" if x <= 0.6 else "<= 1.0")
 
-         source.to_csv(output[0])
+         source.to_json(output[0], orient="records")
 
 rule create_heatmap:
     input:
-         f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.data"
+         config["html_dir_out"] + f"similarity/{{comparision}}_{{metric}}_data.json"
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.hmjl")
     run:
@@ -62,9 +64,10 @@ rule create_heatmap:
          if not show_y_title:
              y_config = alt.Axis(labels=False, ticks=False, title=None)
 
-         source = pd.read_csv(input[0], index_col=0)
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         chart = alt.Chart(source).mark_rect().encode(
+         chart = alt.Chart(url).mark_rect().encode(
              x=alt.X('x:O', title="Encoding 2", axis=x_config),
              y=alt.Y('y:O', title="Encoding 1", axis=y_config),
              color=alt.Color(
@@ -72,7 +75,7 @@ rule create_heatmap:
                  scale=alt.Scale(domain=d, range=r),
                  legend=alt.Legend(title="Similarity Range")
              ),
-             tooltip=["Encoding1", "Encoding2", "Similarity"]
+             tooltip=["Encoding1:N", "Encoding2:N", "Similarity:Q"]
          ).properties(
              width=600,
              height=600

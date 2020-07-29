@@ -12,13 +12,13 @@ def _get_benchmark(benchmark_out):
         "{benchmark_out}"'''
 
 
-def _get_main(html_files_in, benchmark_csvs_in, html_out):
+def _get_main(html_dirs_in, benchmark_csvs_in, html_dir_out):
     return f'''
     input:
-         html_files_in={html_files_in},
+         html_dirs_in={html_dirs_in},
          benchmark_csv_in={benchmark_csvs_in}
     output:
-         html_out="{html_out}"
+         html_dir_out=directory("{html_dir_out}")
     threads:
          1000
     params:
@@ -30,11 +30,11 @@ def _get_main(html_files_in, benchmark_csvs_in, html_out):
 '''
 
 
-def rule(html_files_in, benchmark_csvs_in, html_out, benchmark_dir=None):
+def rule(html_dirs_in, benchmark_csvs_in, html_dir_out, benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
         benchmark_out = f"{benchmark_dir}vis_multiple_datasets_{token}.txt"
         rule += _get_benchmark(benchmark_out)
-    rule += _get_main(html_files_in, benchmark_csvs_in, html_out)
+    rule += _get_main(html_dirs_in, benchmark_csvs_in, html_dir_out)
     return rule

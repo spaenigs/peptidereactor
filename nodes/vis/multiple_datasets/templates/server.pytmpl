@@ -1,0 +1,22 @@
+from flask import Flask, render_template
+
+app = Flask(__name__, static_folder='')
+
+@app.route("/peptide-reactor.png")
+def pr_logo():
+    return app.send_static_file("static/peptide-reactor.png")
+
+{% for data in data_objects %}
+@app.route("{{ data.route }}")
+def {{ data.dataset }}_{{ data.token }}():
+    return app.send_static_file("{{ data.file }}")
+{% endfor %}
+
+{% for shtml in single_html_objects %}
+@app.route("{{ shtml.route }}")
+def {{ shtml.dataset }}():
+    return render_template("{{ shtml.html }}")
+{% endfor %}
+
+if __name__ == '__main__':
+  app.run(debug=True)

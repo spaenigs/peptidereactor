@@ -10,6 +10,8 @@ from nodes.vis.single_dataset.scripts.utils import cluster
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 CRIT_DIFF_DIR_IN = config["crit_diff_dir_in"]
 
 with open(CRIT_DIFF_DIR_IN + "nemenyi.yaml") as f:
@@ -22,7 +24,7 @@ rule transform_heat_map_data:
     input:
          CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
-         temp(f"data/temp/{TOKEN}/heatmap.csv")
+         config["html_dir_out"] + f"crit_diff/heatmap.json"
     run:
          df_cd = pd.read_csv(input[0], index_col=0)
 
@@ -37,14 +39,14 @@ rule transform_heat_map_data:
          source["Encoding1"] = source["x"].apply(lambda i: heatmap_data.columns[i])
          source["Encoding2"] = source["y"].apply(lambda i: heatmap_data.index[i])
 
-         source.to_csv(output[0])
+         source.to_json(output[0], orient="records")
 
 rule transform_bar_chart_data:
     input:
          config["metrics_dir_in"] + "f1.csv",
          CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
-         temp(f"data/temp/{TOKEN}/barchart.csv")
+         config["html_dir_out"] + f"crit_diff/barchart.json"
     run:
          df_f1 = pd.read_csv(input[0], index_col=0)
          df_cd = pd.read_csv(input[1], index_col=0)
@@ -76,13 +78,13 @@ rule transform_bar_chart_data:
 
          dfm_count = dfm_count.loc[dfm_count["count"] > 1, :]
 
-         dfm_count.to_csv(output[0])
+         dfm_count.to_json(output[0], orient="records")
 
 rule transform_dots_chart_data:
     input:
          CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
-         temp(f"data/temp/{TOKEN}/dotschart.csv")
+         config["html_dir_out"] + f"crit_diff/dotschart.json"
     run:
          df_cd = pd.read_csv(input[0], index_col=1)
 
@@ -91,17 +93,18 @@ rule transform_dots_chart_data:
          dots_data = df_cd.values[np.triu_indices_from(df_cd.values, k=1)]
          df_dots = pd.DataFrame({"x": dots_data, "y": [dataset] * len(dots_data)})
 
-         df_dots.to_csv(output[0])
+         df_dots.to_json(output[0], orient="records")
 
 rule create_heat_map_chart:
     input:
-         f"data/temp/{TOKEN}/heatmap.csv"
+         config["html_dir_out"] + f"crit_diff/heatmap.json"
     output:
          temp(f"data/temp/{TOKEN}/heatmap.joblib")
     run:
-         source = pd.read_csv(input[0], index_col=0)
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         hm = alt.Chart(source).mark_rect().encode(
+         hm = alt.Chart(url).mark_rect().encode(
              x=alt.X('x:O', axis=alt.Axis(title="Encoding 1", labels=False, ticks=False)),
              y=alt.X('y:O', axis=alt.Axis(title="Encoding 2", labels=False, ticks=False)),
              color=alt.Color(
@@ -109,7 +112,7 @@ rule create_heat_map_chart:
                  scale=alt.Scale(domain=DOMAIN, range=RANGE),
                  legend=alt.Legend(title="CD (p<0.01)")
              ),
-             tooltip=["Encoding1", "Encoding2", "cd"]
+             tooltip=["Encoding1:N", "Encoding2:N", "cd:Q"]
          ).properties(
              height=600, width=600
          )
@@ -123,22 +126,23 @@ rule create_heat_map_chart:
 
 rule create_bar_chart:
     input:
-         f"data/temp/{TOKEN}/barchart.csv"
+         config["html_dir_out"] + f"crit_diff/barchart.json"
     output:
          temp(f"data/temp/{TOKEN}/barchart.joblib")
     run:
-         dfm_count = pd.read_csv(input[0], index_col=0)
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         bars1 = alt.Chart(dfm_count).mark_bar(color=RANGE[1]).encode(
+         bars1 = alt.Chart(url).mark_bar(color=RANGE[1]).encode(
              x='cd_count_max:Q',
              y="group:O",
-             tooltip=["cd_count", "cd_count_max"]
+             tooltip=["cd_count:Q", "cd_count_max:Q"]
          )
 
-         bars2 = alt.Chart(dfm_count).mark_bar(color=RANGE[0]).encode(
+         bars2 = alt.Chart(url).mark_bar(color=RANGE[0]).encode(
              x=alt.X('cd_count:Q', title="# critical different"),
              y=alt.Y("group:O", title="Encoding group"),
-             tooltip=["cd_count", "cd_count_max"]
+             tooltip=["cd_count:Q", "cd_count_max:Q"]
          )
 
          bars = (bars1 + bars2).properties(height=740)
@@ -147,13 +151,14 @@ rule create_bar_chart:
 
 rule create_dots_chart:
     input:
-         f"data/temp/{TOKEN}/dotschart.csv"
+         config["html_dir_out"] + f"crit_diff/dotschart.json"
     output:
          temp(f"data/temp/{TOKEN}/dotschart.joblib")
     run:
-         df_dots = pd.read_csv(input[0], index_col=0)
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         dots = alt.Chart(df_dots).mark_circle(color=RANGE[0]).encode(
+         dots = alt.Chart(url).mark_circle(color=RANGE[0]).encode(
              x=alt.X("binned_cd:Q", title="Critical difference (binned)"),
              y=alt.Y("y:N", axis=alt.Axis(title=None)),
              size=alt.Size("count(binned_cd):Q", legend=None),

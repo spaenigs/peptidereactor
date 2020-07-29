@@ -3,7 +3,11 @@ import jinja2 as j2
 import json
 import re
 
+config["dataset"] = \
+    re.findall("data/(.*?)/", config["html_dir_out"])[0]
+
 TOKEN = config["token"]
+DATASET = config["dataset"]
 
 include:
     "overview.smk"
@@ -47,7 +51,7 @@ rule aggregate_charts:
                     "elapsed_time"
                 ])
     output:
-         config["html_out"]
+         temp(f"data/temp/{TOKEN}/aggregated.txt")
     run:
          objects = []
          for i, p in enumerate(list(input), start=1):
@@ -81,9 +85,9 @@ rule aggregate_charts:
              autoescape=j2.select_autoescape(["html", "xml"])
          )
 
-         dataset = re.findall("data/(.*?)/", output[0])[0]
-
          template = env.get_template("single_dataset.html")
          template\
-             .stream(dataset=dataset, objects=objects)\
-             .dump(output[0])
+             .stream(dataset=DATASET, objects=objects)\
+             .dump(config["html_dir_out"] + "single_dataset.html")
+
+         shell("touch {output[0]}")

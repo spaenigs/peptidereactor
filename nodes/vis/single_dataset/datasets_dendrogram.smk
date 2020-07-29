@@ -1,21 +1,21 @@
 import jinja2 as j2
 
-import json
-
 TOKEN = config["token"]
+
+DATASET = config["dataset"]
 
 rule compute_dendrogram:
     input:
          config["metrics_dir_in"] + "f1.csv",
          config["dataset_correlation_in"]
     output:
-         temp(f"data/temp/{TOKEN}/dataset_correlation.json")
+         config["html_dir_out"] + f"ds_corr/dataset_correlation.json"
     script:
          "scripts/compute_dendrogram.R"
 
 rule create_dendrogram:
     input:
-         f"data/temp/{TOKEN}/dataset_correlation.json"
+         config["html_dir_out"] + f"ds_corr/dataset_correlation.json"
     output:
          temp(f"data/temp/{TOKEN}/datasets_dendrogram.json")
     run:
@@ -24,8 +24,10 @@ rule create_dendrogram:
              autoescape=j2.select_autoescape(["json"])
          )
 
-         with open(input[0]) as f:
-             template = env.get_template("dendrogram.json")
-             template\
-                 .stream(values=json.load(f))\
-                 .dump(output[0])
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+
+         template = env.get_template("dendrogram.json")
+         template\
+            .stream(url=url)\
+            .dump(output[0])

@@ -4,39 +4,65 @@ import jinja2 as j2
 
 import re
 import os
+import secrets
 
 TOKEN = config["token"]
-HTML_BASE_DIR = os.path.dirname(config["html_out"]) + "/"
-HTML_DIR = HTML_BASE_DIR + "html/"
+BASE_DIR = os.path.dirname(config["html_dir_out"]) + "/"
+TEMPLATES_DIR = BASE_DIR + "templates/"
 
 rule all:
     input:
-         config["html_out"]
+         BASE_DIR + "server.py"
 
 rule copy_single_html_files:
     input:
-         config["html_files_in"]
+         config["html_dirs_in"]
     output:
-         directory(HTML_DIR)
+         directory(TEMPLATES_DIR)
     run:
-         for p in list(input):
+         for dirp in list(input):
+             p = glob(dirp + "*.html")[0]
              dataset = re.findall("data/(.*?)/", p)[0]
-             shell(f"""
-                mkdir -p {{output[0]}}{dataset};
-                cp {p} {{output[0]}}{dataset}/single_dataset.html;
-             """)
+             shell(f"""cp {p} {{output[0]}}{dataset}.html""")
+
+rule copy_data_dirs:
+    input:
+         config["html_dirs_in"]
+    output:
+         temp(f"data/temp/{TOKEN}/data_copied.txt")
+    run:
+         for dirp in list(input):
+             p = glob(dirp + "*.html")[0]
+             dataset = re.findall("data/(.*?)/", p)[0]
+             base_dir = os.path.dirname(p)
+             for data_dir in next(os.walk(base_dir))[1]:
+                 src, dst = f"{base_dir}/{data_dir}/", f"{BASE_DIR}{dataset}/"
+                 shell(f"mkdir -p {dst} && cp -r {src} {dst}")
+
+         shell("touch {output[0]}")
+
+rule copy_logo:
+    output:
+        temp(f"data/temp/{TOKEN}/logo_copied.txt")
+    shell:
+        f"""
+        cp -r nodes/vis/static {BASE_DIR};
+        touch {{output[0]}}
+        """
 
 rule create_overview_site:
     input:
-         HTML_DIR
+         TEMPLATES_DIR,
+         f"data/temp/{TOKEN}/data_copied.txt",
+         f"data/temp/{TOKEN}/logo_copied.txt"
     output:
-         config["html_out"]
+         temp(f"data/temp/{TOKEN}/created.txt")
     run:
          objects = []
-         for p in glob(input[0] + "*/single_dataset.html"):
+         for p in glob(input[0] + "*.html"):
              if ".html" in p:
-                dataset = re.findall(input[0] + "(.*?)/", p)[0]
-                objects +=  [{"dataset": dataset, "p": p.replace(HTML_BASE_DIR, "")}]
+                dataset = re.findall(input[0] + "(.*?).html", p)[0]
+                objects +=  [{"dataset": dataset, "p": f"/{dataset}"}]
 
          env = j2.Environment(
               loader=j2.FileSystemLoader("nodes/vis/multiple_datasets/templates/"),
@@ -46,4 +72,40 @@ rule create_overview_site:
          template = env.get_template("multiple_datasets.html")
          template\
              .stream(objects=objects)\
+             .dump(TEMPLATES_DIR + "multiple_datasets.html")
+
+         shell("touch {output[0]}")
+
+rule create_server_script:
+    input:
+         f"data/temp/{TOKEN}/created.txt"
+    output:
+         BASE_DIR + "server.py"
+    run:
+         env = j2.Environment(
+              loader=j2.FileSystemLoader("nodes/vis/multiple_datasets/templates/"),
+              autoescape=j2.select_autoescape(["py"])
+         )
+
+         data_objects = []
+         for dataset_dir in glob("data/temp/final/" + "*_*/"):
+             dataset = re.findall("data/temp/final/(.*?)/", dataset_dir)[0]
+             for data_dir in os.listdir(dataset_dir):
+                 for f in os.listdir(dataset_dir + data_dir):
+                     data_objects += [{"route": f"/{dataset}/{data_dir}/{f}",
+                                       "file": f"{dataset}/{data_dir}/{f}",
+                                       "token": secrets.token_hex(6),
+                                       "dataset": dataset}]
+
+         single_html_objects = []
+         for p in glob(TEMPLATES_DIR + "*_*"):
+             dataset = re.findall(".*/(.*?).html", p)[0]
+             route, html = f"/{dataset}", f"{dataset}.html"
+             if "multiple_datasets" in p:
+                 route = "/"
+             single_html_objects += [{"route": route, "html": html, "dataset": dataset}]
+
+         template = env.get_template("server.pytmpl")
+         template\
+             .stream(data_objects=data_objects, single_html_objects=single_html_objects)\
              .dump(output[0])

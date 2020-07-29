@@ -7,12 +7,14 @@ import pandas as pd
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 rule aac_transform_data:
     input:
          config["fasta_in"],
          config["classes_in"]
     output:
-         temp(f"data/temp/{TOKEN}/aac_data.csv")
+         config["html_dir_out"] + f"aac/aac_data.json"
     run:
          seqs, names = read_fasta(input[0])
          with open(input[1]) as f:
@@ -37,16 +39,18 @@ rule aac_transform_data:
          df_melted = pd.melt(df, id_vars=["aa"], value_vars=list(df.columns)[:-1],
                              var_name="class", value_name="count")
 
-         df_melted.to_csv(output[0])
+         df_melted.to_json(output[0], orient="records")
 
 rule aac:
     input:
-         f"data/temp/{TOKEN}/aac_data.csv"
+         config["html_dir_out"] + f"aac/aac_data.json"
     output:
          temp(f"data/temp/{TOKEN}/amino_acid_comp.json")
     run:
-         df = pd.read_csv(input[0], index_col=0)
-         chart_json = alt.Chart(df).mark_bar().encode(
+         url = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+
+         chart_json = alt.Chart(url).mark_bar().encode(
              x=alt.X("class:N", axis=None),
              y=alt.Y("count:Q", title="Relative count (%)", scale=alt.Scale(domain=[0.0, 100.0])),
              color=alt.Color(

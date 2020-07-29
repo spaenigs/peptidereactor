@@ -26,11 +26,13 @@ def transform_curve_data(encodings, dataset, curve):
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 rule metric_curves_transform_data:
     input:
          config["metrics_dir_in"] + "f1.csv"
     output:
-         temp(f"data/temp/{TOKEN}/{{curve}}_data_{{topencs}}.csv")
+         config["html_dir_out"] + f"roc_pr/{{curve}}_data_{{topencs}}.json"
     run:
          df_f1 = pd.read_csv(input[0], index_col=0)
 
@@ -38,7 +40,7 @@ rule metric_curves_transform_data:
              .sort_values(ascending=False)\
              .index.tolist()
 
-         dataset = re.findall("data/(.*?)/", config["html_out"])[0]
+         dataset = re.findall("data/(.*?)/", config["html_dir_out"])[0]
 
          if wildcards.topencs == "t6":
             top_six_encodings = indices[:6]
@@ -49,49 +51,57 @@ rule metric_curves_transform_data:
             top_three_str = [i for i in indices if is_struc_based(i)][:3]
             df = transform_curve_data(top_three_seq + top_three_str, dataset, wildcards.curve)
 
-         df.to_csv(output[0])
+         df.to_json(output[0], orient="records")
+
+rule random_guess_line_data:
+    output:
+         config["html_dir_out"] + f"roc_pr/rnd_guess_line.json"
+    run:
+         df_rnd = pd.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
+         df_rnd.to_json(output[0], orient="records")
 
 rule create_sub_chart:
     input:
-         f"data/temp/{TOKEN}/{{curve}}_data_{{topencs}}.csv"
+         config["html_dir_out"] + f"roc_pr/{{curve}}_data_{{topencs}}.json",
+         config["html_dir_out"] + f"roc_pr/rnd_guess_line.json"
     output:
          temp(f"data/temp/{TOKEN}/{{curve}}_{{topencs}}.joblib")
     run:
-         random_guess_line = alt.Chart(
-                 pd.DataFrame({"x": [0.0, 1.0],
-                               "y": [0.0, 1.0]})
-             ).mark_line(
+         url_scatter = \
+             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+         url_rnd_line = \
+             DATASET + "/" + input[1].replace(config["html_dir_out"], "")
+
+         random_guess_line = alt.Chart(url_rnd_line).mark_line(
                  color="lightgrey",
                  strokeDash=[3, 1]
              ).encode(
-                 x="x",
-                 y="y"
+                 x="x:Q",
+                 y="y:Q"
              )
 
          path = input[0]
-         df = pd.read_csv(path, index_col=0)
-
-         if "roc" in path and "t6" in path:
-             chart = alt.Chart(df).mark_line().encode(
+         if "roc_data_t6" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title=None)),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
                  color=alt.Color("Encoding:N")
              ) + random_guess_line
-         elif "pr" in path and "t6" in path:
-             chart = alt.Chart(df).mark_line().encode(
+         elif "pr_data_t6" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title=None)),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
                  color="Encoding:N"
              )
-         elif "roc" in path and "t33" in path:
-             chart = alt.Chart(df).mark_line().encode(
+         elif "roc_data_t33" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title="1 - Specificity")),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
                  color="Encoding:N",
                  strokeDash="type:N"
              ) + random_guess_line
          else:
-             chart = alt.Chart(df).mark_line().encode(
+             chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title="Recall")),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
                  color="Encoding:N",

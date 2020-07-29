@@ -7,6 +7,8 @@ from nodes.vis.single_dataset.scripts.utils \
 
 TOKEN = config["token"]
 
+DATASET = config["dataset"]
+
 rule overview_transform_data:
     input:
          config["metrics_dir_in"] + "{metric}.csv"
@@ -36,39 +38,38 @@ rule collect_data:
          expand(f"data/temp/{TOKEN}/{{metric}}.data",
                 metric=["f1", "mcc", "precision", "recall", "sens", "spec"])
     output:
-         temp(f"data/temp/{TOKEN}/all_metrics.csv")
+         config["html_dir_out"] + f"overview/all_metrics.json"
     run:
          df_res = pd.DataFrame()
          for p in list(input):
              df_res = pd.concat([df_res, pd.read_csv(p, index_col=0)])
 
-         df_res.to_csv(output[0])
+         df_res.to_json(output[0], orient="records")
 
 rule create_overview_chart:
     input:
-         f"data/temp/{TOKEN}/all_metrics.csv"
+         config["html_dir_out"] + f"overview/all_metrics.json"
     output:
          temp(f"data/temp/{TOKEN}/overview.json")
     run:
-         dfm = pd.read_csv(input[0], index_col=0)
-
-         base = alt.Chart(dfm)
+         url = DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+         base = alt.Chart(url)
 
          chart_json =  alt.layer(
              base.mark_circle(filled=True, size=50, opacity=0.7).encode(
                  x=alt.X("group:N", axis=alt.Axis(title=None)),
-                 y=alt.Y("max_metric", axis=alt.Axis(title=None), scale=alt.Scale(domain=[-0.2, 1.0])),
-                 size=alt.Size("count"),
+                 y=alt.Y("max_metric:Q", axis=alt.Axis(title=None), scale=alt.Scale(domain=[-0.2, 1.0])),
+                 size=alt.Size("count:Q"),
                  color=alt.Color(
                      "type:N",
                      scale=alt.Scale(
                          domain=["sequence based", "structure based"],
                          range=["#7570b3", "#d95f02"])
                  ),
-                 tooltip="count"
+                 tooltip="count:Q"
              ),
              base.mark_rule(opacity=1.0).encode(
-                 x=alt.X("group:N"), y="max_metric", color="type:N"
+                 x=alt.X("group:N"), y="max_metric:Q", color="type:N"
              )
          ).facet(
              column=alt.Column("type:N", title=None),
