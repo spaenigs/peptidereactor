@@ -145,16 +145,16 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     w.add(vis.single_dataset.rule(
         fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
-        encoding_benchmark_dir_in="data/{dataset}/benchmark/", html_out="data/{dataset}/vis/single_dataset.html",
+        encoding_benchmark_dir_in="data/{dataset}/benchmark/", html_dir_out="data/{dataset}/vis/",
         benchmark_dir=w.benchmark_dir, benchmark_csv_in=w.benchmark_dir + "benchmark.csv"))
 
     w.add(vis.multiple_datasets.rule(
-        html_files_in=expand("data/{dataset}/vis/single_dataset.html", dataset=DATASETS),
+        html_dirs_in=expand("data/{dataset}/vis/", dataset=DATASETS),
         benchmark_csvs_in=expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS),
-        html_out="data/temp/final/multiple_datasets.html", benchmark_dir="data/temp/final/"))
+        html_dir_out="data/temp/final/", benchmark_dir="data/temp/final/"))
 
     target = \
-        "data/temp/final/multiple_datasets.html"
+        expand("data/temp/final/", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
