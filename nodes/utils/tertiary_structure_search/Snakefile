@@ -125,9 +125,6 @@ rule download_from_pdb:
          f"data/temp/{TOKEN}/motif_result_{{seq_name}}.csv"
     output:
          f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt"
-    params:
-         snakefile="nodes/utils/download_cifs/Snakefile",
-         configfile="nodes/utils/download_cifs/config.yaml"
     threads:
         1000
     run:
@@ -168,6 +165,8 @@ rule dump_cleaved_structure:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id":str})
 
          if df.empty:
+             shell("touch {output}")
+         elif os.path.getsize(CIFS_DIR + f"{df.loc[0, 'sacc_id']}.cif") == 0:
              shell("touch {output}")
          else:
              pdb_id, chain_id, hit = \
