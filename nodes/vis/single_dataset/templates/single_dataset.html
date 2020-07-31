@@ -158,14 +158,6 @@
             <div class="col"></div>
         </div>
     </div>
-    <!--
-    <input aria-label="Search" class="form-control form-control-dark w-100" placeholder="Search" type="text"> 
-    <ul class="navbar-nav px-3">
-        <li class="nav-item text-nowrap">
-            <a class="nav-link" href="#">Sign out</a>
-        </li>
-    </ul>
-    -->
 </nav>
 <div class="container-fluid"> -->
     <div class="row">
@@ -212,9 +204,9 @@
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.8.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 <script>
-    {% for obj in objects %}
-        vegaEmbed('#vis{{ obj.i }}', {{ obj.spec|tojson|safe }}).catch(console.error);
-    {% endfor %}
+{% for obj in objects %}
+    vegaEmbed('#vis{{ obj.i }}', {{ obj.spec|tojson|safe }}).catch(console.error);
+{% endfor %}
 </script>
 </body>
 </html>
