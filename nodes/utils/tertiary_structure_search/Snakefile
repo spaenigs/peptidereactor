@@ -36,7 +36,7 @@ rule split_input_data:
     input:
          config["fasta_in"]
     output:
-         f"data/temp/{TOKEN}/{{seq_name}}.fasta"
+         temp(f"data/temp/{TOKEN}/{{seq_name}}.fasta")
     run:
          seqs, names = read_fasta(str(input[0]))
          seq_tuples = dict((name, seq) for name, seq in zip(names, seqs))
@@ -48,9 +48,9 @@ rule blast_search:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
          "peptidereactor/db/pdb/in_structure/pdb.db"
     output:
-         f"data/temp/{TOKEN}/blast_result_{{seq_name}}.csv"
+         temp(f"data/temp/{TOKEN}/blast_result_{{seq_name}}.csv")
     priority:
-        1000
+         1000
     run:
          header = ["qseqid", "sacc", "sstart", "send", "evalue", "qseq", "sseq"]
          cline = NcbiblastpCommandline(
@@ -90,7 +90,7 @@ rule motif_search:
          f"data/temp/{TOKEN}/{{seq_name}}.fasta",
          "peptidereactor/db/pdb/in_structure/pdb.fasta"
     output:
-         f"data/temp/{TOKEN}/motif_result_{{seq_name}}.csv"
+         temp(f"data/temp/{TOKEN}/motif_result_{{seq_name}}.csv")
     run:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id": str})
 
@@ -124,11 +124,13 @@ rule download_from_pdb:
     input:
          f"data/temp/{TOKEN}/motif_result_{{seq_name}}.csv"
     output:
-         f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt"
+         temp(f"data/temp/{TOKEN}/cifs_downloaded_for_{{seq_name}}.txt")
     threads:
         1000
     run:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id": str})
+
+         address = "128.6.244.85" # "rsync.rcsb.org"
 
          if not df.empty:
              id = df.loc[0, "sacc_id"]
@@ -139,7 +141,7 @@ rule download_from_pdb:
                  folder_id="${{{{id:1:2}}}}";
                  target_dir=$(dirname {target_path});
                  rsync -rlpt -v -z -q --delete --port=33444 \
-                     rsync.rcsb.org::ftp_data/structures/divided/mmCIF/$folder_id/$id.cif.gz \
+                     {address}::ftp_data/structures/divided/mmCIF/$folder_id/$id.cif.gz \
                      $target_dir #2> /dev/null;
                  if [ "$?" -eq "0" ]; then
                      gunzip {target_path}.gz;
@@ -174,12 +176,6 @@ rule dump_cleaved_structure:
 
              cif = Cif(pdb_id, chain_id, CIFS_DIR)
              cif.dump_slice(hit, output[0])
-
-rule collect_pdbs:
-    input:
-         expand(PDB_DIR + "{seq_name}.pdb", seq_name=get_seq_names(config["fasta_in"]))
-    output:
-         f"data/temp/{TOKEN}/pdb_collected.text"
 
 rule collect_tertiary_structure:
     input:
@@ -216,7 +212,7 @@ rule collect_secondary_structure:
          config["fasta_ter_out"],
          config["classes_ter_out"]
     output:
-         directory(f"data/temp/{TOKEN}/dssps/"),
+         temp(directory(f"data/temp/{TOKEN}/dssps/")),
          config["fasta_sec_out"],
          config["classes_sec_out"]
     run:
