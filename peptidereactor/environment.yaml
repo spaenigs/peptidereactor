@@ -37,6 +37,7 @@ dependencies:
   - pygments
   - imagemagick
   - altair=4.1.0
+  - flask=1.1.2
   - pip:
     - modlamp
     - joblib
