@@ -168,11 +168,12 @@
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-11 px-md-4" role="main">
             <div class="d-flex flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 justify-content-between ml-5" >
-                <div class="tab-content" id="myTabContent" >
-                    <div id='vis1' style="text-align: center;">
-
+                {% for obj in chart_objects %}
+                    <div>
+                        <p class="font-weight-bold">{{ obj.header }}</p>
+                        <div id='vis{{ obj.i }}'></div>
                     </div>
-                </div>
+                {% endfor %}
             </div>
         </main>
     </div>
@@ -195,7 +196,9 @@
 <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.8.1"></script>
 <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 <script>
-
+{% for obj in chart_objects %}
+    vegaEmbed('#vis{{ obj.i }}', {{ obj.spec|tojson|safe }}).catch(console.error);
+{% endfor %}
 </script>
 </body>
 </html>

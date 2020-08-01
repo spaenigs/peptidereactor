@@ -5,6 +5,11 @@ import jinja2 as j2
 import re
 import os
 import secrets
+import joblib
+import json
+
+include:
+    "overview_hm.smk"
 
 TOKEN = config["token"]
 BASE_DIR = os.path.dirname(config["html_dir_out"]) + "/"
@@ -43,21 +48,46 @@ rule copy_data_dirs:
 
 rule copy_logo:
     output:
-        temp(f"data/temp/{TOKEN}/logo_copied.txt")
+         temp(f"data/temp/{TOKEN}/logo_copied.txt")
     shell:
-        f"""
-        cp -r nodes/vis/static {BASE_DIR};
-        touch {{output[0]}}
-        """
+         f"""
+         cp -r nodes/vis/static {BASE_DIR};
+         touch {{output[0]}}
+         """
+
+rule aggregate_overview_charts:
+    input:
+         expand(f"data/temp/{TOKEN}/{{chart}}.json",
+                chart=[
+                    "overview_hm",
+                ])
+    output:
+         temp(f"data/temp/{TOKEN}/objects.joblib")
+    run:
+         objects = []
+         for i, p in enumerate(list(input), start=1):
+             tmp = {}
+             with open(p) as f:
+                 tmp["i"] = i
+                 tmp["spec"] = json.load(f)
+                 if "overview_hm" in p:
+                     tmp["header"] = "Overview"
+                 tmp["id"] = tmp["header"].replace(" ", "").lower()
+                 objects += [tmp]
+
+         joblib.dump(objects, output[0])
 
 rule create_overview_site:
     input:
          TEMPLATES_DIR,
          f"data/temp/{TOKEN}/data_copied.txt",
-         f"data/temp/{TOKEN}/logo_copied.txt"
+         f"data/temp/{TOKEN}/logo_copied.txt",
+         f"data/temp/{TOKEN}/objects.joblib"
     output:
          temp(f"data/temp/{TOKEN}/created.txt")
     run:
+         chart_objects = joblib.load(input[3])
+
          objects = []
          for p in glob(input[0] + "*.html"):
              if ".html" in p:
@@ -71,7 +101,8 @@ rule create_overview_site:
 
          template = env.get_template("multiple_datasets.html")
          template\
-             .stream(objects=objects)\
+             .stream(objects=objects,
+                     chart_objects=chart_objects)\
              .dump(TEMPLATES_DIR + "multiple_datasets.html")
 
          shell("touch {output[0]}")
