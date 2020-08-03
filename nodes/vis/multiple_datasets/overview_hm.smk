@@ -19,12 +19,12 @@ def compute_median_f1(path):
 
 rule overview_hm:
     input:
-        config["benchmark_dirs_in"]
+        config["metrics_dirs_in"]
     output:
         config["html_dir_out"] + f"data/overview_hm/data.json",
         temp(f"data/temp/{TOKEN}/overview_hm.json")
     run:
-        paths = [p + "metrics/f1.csv" for p in list(input)]
+        paths = [p + "f1.csv" for p in list(input)]
 
         df_res = pd.concat(
             axis=1,

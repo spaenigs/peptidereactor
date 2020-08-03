@@ -47,6 +47,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     strb = encodings.structure_based.Rule()
     w.add(strb.rule(
+        include=["distance_distribution"],
         fasta_sec_in="data/{dataset}/seqs_sec.fasta", fasta_msa_sec_in="data/{dataset}/seqs_msa_sec.fasta",
         classes_sec_in="data/{dataset}/classes_sec.txt", fasta_ter_in="data/{dataset}/seqs_ter.fasta",
         classes_ter_in="data/{dataset}/classes_ter.txt", path_to_config="config.yaml", pdb_dir="data/{dataset}/pdb/",
@@ -149,6 +150,9 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         benchmark_dir=w.benchmark_dir, benchmark_csv_in=w.benchmark_dir + "benchmark.csv"))
 
     w.add(vis.multiple_datasets.rule(
+        fastas_in=expand("data/{dataset}/seqs_mapped.fasta", dataset=DATASETS),
+        classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
+        metrics_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
         html_dirs_in=expand("data/{dataset}/vis/", dataset=DATASETS),
         benchmark_csvs_in=expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS),
         html_dir_out="data/temp/final/", benchmark_dir="data/temp/final/"))

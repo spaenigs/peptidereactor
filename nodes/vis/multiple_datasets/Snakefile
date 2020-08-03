@@ -11,6 +11,9 @@ import json
 include:
     "overview_hm.smk"
 
+include:
+    "tsne.smk"
+
 TOKEN = config["token"]
 BASE_DIR = os.path.dirname(config["html_dir_out"]) + "/"
 TEMPLATES_DIR = BASE_DIR + "templates/"
@@ -60,6 +63,7 @@ rule aggregate_overview_charts:
          expand(f"data/temp/{TOKEN}/{{chart}}.json",
                 chart=[
                     "overview_hm",
+                    "tsne"
                 ])
     output:
          temp(f"data/temp/{TOKEN}/objects.joblib")
@@ -72,6 +76,8 @@ rule aggregate_overview_charts:
                  tmp["spec"] = json.load(f)
                  if "overview_hm" in p:
                      tmp["header"] = "Overview"
+                 elif "tsne" in p:
+                     tmp["header"] = "t-SNE"
                  tmp["id"] = tmp["header"].replace(" ", "").lower()
                  objects += [tmp]
 

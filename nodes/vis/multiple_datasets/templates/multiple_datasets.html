@@ -167,11 +167,13 @@
             </div>
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-11 px-md-4" role="main">
-            <div class="d-flex flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 justify-content-between ml-5" >
+            <div class="container" >
                 {% for obj in chart_objects %}
-                    <div>
-                        <p class="font-weight-bold">{{ obj.header }}</p>
-                        <div id='vis{{ obj.i }}'></div>
+                    <div class="row">
+                        <div class="col">
+                            <p class="font-weight-bold">{{ obj.header }}</p>
+                            <div id='vis{{ obj.i }}'></div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>
