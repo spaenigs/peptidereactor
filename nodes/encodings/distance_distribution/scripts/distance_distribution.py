@@ -48,12 +48,18 @@ for r1, r2 in combinations(structure.get_residues(), 2):
     if "G" in [aa1, aa2]:
         continue
 
+    if "U" in [aa1, aa2]:
+        continue
+
     for func_type_1, func_type_2 in product(FUNCTIONAL_TYPES[aa1], FUNCTIONAL_TYPES[aa2]):
 
         def get_carbon_coord(residue):
             # c-alpha
-            return [atom.get_coord()
-                    for atom in filter(lambda a: a.get_id() == "CA", residue)][0]
+            try:
+                return [atom.get_coord() for atom in filter(lambda a: a.get_id() == "CA", residue)][0]
+            except IndexError:
+                # use index of first atom, if CA not present
+                return [atom.get_coord() for atom in residue][0]
 
         def get_carbon_coord_al(residue):
             coords = [atom.get_coord() for atom in
@@ -61,6 +67,9 @@ for r1, r2 in combinations(structure.get_residues(), 2):
             # aromatic: unweighted average of the respective carbons
             # see http://www.biology.arizona.edu/biochemistry/problem_sets/aa/Aliphatic.html
             return np.array([np.sum(tr) / len(coords) for tr in zip(*coords)])
+
+        def dist_fn(r1, r2):
+            return np.linalg.norm(fn1(r1) - fn2(r2))
 
         if (func_type_1, func_type_2) == ("aliphatic", "aliphatic"):
             fn1, fn2 = get_carbon_coord_al, get_carbon_coord_al
@@ -71,9 +80,6 @@ for r1, r2 in combinations(structure.get_residues(), 2):
                 fn1, fn2 = get_carbon_coord, get_carbon_coord_al
             else:
                 fn1, fn2 = get_carbon_coord, get_carbon_coord
-
-        def dist_fn(r1, r2):
-            return np.linalg.norm(fn1(r1) - fn2(r2))
 
         distances[func_type_1][func_type_2] += [dist_fn(r1, r2)]
 
