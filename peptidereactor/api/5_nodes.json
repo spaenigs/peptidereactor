@@ -1,0 +1,46 @@
+{
+  "nodes": {
+    "utils": {
+      "map_sequence_names": {
+        "fasta_in": "data/{dataset}/seqs.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "benchmark_dir": "w.benchmark_dir",
+        "fasta_out": "data/{dataset}/seqs_mapped.fasta",
+        "maps_out": "data/{dataset}/misc/mapped_sequence_names.yaml"
+      },
+      "multiple_sequence_alignment": {
+        "fastas_in": [
+          "data/{dataset}/seqs_mapped.fasta",
+          "data/{dataset}/seqs_sec.fasta",
+          "data/{dataset}/seqs_ter.fasta"
+        ],
+        "fastas_out": [
+          "data/{dataset}/seqs_msa.fasta",
+          "data/{dataset}/seqs_msa_sec.fasta",
+          "data/{dataset}/seqs_msa_ter.fasta"
+        ]
+      }
+    },
+    "encodings":{
+      "sequence_based": {
+        "fasta_in": "data/{dataset}/seqs_mapped.fasta",
+        "fasta_msa_in": "data/{dataset}/seqs_msa.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "path_to_config": "config.yaml",
+        "misc_dir": "data/{dataset}/misc/",
+        "csv_dir": "data/{dataset}/csv/"
+      }
+    },
+    "benchmark": {
+      "cross_validation_single": {
+        "csv_seq_in": "data/{dataset}/csv/sequence_based/",
+        "csv_str_in": "data/{dataset}/csv/structure_based/",
+        "csv_dir_out": "data/{dataset}/benchmark/single/"
+      },
+      "metrics":{
+        "csv_dir_in": "data/{dataset}/benchmark/single/",
+        "metrics_dir_out": "data/{dataset}/benchmark/metrics/"
+      }
+    }
+  }
+}

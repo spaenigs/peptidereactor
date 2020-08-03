@@ -1,0 +1,28 @@
+{
+  "nodes": {
+    "utils": {
+      "map_sequence_names": {
+        "fasta_in": "data/{dataset}/seqs.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "benchmark_dir": "w.benchmark_dir",
+        "fasta_out": "data/{dataset}/seqs_mapped.fasta",
+        "maps_out": "data/{dataset}/misc/mapped_sequence_names.yaml"
+      }
+    },
+    "encodings":{
+      "sequence_based": {
+        "include": [
+          "aac",
+          "aaindex",
+          "zscale"
+        ],
+        "fasta_in": "data/{dataset}/seqs_mapped.fasta",
+        "fasta_msa_in": "data/{dataset}/seqs_msa.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "path_to_config": "config.yaml",
+        "misc_dir": "data/{dataset}/misc/",
+        "csv_dir": "data/{dataset}/csv/"
+      }
+    }
+  }
+}

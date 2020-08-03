@@ -1,0 +1,35 @@
+{
+  "nodes": {
+    "utils": {
+      "map_sequence_names": {
+        "fasta_in": "data/{dataset}/seqs.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "benchmark_dir": "w.benchmark_dir",
+        "fasta_out": "data/{dataset}/seqs_mapped.fasta",
+        "maps_out": "data/{dataset}/misc/mapped_sequence_names.yaml"
+      },
+      "multiple_sequence_alignment": {
+        "fastas_in": [
+          "data/{dataset}/seqs_mapped.fasta",
+          "data/{dataset}/seqs_sec.fasta",
+          "data/{dataset}/seqs_ter.fasta"
+        ],
+        "fastas_out": [
+          "data/{dataset}/seqs_msa.fasta",
+          "data/{dataset}/seqs_msa_sec.fasta",
+          "data/{dataset}/seqs_msa_ter.fasta"
+        ]
+      },
+      "tertiary_structure_search": {
+        "fasta_in": "data/{dataset}/seqs.fasta",
+        "classes_in": "data/{dataset}/classes.txt",
+        "fasta_sec_out": "data/{dataset}/seqs_sec.fasta",
+        "classes_sec_out": "data/{dataset}/classes_sec.txt",
+        "fasta_ter_out": "data/{dataset}/seqs_ter.fasta",
+        "classes_ter_out": "data/{dataset}/classes_ter.txt",
+        "pdb_dir": "data/{dataset}/pdb/",
+        "profile_dir": "data/{dataset}/profile/"
+      }
+    }
+  }
+}
