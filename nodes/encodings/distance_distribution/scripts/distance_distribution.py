@@ -64,6 +64,9 @@ for r1, r2 in combinations(structure.get_residues(), 2):
         def get_carbon_coord_al(residue):
             coords = [atom.get_coord() for atom in
                       filter(lambda a: "C" in a.get_id() and len(a.get_id()) >= 2, residue)]
+            # if no C in residue, take all other atoms
+            if len(coords) == 0:
+                coords = [atom.get_coord() for atom in residue]
             # aromatic: unweighted average of the respective carbons
             # see http://www.biology.arizona.edu/biochemistry/problem_sets/aa/Aliphatic.html
             return np.array([np.sum(tr) / len(coords) for tr in zip(*coords)])
