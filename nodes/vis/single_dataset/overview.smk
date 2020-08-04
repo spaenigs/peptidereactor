@@ -55,35 +55,60 @@ rule create_overview_chart:
              max_m="max(median):Q",
              cnt_m="count(median):Q",
              groupby=["group"]
+         ).transform_calculate(
+             type2="datum.type == 'sequence based' ? 'min/max' : 'label2'"
          )
 
-         color=alt.Color("type:N", title="Type/range", scale=alt.Scale(
-             domain=["sequence based", "structure based"],
-             range=["#7570b3", "#d95f02"])
+         color = alt.Color(
+             "type:N", title="Encoding type",
+             legend=alt.Legend(values=["sequence based", "structure based"]),
+             scale=alt.Scale(
+                 domain=["sequence based", "structure based"],
+                 range=["#7570b3", "#d95f02"])
+         )
+
+         color_area = alt.Color("type2:N", scale=alt.Scale(
+             domain=["min/max", "label2"],
+             range=["#7570b3", "#d95f02"]
+         ))
+
+         opac_area = alt.Opacity(
+             "type2:N", title="Median range",
+             legend=alt.Legend(values=["min/max"]),
+             scale=alt.Scale(domain=["min/max", "label2"], range=[0.2, 0.2])
          )
 
          chart_json = alt.layer(
-              base.mark_area(interpolate="monotone", opacity=0.2).encode(
-                 x=alt.X('group:N', axis=alt.Axis(grid=True)),
-                 y=alt.Y('min_m:Q'),
+              base.mark_area(interpolate="monotone").encode(
+                 x=alt.X('group:N', title=None, axis=alt.Axis(grid=True)),
+                 y=alt.Y('min_m:Q', title=None),
                  y2=alt.Y2('max_m:Q'),
-                 color=color
+                 opacity=opac_area,
+                 color=color_area,
              ),
-             base.mark_line(interpolate="monotone", opacity=0.6).encode(
-                 x=alt.X('group:N'),
-                 y=alt.Y('max_m:Q'),
-                 color=color
-             ),
-             base.mark_circle(color="red", opacity=1.0).encode(
+             base.mark_circle(opacity=0.8).encode(
                  x=alt.X('group:N'),
                  y=alt.Y('max_m:Q'),
                  color=color,
                  size=alt.Size("cnt_m:Q", title="Encodings per group"),
                  tooltip="cnt_m:Q"
+             ),
+             base.mark_line(interpolate="monotone").encode(
+                 x=alt.X('group:N'),
+                 y=alt.Y('max_m:Q'),
+                 color=color,
              )
+         ).properties(
+             width=650
          ).facet(
-             column=alt.Column("type:N", title=None),
-             row=alt.Row("metric:N", title=None)
+             column=alt.Column(
+                 "type:N", title=None,
+                 header=alt.Header(labelFontSize=12)
+             ),
+             row=alt.Row(
+                 "metric:N", title=None,
+                 header=alt.Header(labelFontSize=12)
+             ),
          ).resolve_scale(
              x='independent'
          ).to_json(indent=None)
