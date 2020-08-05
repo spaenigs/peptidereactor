@@ -6,7 +6,7 @@ import yaml
 import re
 import joblib
 
-from nodes.vis.single_dataset.scripts.utils import cluster
+from nodes.vis.single_dataset.scripts.utils import cluster, is_struc_based
 
 TOKEN = config["token"]
 
@@ -18,7 +18,7 @@ with open(CRIT_DIFF_DIR_IN + "nemenyi.yaml") as f:
     nm = yaml.safe_load(f)
     CD = nm["cd"]
 
-DOMAIN, RANGE = ["critical different", "no difference"], ["black", "gainsboro"]
+DOMAIN, RANGE = ["critical (p<0.01)", "non-critical"], ["black", "gainsboro"]
 
 rule transform_heat_map_data:
     input:
@@ -34,7 +34,7 @@ rule transform_heat_map_data:
 
          x, y = np.meshgrid(range(0, heatmap_data.shape[1]), range(0, heatmap_data.shape[0]))
          source = pd.DataFrame({"x": x.ravel(), "y": y.ravel(), "cd": heatmap_data.values.ravel()})
-         source["cd_cat"] = source["cd"].apply((lambda x: "critical different" if np.abs(x) > CD else "no difference"))
+         source["cd_cat"] = source["cd"].apply((lambda x: "critical (p<0.01)" if np.abs(x) > CD else "non-critical"))
 
          source["Encoding1"] = source["x"].apply(lambda i: heatmap_data.columns[i])
          source["Encoding2"] = source["y"].apply(lambda i: heatmap_data.index[i])
@@ -58,6 +58,9 @@ rule transform_bar_chart_data:
 
          dfm_count["group"] = dfm_count.index
 
+         dfm_count["type"] = \
+             ["structure based" if is_struc_based(e) else "sequence based" for e in dfm_count["group"]]
+
          for i in dfm_count.index:
 
              if i == "psekraac":
@@ -77,7 +80,6 @@ rule transform_bar_chart_data:
                  len(indices_filtered) * (len(indices_filtered) - 1) / 2
 
          dfm_count = dfm_count.loc[dfm_count["count"] > 1, :]
-
          dfm_count.to_json(output[0], orient="records")
 
 rule transform_dots_chart_data:
@@ -104,22 +106,20 @@ rule create_heat_map_chart:
          url = \
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         hm = alt.Chart(url).mark_rect().encode(
+         hm = alt.Chart(
+             url,
+             title="All vs. all encodings"
+         ).mark_rect().encode(
              x=alt.X('x:O', axis=alt.Axis(title="Encoding 1", labels=False, ticks=False)),
              y=alt.X('y:O', axis=alt.Axis(title="Encoding 2", labels=False, ticks=False)),
              color=alt.Color(
                  "cd_cat:N",
                  scale=alt.Scale(domain=DOMAIN, range=RANGE),
-                 legend=alt.Legend(title="CD (p<0.01)")
+                 legend=alt.Legend(title="Difference")
              ),
              tooltip=["Encoding1:N", "Encoding2:N", "cd:Q"]
          ).properties(
              height=600, width=600
-         )
-
-         hm = alt.hconcat(
-             hm,
-             title=alt.TitleParams(text="All (left) vs. within group (right)", anchor="middle")
          )
 
          joblib.dump(hm, output[0])
@@ -140,12 +140,26 @@ rule create_bar_chart:
          )
 
          bars2 = alt.Chart(url).mark_bar(color=RANGE[0]).encode(
-             x=alt.X('cd_count:Q', title="# critical different"),
-             y=alt.Y("group:O", title="Encoding group"),
+             x=alt.X('cd_count:Q', title="Count"),
+             y=alt.Y("group:O", title=None),
              tooltip=["cd_count:Q", "cd_count_max:Q"]
          )
 
-         bars = (bars1 + bars2).properties(height=740)
+         bars = alt.layer(
+             bars1, bars2,
+             title=alt.TitleParams(
+                 text="Within encoding groups (group size > 1)",
+                 anchor="middle"
+             )
+         ).facet(
+             row=alt.Row(
+                 "type:N",
+                 title=None,
+                 header=alt.Header(labels=False)
+             )
+         ).resolve_scale(
+             y="independent"
+         )
 
          joblib.dump(bars, output[0])
 
@@ -159,9 +173,13 @@ rule create_dots_chart:
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
          dots = alt.Chart(url).mark_circle(color=RANGE[0]).encode(
-             x=alt.X("binned_cd:Q", title="Critical difference (binned)"),
+             x=alt.X("binned_cd:Q", title="Difference"),
              y=alt.Y("y:N", axis=alt.Axis(title=None)),
-             size=alt.Size("count(binned_cd):Q", legend=None),
+             size=alt.Size(
+                 "count(binned_cd):Q",
+                 title="Bin size",
+                 # legend=alt.LegendConfig(orient="bottom")
+             ),
              color=alt.condition(np.abs(alt.datum.binned_cd) >= CD,
                                  alt.value(RANGE[0]),
                                  alt.value(RANGE[1])),
@@ -173,7 +191,28 @@ rule create_dots_chart:
              height=100
          )
 
-         joblib.dump(dots, output[0])
+         df_lines = pd.DataFrame({
+             "x": [-CD, CD],
+             "cat": ["negative", "positive"]
+         })
+
+         lines = alt.Chart(
+             df_lines,
+             title="Binned difference for all encoding pairings"
+         ).mark_rule(strokeDash=[5, 2]).encode(
+             x="x:Q",
+             color=alt.Color(
+                 "cat:N",
+                 title="Critical difference",
+                 scale=alt.Scale(
+                     domain=["negative", "positive"],
+                     range=["#d8b365", "#5ab4ac"]
+                 ),
+                 # legend=alt.LegendConfig(orient="bottom")
+             )
+         )
+
+         joblib.dump(lines + dots, output[0])
 
 rule concat_cd_charts:
     input:
@@ -187,7 +226,24 @@ rule concat_cd_charts:
          bars = joblib.load(input[1])
          dots = joblib.load(input[2])
 
-         chart = (hm & dots) | bars
+         chart = alt.vconcat(
+             (hm | bars), dots,
+             title=alt.TitleParams(
+                 text=[
+                     "Statistical comparison (critical difference) of model performance per fold,",
+                     "for all vs. all encodings, within encoding group and",
+                     "the binned counts distribution of differences for all comparisions."
+                     "",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         ).resolve_scale(size="independent", color="independent")
 
          alt.data_transformers.disable_max_rows()
 
