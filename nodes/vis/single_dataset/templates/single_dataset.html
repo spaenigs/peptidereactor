@@ -32,6 +32,7 @@
     <style>
         body {
             font-size: .875rem;
+            overflow-y:scroll;
         }
 
         .feather {
@@ -149,13 +150,11 @@
             class="navbar-toggler position-absolute d-md-none collapsed" data-target="#sidebarMenu" data-toggle="collapse" type="button">
         <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="container w-100">
-        <div class="row w-100">
-            <div class="col"></div>
-            <div class="col">
-                <p class="font-weight-bold"><u>{{ dataset }}</u></p>
-            </div>
-            <div class="col"></div>
+    <div class="row container-fluid">
+        <div class="col"></div>
+        <div class="col"></div>
+        <div class="col">
+             <p class="h5 text-right text-uppercase" style="color: #51779A;">{{ dataset }}</p>
         </div>
     </div>
 </nav>
@@ -178,7 +177,7 @@
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-11 px-md-4" role="main">
             <div class="d-flex justify-content-center flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
-                <div class="tab-content" id="myTabContent">
+                <div class="tab-content container-fluid" id="myTabContent">
                     {% for obj in objects %}
                         <div aria-labelledby="{{ obj.id }}-tab" class="tab-pane fade show {{ "active" if obj.i == 1 }}" id="{{ obj.id }}" role="tabpanel">
                             <div >

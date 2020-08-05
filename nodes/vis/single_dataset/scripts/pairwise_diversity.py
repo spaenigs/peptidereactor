@@ -17,6 +17,8 @@ def _ravel_and_annotate(df1, df2, df1_class, cat, div, e1, e2, f1_e1, f1_e2):
         f"e1: {e1} ({np.round(f1_e1, 1)}), " \
         f"e2: {e2} ({np.round(f1_e2, 1)}) - " \
         f"DBS: {np.round(dbs, 2)}"
+    df["diversity_e1"], df["diversity_e2"] = f"{e1} - F1={np.round(f1_e1, 1)}", f"{e2} - F1={np.round(f1_e2, 1)}"
+    df["diversity_score"], df["diversity_dbs"] = np.round(div, 2), np.round(dbs, 2)
     return df
 
 

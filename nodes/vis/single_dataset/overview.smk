@@ -78,7 +78,7 @@ rule create_overview_chart:
              scale=alt.Scale(domain=["min/max", "label2"], range=[0.2, 0.2])
          )
 
-         chart_json = alt.layer(
+         chart = alt.layer(
               base.mark_area(interpolate="monotone").encode(
                  x=alt.X('group:N', title=None, axis=alt.Axis(grid=True)),
                  y=alt.Y('min_m:Q', title=None),
@@ -97,7 +97,8 @@ rule create_overview_chart:
                  x=alt.X('group:N'),
                  y=alt.Y('max_m:Q'),
                  color=color,
-             )
+             ),
+
          ).properties(
              width=650
          ).facet(
@@ -111,7 +112,25 @@ rule create_overview_chart:
              ),
          ).resolve_scale(
              x='independent'
-         ).to_json(indent=None)
+         )
+
+         chart = alt.concat(
+             chart,
+             title=alt.TitleParams(
+                 text=[
+                     "Median performance of grouped encodings with min/max range and number of encodings per group.",
+                     "Circle heights depict scores of best performing encoding within a group."
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12)
+             )
+         )
+
+         chart_json = chart.to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

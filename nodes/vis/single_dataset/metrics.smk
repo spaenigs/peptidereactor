@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import altair as alt
 
 import joblib
@@ -70,6 +71,9 @@ rule create_metrics_chart:
          url_scatter, url_box, url_hline, url_anno, url_vline = \
              input[0], input[1], output[0], output[1], output[2]
 
+         df_box = pd.read_json(url_box)
+         min = np.max((np.around(df_box["Value"].min(), 1) - 0.1, 0.0))
+
          d, r = ["sequence based", "structure based"], ["#7570b3", "#d95f02"]
 
          scatter = alt.layer(
@@ -90,7 +94,7 @@ rule create_metrics_chart:
                      alt.value(1.0),
                      alt.value(0.3)
                  ),
-                 color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),
+                 color=alt.Color("type:N", title="Encoding type", scale=alt.Scale(domain=d, range=r)),
                  tooltip="Encoding:N"
              ).properties(
                 width=600
@@ -118,7 +122,7 @@ rule create_metrics_chart:
 
          bp = alt.Chart(repl_path(url_box)).mark_boxplot().encode(
              x=alt.X("Encoding:N", title=None),
-             y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[0.0, 1.0])),
+             y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[min, 1.0])),
              color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),
          ).properties(
              width=600
@@ -139,7 +143,22 @@ rule concat_charts:
     run:
          charts = [joblib.load(p) for p in list(input)]
 
-         chart_json = alt.vconcat(*charts).to_json(indent=None)
+         chart_json = alt.vconcat(
+             *charts,
+             title=alt.TitleParams(
+                 text=[
+                     "Detailed metrics for each encoding (left) and",
+                     "respective distribution of repeated cross validations (right)."
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axisY=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         ).to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

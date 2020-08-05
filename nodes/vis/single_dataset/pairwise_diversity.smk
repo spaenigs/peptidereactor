@@ -62,28 +62,59 @@ rule create_scatter_chart:
          if wildcards.comparision == "all_vs_all":
              title = "All vs. all encodings"
          else:
-             title = "Sequence vs. structure based encoding"
+             title = "Sequence vs. structure based encodings"
 
-         chart = alt.Chart(url).mark_point(text=title, filled=True, size=5, opacity=1).encode(
-             x=alt.X("x:Q", title=f"Predicted probability e1", scale=alt.Scale(domain=[0.0, 1.0])),
-             y=alt.Y("y:Q", title=f"Predicted probability e2", scale=alt.Scale(domain=[0.0, 1.0])),
-             color=alt.Color(
-                 "class:N",
-                 scale=alt.Scale(domain=[0, 1], range=["#7570b3", "#d95f02"])),
-             column=alt.Column(
-                 "diversity:N",
-                 header=alt.Header(labelOrient='left'),
-                 title=None
+         def base_chart(xt, yt):
+             base = alt.Chart(url).mark_point(text=title, filled=True, size=5).encode(
+                 x=alt.X("x:Q", title=xt, scale=alt.Scale(domain=[0.0, 1.0]), axis=alt.Axis(labels=False)),
+                 y=alt.Y("y:Q", title=yt, scale=alt.Scale(domain=[0.0, 1.0]), axis=alt.Axis(labels=False)),
+                 color=alt.Color(
+                     "class:N", title="Class label",
+                     scale=alt.Scale(domain=[0, 1], range=["#7b3294", "#008837"])
+                 )
+             ).properties(
+                 width=250,
+                 height=250
              )
-         ).properties(
-             width=250,
-             height=250
-         )
+             return base
 
-         chart = alt.hconcat(chart, title=alt.TitleParams(
-             text=title + " (increasing diversity w.r.t. performance)",
-             anchor="middle"
-         ))
+         df = pd.read_json(input[0])
+         chart = alt.hconcat()
+         for n, (_, _, _, div, e1, e2, div_score, dbs) in df.groupby("diversity")\
+                 .apply(lambda df: df.iloc[0, :])\
+                 .iterrows():
+             chart |= alt.concat(
+                 base_chart(e1, e2).transform_filter(alt.datum.diversity == div),
+                 title=alt.TitleParams(text=f"div: {div_score}, dbs: {np.round(dbs, 2)}", anchor="middle")
+             )
+
+         # chart = alt.Chart(url).mark_point(text=title, filled=True, size=5, opacity=1).encode(
+         #     x=alt.X("x:Q", title=f"Predicted probability e1", scale=alt.Scale(domain=[0.0, 1.0])),
+         #     y=alt.Y("y:Q", title=f"Predicted probability e2", scale=alt.Scale(domain=[0.0, 1.0])),
+         #     color=alt.Color(
+         #         "class:N", title="Class label",
+         #         scale=alt.Scale(domain=[0, 1], range=["#7b3294", "#008837"])
+         #     ),
+         #     column=alt.Column(
+         #         "diversity:N",
+         #         header=alt.Header(labelOrient='left'),
+         #         title=None,
+         #         spacing=50
+         #     )
+         # ).properties(
+         #     width=250,
+         #     height=250
+         # )
+
+         chart = alt.hconcat(
+             chart,
+             title=alt.TitleParams(
+                text=[title, ""],
+                fontSize=12,
+                fontWeight="bold",
+                anchor="start"
+            )
+         )
 
          joblib.dump(chart, output[0])
 
@@ -99,9 +130,25 @@ rule create_pairwise_diversity_chart:
          sc1 = joblib.load(path(paths, "seq_vs_str", ""))
          sc2 = joblib.load(path(paths, "all_vs_all", ""))
 
-         alt.data_transformers.disable_max_rows()
-
-         chart_json = (sc1 & sc2).to_json(indent=None)
+         chart_json = alt.vconcat(
+             sc1, sc2,
+             spacing=30,
+             title=alt.TitleParams(
+                 text=[
+                     "Predicted probabilities for the respective class labels applied on the x- and y-axis.",
+                     "Encodings are selected with respect to their level of disagreement (div) and",
+                     "cluster quality, depicted as the Davis-Bouldin score (dbs, lower is better)."
+                     "",
+                     ""
+                 ],
+                 fontSize=12, fontWeight="bold", anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal"),
+                 title=alt.TitleConfig(fontSize=11, fontWeight="normal")
+             )
+         ).to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

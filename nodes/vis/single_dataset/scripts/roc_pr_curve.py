@@ -18,6 +18,8 @@ def get_pr_data(df_test, df_prob, encoding):
     mean_precs = np.mean(precs, axis=0)
     df = pd.DataFrame({"x": mean_recall, "y": mean_precs})
     df["Encoding"] = encoding
+    df["mean_ap"] = np.round(np.mean(aps), 2)
+    df["legend_label"] = df.apply(lambda row: f"{row['Encoding']} (AP: {row['mean_ap']})", axis=1)
     return df
 
 
@@ -47,4 +49,6 @@ def get_roc_data(df_test, df_prob, encoding):
         "tprs_upper": tprs_upper
     })
     df["Encoding"] = encoding
+    df["mean_auc"] = np.round(mean_auc, 2)
+    df["legend_label"] = df.apply(lambda row: f"{row['Encoding']} (AUC: {row['mean_auc']})", axis=1)
     return df

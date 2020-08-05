@@ -32,7 +32,7 @@ rule similarity_transform_data:
          source["Encoding2"] = source["y"].apply(lambda i: heatmap_data.index[i])
 
          source["Similarity_cat"] = source.Similarity.apply(
-             lambda x: "<= 0.1" if x <= 0.1 else "<= 0.3" if x <= 0.3 else "<= 0.6" if x <= 0.6 else "<= 1.0")
+             lambda x: "0.0-0.1" if x <= 0.1 else "0.1-0.3" if x <= 0.3 else "0.3-0.6" if x <= 0.6 else "0.6-1.0")
 
          source.to_json(output[0], orient="records")
 
@@ -42,7 +42,7 @@ rule create_heatmap:
     output:
          temp(f"data/temp/{TOKEN}/{{comparision}}_{{metric}}.hmjl")
     run:
-         d, r = ["<= 0.1", "<= 0.3", "<= 0.6", "<= 1.0"], ["white", "gainsboro", "grey", "black"]
+         d, r = ["0.0-0.1", "0.1-0.3", "0.3-0.6", "0.6-1.0"], ["white", "gainsboro", "grey", "black"]
 
          x_config = alt.Axis(labels=False, ticks=False)
          y_config = alt.Axis(labels=False, ticks=False)
@@ -51,13 +51,13 @@ rule create_heatmap:
 
          show_x_title, show_y_title = True, True
          if comp == "all_vs_all" and met == "diversity":
-             show_x_title = False
+             show_x_title = True
          elif comp == "all_vs_all" and met == "phi":
-             show_x_title, show_y_title = True, True
+             show_x_title, show_y_title = False, True
          elif comp == "seq_vs_str" and met == "phi":
-             show_y_title = True
+             show_x_title, show_y_title = False, False
          else:
-             show_x_title, show_y_title = True, True
+             show_x_title, show_y_title = True, False
 
          if not show_x_title:
              x_config = alt.Axis(labels=False, ticks=False, title=None)
@@ -73,7 +73,7 @@ rule create_heatmap:
              color=alt.Color(
                  "Similarity_cat:N",
                  scale=alt.Scale(domain=d, range=r),
-                 legend=alt.Legend(title="Similarity Range")
+                 legend=alt.Legend(title="Diversity")
              ),
              tooltip=["Encoding1:N", "Encoding2:N", "Similarity:Q"]
          ).properties(
@@ -93,16 +93,31 @@ rule create_similarity_chart:
     run:
          paths = list(input)
 
-         hm1 = joblib.load(path(paths, "all_vs_all", "diversity"))
-         hm2 = joblib.load(path(paths, "all_vs_all", "phi"))
-         hm3 = joblib.load(path(paths, "seq_vs_str", "diversity"))
-         hm4 = joblib.load(path(paths, "seq_vs_str", "phi"))
+         hm1 = joblib.load(path(paths, "all_vs_all", "phi"))
+         hm2 = joblib.load(path(paths, "seq_vs_str", "phi"))
+         hm3 = joblib.load(path(paths, "all_vs_all", "diversity"))
+         hm4 = joblib.load(path(paths, "seq_vs_str", "diversity"))
 
-         t1 = alt.hconcat(hm1, hm2, title=alt.TitleParams(text="All vs. all", anchor="middle"))
-         t2 = alt.hconcat(hm3, hm4, title=alt.TitleParams(text="Seq. vs. struc.", anchor="middle"))
+         t1 = alt.hconcat(hm1, hm2, title=alt.TitleParams(text=["Phi correlation", ""]))
+         t2 = alt.hconcat(hm3, hm4, title=alt.TitleParams(text=["Disagreement measure", ""]))
 
-         alt.data_transformers.disable_max_rows()
-         chart_json = (t1 & t2).configure_view(strokeWidth=0).to_json(indent=None)
+         chart_json = alt.vconcat(
+             t1, t2,
+             title=alt.TitleParams(
+                 text=[
+                     "Diversity of the classifier outputs between all encodings (left) and",
+                     "sequence vs. structure based encodings (right),",
+                     "based on correlation (top) and disagreement (bottom).",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         ).configure_view(strokeWidth=0).to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

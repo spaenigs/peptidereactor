@@ -87,7 +87,7 @@ rule aggregate_charts:
 
          template = env.get_template("single_dataset.html")
          template\
-             .stream(dataset=DATASET, objects=objects)\
+             .stream(dataset=DATASET.replace("_", " "), objects=objects)\
              .dump(config["html_dir_out"] + "single_dataset.html")
 
          shell("touch {output[0]}")

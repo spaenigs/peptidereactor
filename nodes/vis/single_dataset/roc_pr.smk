@@ -85,28 +85,38 @@ rule create_sub_chart:
              chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title=None)),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
-                 color=alt.Color("Encoding:N")
+                 color=alt.Color("Encoding:N"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_auc:Q", title="AUC")]
              ) + random_guess_line
          elif "pr_data_t6" in path:
              chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title=None)),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
-                 color="Encoding:N"
+                 color="Encoding:N",
+                 tooltip=["Encoding:N", alt.Tooltip("mean_ap:Q", title="AP")]
              )
          elif "roc_data_t33" in path:
              chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title="1 - Specificity")),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
                  color="Encoding:N",
-                 strokeDash="type:N"
+                 strokeDash=alt.StrokeDash("type:N", title="Encoding type"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_auc:Q", title="AUC")]
              ) + random_guess_line
          else:
              chart = alt.Chart(url_scatter).mark_line().encode(
                  x=alt.X("x:Q", axis=alt.Axis(title="Recall")),
                  y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
                  color="Encoding:N",
-                 strokeDash="type:N"
+                 strokeDash=alt.StrokeDash("type:N", title="Encoding type"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_ap:Q", title="AP")]
              )
+
+         chart = chart.interactive().properties(
+             width=400,
+             height=400
+
+         )
 
          joblib.dump(chart, output[0])
 
@@ -123,7 +133,24 @@ rule create_roc_pr_chart:
          cA = joblib.load(path(paths, "roc", "t33"))
          cB = joblib.load(path(paths, "pr", "t33"))
 
-         chart = (c1 | c2) & (cA | cB)
+         chart = alt.vconcat(
+             (c1 | c2), (cA | cB),
+             title=alt.TitleParams(
+                 text=[
+                     "ROC (left) and precision/recall curve (right) for ",
+                     "top 6 encodings (top) and ",
+                     "top 3 sequence and top 3 structure based encodings (bottom), ",
+                     "based on F1 measure.",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12, labelLimit=0),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         )
 
          with open(output[0], "w") as f:
              f.write(chart.to_json(indent=None))
