@@ -21,6 +21,8 @@ rule collect:
              full_name = re.findall(".*/(.*)_\w+.txt", p)[0]
              df_tmp = pd.read_csv(p, sep="\t")
              category, name = full_name.split("_")[0], "".join(full_name.split("_", 1)[1])
+             if name == "aaindex":
+                 name = f"{category}_{name}"
              df_tmp.index = [name]
              df_tmp.loc[name, "category"] = category
              df_res = pd.concat([df_res, df_tmp])
