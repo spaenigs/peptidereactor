@@ -27,7 +27,11 @@ rule create_dendrogram:
          url = \
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
+         title = [
+             "Correlation of encoded datasets, based on the adjusted RV coefficient."
+         ]
+
          template = env.get_template("dendrogram.json")
          template\
-            .stream(url=url)\
+            .stream(url=url, title=title)\
             .dump(output[0])

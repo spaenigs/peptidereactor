@@ -29,7 +29,7 @@ rule transform_class_ratio_total_data:
              else:
                  total_neg += 1
 
-         dfm_total = pd.DataFrame({"class": ["Positive", "Negative"],
+         dfm_total = pd.DataFrame({"class": ["1", "0"],
                                    "count": [total_pos, total_neg]})
 
          dfm_total.to_json(output[0], orient="records")
@@ -67,7 +67,7 @@ rule transform_class_ratio_data:
 
          source = df_pos.join(df_neg, lsuffix="_left")
          source.fillna(0, inplace=True)
-         source.columns = ["Positive", "Negative"]
+         source.columns = ["1", "0"]
          source["seq_len_cat"] = source.index
 
          dfm = pd.melt(source, id_vars=["seq_len_cat"], value_vars=list(source.columns)[:-1],
@@ -87,7 +87,7 @@ rule class_ratio:
              DATASET + "/" + input[1].replace(config["html_dir_out"], "")
 
          filter_pos, filter_neg = \
-             "datum.class == 'Positive'",  "datum.class == 'Negative'"
+             "datum.class == '1'",  "datum.class == '0'"
 
          dfm_total = pd.read_json(input[1])
 
@@ -95,8 +95,8 @@ rule class_ratio:
          range_ = [0, dfm_total["count"].max()]
          height = 450
 
-         d, r = ["Negative", "Positive"], ["#7570b3", "#d95f02"]
-         color = alt.Color("class:N", scale=alt.Scale(domain=d, range=r))
+         d, r = ["0", "1"], ["#7b3294", "#008837"]
+         color = alt.Color("class:N", title="Class label", scale=alt.Scale(domain=d, range=r))
 
          c1 = alt.hconcat(
              base_c1.mark_bar().transform_filter(filter_neg).encode(
@@ -106,7 +106,8 @@ rule class_ratio:
                      sort=alt.Sort("descending")
                  ),
                  y=alt.Y('seq_len_cat:N', axis=None),
-                 color=color
+                 color=color,
+                 tooltip="count:Q"
              ),
              base_c1.mark_bar().transform_filter(filter_pos).encode(
                  x=alt.X('count:Q',
@@ -114,7 +115,8 @@ rule class_ratio:
                      scale=alt.Scale(domain=range_)
                  ),
                  y=alt.Y('seq_len_cat:N', axis=None),
-                 color=color
+                 color=color,
+                 tooltip="count:Q"
              ),
              title=alt.TitleParams(text="Total count of sequences per class", anchor="middle"),
              spacing=0
@@ -128,7 +130,8 @@ rule class_ratio:
                      scale=alt.Scale(domain=range_),
                      sort=alt.Sort("descending")
                  ),
-                 color=color
+                 color=color,
+                 tooltip="count:Q"
              ),
              base_c2.mark_bar().transform_filter(filter_pos).encode(
                  x=alt.X('count:Q',
@@ -137,6 +140,7 @@ rule class_ratio:
                  ),
                  y=alt.Y('seq_len_cat:N', axis=None),
                  color=color,
+                 tooltip="count:Q"
              ),
              title=alt.TitleParams(
                  text="Count of sequences per length", anchor="middle"
@@ -168,13 +172,15 @@ rule aac_transform_data:
          for aa in "".join(aas(1)):
              pos[aa] += 1
 
-         df = pd.DataFrame({"Negative": neg, "Positive": pos})
-         df["Negative"] = df["Negative"].apply(lambda c: (c / df["Negative"].sum()) * 100)
-         df["Positive"] = df["Positive"].apply(lambda c: (c / df["Positive"].sum()) * 100)
+         df = pd.DataFrame({"0": neg, "1": pos})
+         df["0"] = df["0"].apply(lambda c: (c / df["0"].sum()) * 100)
+         df["1"] = df["1"].apply(lambda c: (c / df["1"].sum()) * 100)
          df["aa"] = df.index
 
          df_melted = pd.melt(df, id_vars=["aa"], value_vars=list(df.columns)[:-1],
                              var_name="class", value_name="count")
+
+         df_melted["anno"] = 0
 
          df_melted.to_json(output[0], orient="records")
 
@@ -187,18 +193,40 @@ rule aac:
          url = \
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         chart = alt.Chart(url).mark_bar().encode(
-             x=alt.X("class:N", axis=None),
-             y=alt.Y("count:Q", title="Relative count (%)", scale=alt.Scale(domain=[0.0, 100.0])),
-             color=alt.Color(
-                 "class:N",
-                 scale=alt.Scale(
-                     domain=["Negative", "Positive"],
-                     range=["#7570b3", "#d95f02"])),
+         def anno_layer(val):
+             return alt.Chart().mark_rule(
+                 opacity=0.5,
+                 strokeWidth=0.3
+             ).encode(
+                 y="anno_tmp:Q"
+             ).transform_calculate(
+                 anno_tmp=alt.datum.anno + val
+             )
+
+         chart = alt.layer(
+             alt.Chart().mark_bar().encode(
+                 x=alt.X("class:N", axis=None),
+                 y=alt.Y("count:Q", title="Relative count (%)", scale=alt.Scale(domain=[0.0, 100.0])),
+                 color=alt.Color(
+                     "class:N",
+                     scale=alt.Scale(
+                         domain=["0", "1"],
+                         range=["#7b3294", "#008837"]
+                     )
+                 ),
+                 tooltip="tt:N"
+             ).transform_calculate(
+                 tt="join(['~', round(datum.count), '%'], '')"
+             ).properties(
+                 width=18
+             ),
+             anno_layer(20),
+             anno_layer(40),
+             anno_layer(60),
+             anno_layer(80)
+         ).facet(
              column=alt.Column("aa:N", title="Amino acid"),
-             tooltip="count:Q"
-         ).properties(
-             width=20
+             data=url
          )
 
          joblib.dump(chart, output[0])
@@ -212,7 +240,24 @@ rule collect_aac:
     run:
          cr, aac = joblib.load(input[0]), joblib.load(input[1])
 
-         chart_json = (cr & aac).to_json(indent=None)
+         chart_json = alt.vconcat(
+             cr, aac,
+             center=True,
+             title=alt.TitleParams(
+                 text=[
+                     "Overall class distribution (top), sequence length distribution (middle) and",
+                     "amino acid ratios relative to the respective class (bottom).",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 view=alt.ViewConfig(width=600),
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         ).to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

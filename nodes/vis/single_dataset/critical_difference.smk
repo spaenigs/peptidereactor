@@ -175,7 +175,7 @@ rule create_dots_chart:
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
          dots = alt.Chart(url).mark_circle(color=RANGE[0]).encode(
-             x=alt.X("binned_cd:Q", title="Difference"),
+             x=alt.X("binned_cd:Q", title="Difference", scale=alt.Scale(domain=[-350, 350])),
              y=alt.Y("y:N", axis=alt.Axis(title=None)),
              size=alt.Size(
                  "count(binned_cd):Q",
