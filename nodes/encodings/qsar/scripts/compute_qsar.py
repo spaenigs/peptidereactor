@@ -25,8 +25,6 @@ def reset_indices(chain):
 def get_pdb_chunks(full_pdb, window_size, len_residues, token):
     len_residues += 1
     for chain in full_pdb.get_chains():
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('localhost', port=38473, stdoutToServer=True, stderrToServer=True)
         chain = reset_indices(chain)
         chain_id = chain.get_id()
         start_idx, stop_idx = \
