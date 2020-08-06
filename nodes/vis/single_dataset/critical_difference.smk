@@ -6,7 +6,8 @@ import yaml
 import re
 import joblib
 
-from nodes.vis.single_dataset.scripts.utils import cluster, is_struc_based
+from nodes.vis.single_dataset.scripts.utils \
+    import cluster, is_struc_based
 
 TOKEN = config["token"]
 
@@ -107,15 +108,14 @@ rule create_heat_map_chart:
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
          hm = alt.Chart(
-             url,
-             title="All vs. all encodings"
+             url, title="All vs. all encodings"
          ).mark_rect().encode(
              x=alt.X('x:O', axis=alt.Axis(title="Encoding 1", labels=False, ticks=False)),
              y=alt.X('y:O', axis=alt.Axis(title="Encoding 2", labels=False, ticks=False)),
              color=alt.Color(
                  "cd_cat:N",
                  scale=alt.Scale(domain=DOMAIN, range=RANGE),
-                 legend=alt.Legend(title="Difference")
+                 title="Difference"
              ),
              tooltip=["Encoding1:N", "Encoding2:N", "cd:Q"]
          ).properties(
@@ -133,32 +133,34 @@ rule create_bar_chart:
          url = \
              DATASET + "/" + input[0].replace(config["html_dir_out"], "")
 
-         bars1 = alt.Chart(url).mark_bar(color=RANGE[1]).encode(
-             x='cd_count_max:Q',
+         bars1 = alt.Chart(url).mark_bar(color=RANGE[1], size=20).encode(
+             x=alt.X('cd_count_max:Q', title=None),
              y="group:O",
              tooltip=["cd_count:Q", "cd_count_max:Q"]
          )
 
-         bars2 = alt.Chart(url).mark_bar(color=RANGE[0]).encode(
+         bars2 = alt.Chart(url).mark_bar(color=RANGE[0], size=20).encode(
              x=alt.X('cd_count:Q', title="Count"),
              y=alt.Y("group:O", title=None),
              tooltip=["cd_count:Q", "cd_count_max:Q"]
          )
 
-         bars = alt.layer(
-             bars1, bars2,
+         bars = alt.vconcat(
+             (bars1 + bars2).transform_filter(
+                 alt.datum.type == "sequence based"
+             ).properties(
+                 height=500
+             ),
+             (bars1 + bars2).transform_filter(
+                 alt.datum.type == "structure based"
+             ),
              title=alt.TitleParams(
-                 text="Within encoding groups (group size > 1)",
-                 anchor="middle"
-             )
-         ).facet(
-             row=alt.Row(
-                 "type:N",
-                 title=None,
-                 header=alt.Header(labels=False)
+                 text="Count within encoding groups (group size > 1)",
+                 anchor="middle",
+                 fontSize=12
              )
          ).resolve_scale(
-             y="independent"
+             x="shared"
          )
 
          joblib.dump(bars, output[0])
@@ -178,7 +180,7 @@ rule create_dots_chart:
              size=alt.Size(
                  "count(binned_cd):Q",
                  title="Bin size",
-                 # legend=alt.LegendConfig(orient="bottom")
+                 legend=alt.Legend(columns=3)
              ),
              color=alt.condition(np.abs(alt.datum.binned_cd) >= CD,
                                  alt.value(RANGE[0]),
@@ -197,8 +199,7 @@ rule create_dots_chart:
          })
 
          lines = alt.Chart(
-             df_lines,
-             title="Binned difference for all encoding pairings"
+             df_lines, title="Binned difference for all encoding pairings"
          ).mark_rule(strokeDash=[5, 2]).encode(
              x="x:Q",
              color=alt.Color(
@@ -207,8 +208,7 @@ rule create_dots_chart:
                  scale=alt.Scale(
                      domain=["negative", "positive"],
                      range=["#d8b365", "#5ab4ac"]
-                 ),
-                 # legend=alt.LegendConfig(orient="bottom")
+                 )
              )
          )
 
@@ -243,9 +243,10 @@ rule concat_cd_charts:
                  legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
                  axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
              )
-         ).resolve_scale(size="independent", color="independent")
-
-         alt.data_transformers.disable_max_rows()
+         ).resolve_scale(
+             size="independent",
+             color="independent"
+         )
 
          with open(output[0], "w") as f:
              f.write(chart.to_json(indent=None))
