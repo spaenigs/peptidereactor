@@ -21,7 +21,7 @@ c = alt.Chart(df).mark_circle(stroke="black", strokeWidth=1.5).encode(
     color=alt.Color(
         "p_value:Q",
         title="-log10(p-value)",
-        scale=alt.Scale(domain=[0, np.median(pvals), pvals[-1]], range=["black", "red", "white"], nice=20)
+        scale=alt.Scale(domain=[pvals[0], np.median(pvals), pvals[-1]], range=["black", "red", "white"], nice=20)
     ),
     row=alt.Row("source_:N", title=None),
     tooltip="p_value:Q"
