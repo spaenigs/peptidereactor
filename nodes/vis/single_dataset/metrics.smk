@@ -90,7 +90,7 @@ rule create_metrics_chart:
                  ),
                  size=alt.value(20),
                  opacity=alt.condition(
-                     alt.datum.Value >= scatter_plot_data["Value"][NR_TOP_ENCODINGS],
+                     alt.datum.Value > scatter_plot_data["Value"][NR_TOP_ENCODINGS],
                      alt.value(1.0),
                      alt.value(0.3)
                  ),
@@ -121,7 +121,7 @@ rule create_metrics_chart:
              )
 
          bp = alt.Chart(repl_path(url_box)).mark_boxplot().encode(
-             x=alt.X("Encoding:N", title=None),
+             x=alt.X("Encoding:N", title=None, sort=scatter_plot_data["Encoding"][:NR_TOP_ENCODINGS].tolist()),
              y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[min, 1.0])),
              color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),
          ).properties(
