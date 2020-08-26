@@ -107,7 +107,7 @@ rule create_overview_chart:
                  header=alt.Header(labelFontSize=12)
              ),
              row=alt.Row(
-                 "metric:N", title=None,
+                 "metric:N", title="Median",
                  header=alt.Header(labelFontSize=12)
              ),
          ).resolve_scale(
@@ -118,7 +118,7 @@ rule create_overview_chart:
              chart,
              title=alt.TitleParams(
                  text=[
-                     "Median performance of grouped encodings with min/max range and number of encodings per group.",
+                     "Performance of grouped encodings with min/max range and number of encodings per group.",
                      "Circle heights depict scores of best performing encoding within a group."
                      "",
                      ""
