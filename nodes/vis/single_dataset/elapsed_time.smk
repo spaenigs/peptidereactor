@@ -46,9 +46,8 @@ rule dump_time_vs_performance_data:
         df_time["meta_rule"] = df_time.index
         df_time["group"] = [group(x) for x in df_time["meta_rule"]]
 
-        dur_tert_search = df_time.loc[df_time["meta_rule"]=="tertiary_structure_search", "s"][0]/60/60
-
-        df_time.drop(df_time[df_time["category"] != "encoding"].index, inplace=True)
+        dur_tert_search = \
+            df_time.loc[df_time["meta_rule"]=="tertiary_structure_search", "s"][0]/60/60
 
         times = []
         for n, s in df_medians.iterrows():
@@ -83,7 +82,7 @@ rule create_time_vs_performance_chart:
 
          c = alt.Chart(url).mark_point(filled=True).encode(
              x=alt.X("time:Q", title="Hours (log scale)", scale=alt.Scale(type="log")),
-             y=alt.Y("median:Q", title="Median of medians"),
+             y=alt.Y("median:Q", title="Median performance of encoding groups"),
              color=alt.Color(
                  "type:N",
                  title="Encoding type",
@@ -93,9 +92,13 @@ rule create_time_vs_performance_chart:
                  )
              ),
              tooltip=["group:N", "time:Q"]
-         ).interactive()
+         )
 
-         joblib.dump(c, output[0])
+         text = c.mark_text(dy=10, size=9).encode(
+             text="group:N"
+         )
+
+         joblib.dump((c + text).interactive(), output[0])
 
 rule create_elapsed_time_chart:
     input:
@@ -124,7 +127,7 @@ rule create_elapsed_time_chart:
              ),
              color=alt.condition(
                  selection,
-                 alt.Color("category:N", title="Meta node type"),
+                 alt.Color("category:N", title="Meta node type", scale=alt.Scale(scheme="category10", reverse=True)),
                  alt.value("grey")
              ),
              opacity=alt.condition(selection, alt.value(1.0), alt.value(0.0)),
@@ -152,10 +155,17 @@ rule concat_time_charts:
          chart_json = alt.vconcat(
              time_vs_perf, elapsed_time,
              title=alt.TitleParams(
-                 text=["Elapsed time", ""], anchor="middle"
+                 text=[
+                     "Median of group performance vs. elapsed time (encodings only) (top) and",
+                     "elapsed time for all meta nodes (bottom).",
+                     ""
+                 ]
+                 , anchor="middle"
              ),
+             center=True,
              config=alt.Config(
                  legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axisX=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal"),
                  axisY=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
              )
          ).resolve_scale(
