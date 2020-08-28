@@ -1,15 +1,19 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import f1_score
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold, StratifiedKFold
 from imblearn.under_sampling import RandomUnderSampler
 from itertools import product
+from collections import Counter
+from scipy import stats
 
 import pandas as pd
 import numpy as np
 
 from nodes.vis.single_dataset.scripts.utils import is_struc_based
 
-dataset = "ace_vaxinpad"
+# dataset = "ace_vaxinpad"
+# dataset = "bce_bcm"
+dataset = "hiv_protease"
 
 df_f1 = pd.read_csv(f"data/{dataset}/benchmark/metrics/f1.csv", index_col=0)
 
@@ -20,7 +24,76 @@ indices = df_f1.apply(np.median)\
 top_three_seq = indices[:3]
 top_three_str = [i for i in indices if is_struc_based(i)][:3]
 
-for encoding_pair in list(product(top_three_seq, top_three_str))[:1]:
+
+def train_and_measure(X_train, y_train, X_test, y_test):
+    brf = RandomForestClassifier(n_jobs=32, random_state=42)
+    brf.fit(X_train, y_train)
+    y_pred_class = brf.predict(X_test)
+    return f1_score(y_true=y_test, y_pred=y_pred_class)
+
+
+encoding_pairs = list(product(top_three_seq, top_three_str))
+
+df_total = pd.DataFrame()
+for encoding_pair in encoding_pairs:
+
+    df1 = pd.read_csv(f"data/{dataset}/csv/all/{encoding_pair[0]}.csv", index_col=0)
+    df2 = pd.read_csv(f"data/{dataset}/csv/all/{encoding_pair[1]}.csv", index_col=0)
+
+    # justify training examples
+    df1 = df1.loc[df2.index, :]
+
+    print(Counter(df1["y"]))
+
+    X, y = df1.iloc[:, :-1].values, df1["y"]
+
+    print(encoding_pair)
+
+    for e in encoding_pair:
+
+        df = pd.read_csv(f"data/{dataset}/csv/all/{e}.csv", index_col=0)
+        X, y = df.iloc[:, :-1].values, df["y"]
+
+        inner_cv_scores = []
+        for train_idx, test_idx in RepeatedStratifiedKFold(n_repeats=10, n_splits=10).split(X, y):
+            X_train, y_train = X[train_idx], y[train_idx]
+            X_test, y_test = X[test_idx], y[test_idx]
+
+            # TODO 0.3
+            rus = RandomUnderSampler(sampling_strategy=0.3, random_state=42)
+            X_train_i_resampled, y_train_i_resampled = rus.fit_resample(X_train, y_train)
+            f1s = train_and_measure(X_train_i_resampled, y_train_i_resampled, X_test, y_test)
+            df_tmp = pd.DataFrame({"encoding": [f"{e}_resampled"], "f1": [f1s], "group": [str(encoding_pair)], "resampled": [True]})
+            df_total = pd.concat([df_total, df_tmp])
+
+            f1s = train_and_measure(X_train, y_train, X_test, y_test)
+            df_tmp = pd.DataFrame({"encoding": [e], "f1": [f1s], "group": [str(encoding_pair)], "resampled": [False]})
+            df_total = pd.concat([df_total, df_tmp])
+
+
+def get_probas(df, train_idx, test_idx):
+    X, y = df.iloc[:, :-1].values, df["y"]
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
+    brf = RandomForestClassifier(n_jobs=32, random_state=42)
+    brf.fit(X_train, y_train)
+    return brf.predict_proba(X_test)[:, 1], y_test
+
+
+def get_probas_resampled(df, train_idx, test_idx):
+    X, y = df.iloc[:, :-1].values, df["y"]
+    X_train, y_train = X[train_idx], y[train_idx]
+    X_test, y_test = X[test_idx], y[test_idx]
+    rus = RandomUnderSampler(sampling_strategy=0.3, random_state=42)
+    X_train_i_resampled, y_train_i_resampled = rus.fit_resample(X_train, y_train)
+    brf = RandomForestClassifier(n_jobs=32, random_state=42)
+    brf.fit(X_train_i_resampled, y_train_i_resampled)
+    return brf.predict_proba(X_test)[:, 1], y_test
+
+
+for encoding_pair in encoding_pairs:
+
+    print(encoding_pair)
 
     df1 = pd.read_csv(f"data/{dataset}/csv/all/{encoding_pair[0]}.csv", index_col=0)
     df2 = pd.read_csv(f"data/{dataset}/csv/all/{encoding_pair[1]}.csv", index_col=0)
@@ -30,77 +103,63 @@ for encoding_pair in list(product(top_three_seq, top_three_str))[:1]:
 
     X, y = df1.iloc[:, :-1].values, df1["y"]
 
-    print(encoding_pair)
+    f1_scores = []
+    for train_idx, test_idx in RepeatedStratifiedKFold(n_repeats=10, n_splits=10).split(X, y):
 
-    ensemble_cv = {encoding_pair: {"ensemble_cv_scores": []}}
-    for train_idx, test_idx in StratifiedKFold(n_splits=10).split(X, y):
         X_train, y_train = X[train_idx], y[train_idx]
         X_test, y_test = X[test_idx], y[test_idx]
 
-        res = {
-            encoding_pair[0]: {"X": np.array([]), "y": np.array([]), "inner_cv_scores": []},
-            encoding_pair[1]: {"X": np.array([]), "y": np.array([]), "inner_cv_scores": []}
-        }
+        df_res = pd.DataFrame()
+        for train_idx_i, test_idx_i in StratifiedKFold(n_splits=4).split(X_train, y_train):
+            probas1, y1_test = get_probas(df1, train_idx_i, test_idx_i)
+            probas2, _ = get_probas(df2, train_idx_i, test_idx_i)
+            df_new = pd.DataFrame({"p1": probas1, "p2": probas2, "y": y1_test})
+            df_res = pd.concat([df_res, df_new])
 
-        for e in encoding_pair:
+        probasm1, _ = get_probas(df1, train_idx, test_idx)
+        probasm2, _ = get_probas(df2, train_idx, test_idx)
 
-            df = pd.read_csv(f"data/{dataset}/csv/all/{e}.csv", index_col=0)
-            X, y = df.iloc[:, :-1].values, df["y"]
+        df_tmp = pd.DataFrame({"p1": probasm1, "p2": probasm2})
 
-            inner_cv_scores = []
-            for train_idx_i, test_idx_i in StratifiedKFold(n_splits=10).split(X_train, y_train):
-                X_train_i, y_train_i = X[train_idx_i], y[train_idx_i]
-                X_test_i, y_test_i = X[test_idx_i], y[test_idx_i]
+        X_new, y_new = df_res.iloc[:, :-1].values, df_res["y"]
 
-                # 0.3
-                rus = RandomUnderSampler(sampling_strategy=1.0, random_state=42)
-                X_train_i_resampled, y_train_i_resampled = rus.fit_resample(X_train_i, y_train_i)
+        ensemble = RandomForestClassifier(n_jobs=32, random_state=42)
+        ensemble.fit(X_new, y_new)
+        ypred = ensemble.predict(df_tmp.values)
 
-                brf = RandomForestClassifier(n_jobs=12, random_state=42)
-                brf.fit(X_train_i_resampled, y_train_i_resampled)
-                y_pred_class = brf.predict(X_test_i)
+        f1s = f1_score(y_test, ypred)
 
-                inner_cv_scores += [f1_score(y_true=y_test_i, y_pred=y_pred_class)]
+        df_total = pd.concat([df_total, pd.DataFrame({
+            "encoding": [f"ensemble_{encoding_pair[0][:3]}_{encoding_pair[1][:3]}"],
+            "group": [str(encoding_pair)], "f1": [f1s], "resampled": [False]
+        })])
 
-            res[e]["inner_cv_scores"] = inner_cv_scores
-            res[e]["X"], res[e]["y"] = X, y
+        ### resampled
 
-        def get_proba(e):
-            X, y = res[e]["X"], res[e]["y"]
-            X_train_p, y_train_p = X[train_idx], y[train_idx]
-            X_test_p, y_test_p = X[test_idx], y[test_idx]
-            brf1 = RandomForestClassifier(n_jobs=12, random_state=42)
-            brf1.fit(X_train_p, y_train_p)
-            return brf1.predict_proba(X_test_p)[:, 1], X_test_p, y_test_p
+        df_res = pd.DataFrame()
+        for train_idx_i, test_idx_i in StratifiedKFold(n_splits=4).split(X_train, y_train):
+            probas1, y1_test = get_probas_resampled(df1, train_idx_i, test_idx_i)
+            probas2, _ = get_probas_resampled(df2, train_idx_i, test_idx_i)
+            df_new = pd.DataFrame({"p1": probas1, "p2": probas2, "y": y1_test})
+            df_res = pd.concat([df_res, df_new])
 
+        probasm1, _ = get_probas(df1, train_idx, test_idx)
+        probasm2, _ = get_probas(df2, train_idx, test_idx)
 
-        X1, y1 = df1.iloc[:, :-1].values, df1["y"]
-        X1_test, y1_test = X1[test_idx], y1[test_idx]
-        brf1 = RandomForestClassifier(n_jobs=12, random_state=42)
-        brf1.fit(X1_test, y1_test)
+        df_tmp = pd.DataFrame({"p1": probasm1, "p2": probasm2})
 
-        X2, y2 = df2.iloc[:, :-1].values, df2["y"]
-        X2_test, y2_test = X2[test_idx], y2[test_idx]
+        X_new, y_new = df_res.iloc[:, :-1].values, df_res["y"]
 
-        X, y = res[e]["X"][test_idx], res[e]["y"][test_idx]
+        ensemble = RandomForestClassifier(n_jobs=32, random_state=42)
+        ensemble.fit(X_new, y_new)
+        ypred = ensemble.predict(df_tmp.values)
 
-        probas_model_1, y_test_model_1 = get_proba(encoding_pair[0])
-        probas_model_2, _ = get_proba(encoding_pair[1])
+        f1s = f1_score(y_test, ypred)
 
-        df_new = pd.DataFrame({"p1": probas_model_1, "p2": probas_model_2, "y": y_test_model_1})
-        X, y = df_new.iloc[:, :-1].values, df_new["y"]
+        df_total = pd.concat([df_total, pd.DataFrame({
+            "encoding": [f"ensemble_{encoding_pair[0][:3]}_{encoding_pair[1][:3]}_resampled"],
+            "group": [str(encoding_pair)], "f1": [f1s], "resampled": [True]
+        })])
 
-        X_train_e, y_train_e = X[train_idx], y[train_idx]
-        X_test_e, y_test_e = X[test_idx], y[test_idx]
-
-        ensemble = RandomForestClassifier(n_jobs=12, random_state=42)
-        ensemble.fit(X_train_e, y_train_e)
-        ypred = ensemble.predict(X_test_e)
-
-        ensemble_cv[encoding_pair]["ensemble_cv_scores"] += [f1_score(y_test, ypred)]
-
-    print(ensemble_cv)
-
-
-
+df_total.to_csv(f"bc_data_{dataset}.csv")
 
