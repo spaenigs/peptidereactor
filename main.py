@@ -18,7 +18,56 @@ from peptidereactor.workflow_executer \
 TOKEN = secrets.token_hex(6)
 
 CORES = 32
-DATASETS = ["ace_vaxinpad", "hiv_protease", "hiv_nvp", "hiv_sqv", "acp_anticp", "hiv_ddi"]
+DATASETS = [
+        "ace_vaxinpad",
+        # "acp_anticp",
+        # "acp_iacp",
+        # "acp_mlacp",
+        # "afp_amppred",
+        # "afp_antifp",
+        # "amp_ampep",
+        # "amp_amppred",
+        # "amp_antibp",
+        # "amp_antibp2",
+        # "amp_ascan",
+        # "amp_csamp",
+        # "amp_fernandes",
+        # "amp_gonzales",
+        # "amp_iamp2l",
+        # "amp_modlamp",
+        # "atb_antitbp",
+        # "avp_amppred",
+        # "avp_avppred",
+        # "bce_ibce",
+        # "bce_lbeep",
+        # "bvf_spaan",
+        # "cpp_cellppd",
+        # "cpp_cellppdmod",
+        # "cpp_cppredfl",
+        # "cpp_kelmcpp",
+        # "cpp_mixed",
+        # "cpp_mlcpp",
+        # "cpp_mlcppue",
+        # "cpp_sanders",
+        # "hiv_bevirimat",
+        # "hiv_ddi",
+        # "hiv_nvp",
+        # "hiv_protease",
+        # "hiv_sqv",
+        # "hiv_v3",
+        # "bce_bcm"
+        # "isp_il10pred",
+        # "nep_neuropipred",
+        # "npp_profet", # many sequences, very long
+        # "pip_pipel",
+        # "rbp_tripep",  # many sequences very long
+        # "sec_pengaroo",  # many sequences very long
+        # "sig_signalp", # many sequences
+        # "sol_han",  # many sequences, very long
+        # "tce_zhao",  # not finished: see laptop in ~/Downloads for error description
+        # "top_toxinpred",
+        # "tph_profet" # many sequences, very long
+    ]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
