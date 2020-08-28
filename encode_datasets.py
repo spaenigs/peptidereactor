@@ -20,8 +20,8 @@ TOKEN = secrets.token_hex(6)
 CORES = 32
 DATASETS = \
     [
-        "ace_vaxinpad",
-        "acp_anticp",
+        #"ace_vaxinpad",
+        #"acp_anticp",
         # "acp_iacp",
         # "acp_mlacp",
         # "afp_amppred",
@@ -56,20 +56,18 @@ DATASETS = \
         # "hiv_protease",
         # "hiv_sqv",
         # "hiv_v3",
+        "bce_bcm" 
         # "isp_il10pred",
         # "nep_neuropipred",
-        # "npp_profet",
+        # "npp_profet", # many sequences, very long
         # "pip_pipel",
-        # "rbp_tripep",
-        # "sec_pengaroo",
-        # "sig_signalp",
-        # "sol_han",
-        # "tce_zhao",
-        # "tce_zhao",
-        # "tce_zhao",
-        # "tce_zhao",
+        # "rbp_tripep",  # many sequences very long
+        # "sec_pengaroo",  # many sequences very long
+        # "sig_signalp", # many sequences
+        # "sol_han",  # many sequences, very long
+        # "tce_zhao",  # not finished: see laptop in ~/Downloads for error description
         # "top_toxinpred",
-        # "tph_profet"
+        # "tph_profet" # many sequences, very long
     ]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
