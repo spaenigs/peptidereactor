@@ -21,7 +21,8 @@ c = alt.Chart(df).mark_circle(stroke="black", strokeWidth=1.5).encode(
     color=alt.Color(
         "p_value:Q",
         title="-log10(p-value)",
-        scale=alt.Scale(domain=[pvals[0], np.median(pvals), pvals[-1]], range=["black", "red", "white"], nice=20)
+        legend=alt.Legend(values=[1, 15]),
+        scale=alt.Scale(domain=[pvals[0], np.median(pvals), pvals[-1]], range=["black", "red", "white"])
     ),
     row=alt.Row("source_:N", title=None),
     tooltip="p_value:Q"
@@ -37,13 +38,20 @@ for n, s in df.iterrows():
     ad, ps = s["AD assoziiert"], s["beteiligte Ptotein_size"]
     df_tmp = pd.DataFrame({"fold_change": s.filter(like="fold_change")})
     df_tmp.dropna(inplace=True)
-    df_tmp["name"] = s["name"] + f" ({ad}/{ps})"
+    df_tmp["name"] = s["term_name"] + f" ({ad}/{ps}) " + s["term_id"] # s["name"] + f" ({ad}/{ps})"
     df_tmp["source_"] = s["source_"]
     df_res = pd.concat([df_res, df_tmp])
 
+df_res["fold_change"] = df_res["fold_change"].astype(float)
+
+names = []
+for s in df_res["source_"].unique():
+    df_tmp = df_res.loc[df_res["source_"] == s, :].groupby("name").median().sort_values("fold_change", ascending=False)
+    names += df_tmp.index.to_list()
+
 bp = alt.Chart(df_res).mark_boxplot().encode(
     x=alt.X("fold_change:Q", title="Fold enrichment"),
-    y=alt.Y("name:N", title=None),
+    y=alt.Y("name:N", title=None, sort=names),
     row=alt.Row("source_:N", title=None),
 ).properties(
     width=400,
