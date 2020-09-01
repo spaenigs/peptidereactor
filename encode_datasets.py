@@ -20,17 +20,17 @@ TOKEN = secrets.token_hex(6)
 CORES = 32
 DATASETS = \
     [
-        #"ace_vaxinpad",
-        #"acp_anticp",
+        # "ace_vaxinpad",
+        # "acp_anticp",
         # "acp_iacp",
         # "acp_mlacp",
         # "afp_amppred",
         # "afp_antifp",
-        # "amp_ampep",
-        # "amp_amppred",
+        # "amp_ampep", # many sequences, a few long sequences
+        # "amp_amppred", # many sequences, a few long sequences
         # "amp_antibp",
         # "amp_antibp2",
-        # "amp_ascan",
+        # "amp_ascan", # many sequences
         # "amp_csamp",
         # "amp_fernandes",
         # "amp_gonzales",
@@ -39,11 +39,11 @@ DATASETS = \
         # "atb_antitbp",
         # "avp_amppred",
         # "avp_avppred",
-        # "bce_ibce",
-        # "bce_lbeep",
-        # "bvf_spaan",
-        # "cpp_cellppd",
-        # "cpp_cellppdmod",
+        # "bce_ibce", not finshed: error, UNK in Seq_428.pdb?
+        # "bce_lbeep", # many sequences
+        # "bvf_spaan", # many sequences, many long sequences
+        # "cpp_cellppd", # not finished: error, maybe the same as for bce_ibce?
+        "cpp_cellppdmod",
         # "cpp_cppredfl",
         # "cpp_kelmcpp",
         # "cpp_mixed",
@@ -56,7 +56,7 @@ DATASETS = \
         # "hiv_protease",
         # "hiv_sqv",
         # "hiv_v3",
-        "bce_bcm" 
+        # "bce_bcm"
         # "isp_il10pred",
         # "nep_neuropipred",
         # "npp_profet", # many sequences, very long
