@@ -72,11 +72,11 @@ rule read_input_data:
     output:
          temp(f"data/temp/{TOKEN}/input_data.jl")
     run:
-         seqs, names = read_fasta(str(input[0]))
+         seqs, names = read_fasta(input[0])
          with open(str(input[1])) as f:
              classes = list(map(lambda l: int(l.rstrip()), f.readlines()))
          seq_tuples = dict((name, tup) for name, tup in zip(names, zip(seqs, classes)))
-         jl.dump(seq_tuples, str(output))
+         jl.dump(seq_tuples, output[0])
 
 rule encode:
     input:
@@ -84,7 +84,7 @@ rule encode:
     output:
          temp(f"data/temp/{TOKEN}/out_{{type}}_{{size}}.csv")
     run:
-         seq_tuples = jl.load(str(input))
+         seq_tuples = jl.load(input[0])
          type_, size = wildcards.type, int(wildcards.size)
 
          if size not in [2,3]:
@@ -99,7 +99,10 @@ rule encode:
          prod = product(groups, repeat=size)
          total = dict(ChainMap(*list(map(lambda duo: {"".join(duo): 0}, prod))))
          df_res = pd.DataFrame()
-         for (name, (seq, class_)) in seq_tuples.items():
+         trip = [(name, seq, class_)
+                 for name, (seq, class_) in seq_tuples.items()
+                 if len(seq) >= size]
+         for name, seq, class_ in trip:
              mapped_seq = list(map(lambda aa: mapping[aa], seq))
              for duo in windowed(mapped_seq, size):
                  total["".join(duo)] += 1
@@ -109,7 +112,7 @@ rule encode:
              df_tmp["y"] = class_
              df_res = pd.concat([df_res, df_tmp], axis=0)
 
-         df_res.to_csv(str(output))
+         df_res.to_csv(output[0])
 
 rule svd:
     input:
@@ -122,7 +125,7 @@ rule svd:
          f"{MISC_TARGET_DIR}/ngram_{{type}}{{size}}_lsv_{{dim}}.csv",
          f"{MISC_TARGET_DIR}/ngram_{{type}}{{size}}_sv_{{dim}}.csv"
     run:
-         df = pd.read_csv(str(input[0]), index_col=0)
+         df = pd.read_csv(input[0], index_col=0)
          dim = int(wildcards.dim)
 
          with open(str(input[1])) as f:
@@ -138,9 +141,9 @@ rule svd:
              df_res.index = df.index
              df_res["y"] = df["y"]
 
-             df_res.to_csv(str(output[0]))
-             pd.DataFrame(T).to_csv(str(output[1]))
-             pd.DataFrame(S).to_csv(str(output[2]))
+             df_res.to_csv(output[0])
+             pd.DataFrame(T).to_csv(output[1])
+             pd.DataFrame(S).to_csv(output[2])
 
 
 
