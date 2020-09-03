@@ -38,6 +38,9 @@ rule check:
                  # check class integrity
                  if len(list(set(classes))) != 2:
                      report += [f"Ensure binary class values of exact [0,1]!"]
+                 # ensure equal class and sequence lengths
+                 elif len(classes) != len(seqs):
+                     report += [f"Ensure equal sequence and class lengths!"]
 
          if len(report) > 0:
              print("### Report ###")
