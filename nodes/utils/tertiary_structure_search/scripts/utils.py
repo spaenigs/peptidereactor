@@ -45,11 +45,22 @@ class Cif:
         return seq_from_pdb, seq_from_pdb_ics
 
     def dump_slice(self, motif, out_file):
+
         motif = motif.replace("-", "")
         start_on_indices = self.seq.find(motif)
         end_on_indices = start_on_indices + len(motif) - 1
         start, end = self.indices[start_on_indices], self.indices[end_on_indices]
-        Dice.extract(self.structure, self.chain_id, start, end, out_file)
+
+        final_seq = \
+            [r.get_resname() for r in self.chain.get_residues()
+             if start <= r.get_id()[1] <= end]
+
+        if "UNK" in final_seq:
+            with open(out_file, "w") as f:
+                f.write("")
+                f.flush()
+        else:
+            Dice.extract(self.structure, self.chain_id, start, end, out_file)
 
     def __init__(self, pdb_id, chain_id, cif_dir, file_type="cif"):
         self.pdb_id = pdb_id
