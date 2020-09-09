@@ -28,8 +28,8 @@ rule filter_low_correlated_indices:
          pca = PCA(n_components=1)
          X_new = pca.fit_transform(X)
 
-         # Encodings with a big separation after PCA, should also have a low correlation.
-         # Conversely, encodings with a low separation after PCA should also have a high correlation.
+         # Encodings with a big separation after PCA, should also have a high correlation.
+         # Conversely, encodings with a low separation after PCA should also have a low correlation.
          encoding_dist = pd.Series([x[0] for x in X_new], index=aaindex.columns)
          encoding_dist = ((encoding_dist - encoding_dist.min())/(encoding_dist.max()-encoding_dist.min()))
          encoding_dist[(0.47 < encoding_dist) & (encoding_dist < 0.53)].to_csv(str(output))
