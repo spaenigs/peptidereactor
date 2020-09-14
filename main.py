@@ -19,7 +19,7 @@ TOKEN = secrets.token_hex(6)
 
 CORES = 32
 DATASETS = [
-        "ace_vaxinpad",
+        # "ace_vaxinpad",
         # "acp_anticp",
         # "acp_iacp",
         # "acp_mlacp",
@@ -177,6 +177,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     w.add(benchmark.dataset_correlation.rule(
         group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
 
     w.add(utils.collect_benchmark.rule(
