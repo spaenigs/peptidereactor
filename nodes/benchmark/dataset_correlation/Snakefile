@@ -3,14 +3,21 @@ from itertools import combinations
 from more_itertools import chunked
 
 import pandas as pd
+import numpy as np
 
 import yaml
-from numpy.distutils.system_info import dfftw_info
 
 TOKEN = config["token"]
 
+df_f1 = pd.read_csv(config["metrics_dir_in"] + "f1.csv", index_col=0)
+medians = df_f1.apply(np.median).sort_values(ascending=False)
+
+files_seq_based_filtered = \
+    [config["group_1_in"] + f"{i}.csv" for i in medians.index[:50] \
+     if config["group_1_in"] + f"{i}.csv" in glob(config["group_1_in"] + "*.csv")]
+
 FILES = \
-    glob(config["group_1_in"] + "*.csv") + \
+    files_seq_based_filtered + \
     glob(config["group_2_in"] + "*.csv")
 
 FILES_PRODUCT_1, FILES_PRODUCT_2 = \
