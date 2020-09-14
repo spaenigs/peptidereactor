@@ -10,6 +10,6 @@ df.columns = ["path", "nr_of_seqs"]
 df["enc_pres"] = df["path"].apply(lambda p: int(os.path.exists(p + "pdb/")))
 df["ben_pres"] = df["path"].apply(lambda p: int(os.path.exists(p + "benchmark/dataset_correlation.csv")))
 df.sort_values(by="nr_of_seqs", inplace=True)
-df.reset_index(inplace=True)
+df.reset_index(drop=True, inplace=True)
 
 print(df)
