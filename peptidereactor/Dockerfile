@@ -29,7 +29,7 @@ ENV PATH /opt/conda/envs/peptidereactor-env/bin:$PATH
 RUN echo $PATH
 RUN conda env list
 
-RUN chmod -R 777 /opt/conda/envs/peptidereactor-env/lib/modeller-9.23/modlib/modeller/
+RUN chmod -R 777 /opt/conda/envs/peptidereactor-env/lib/modeller-9.25/modlib/modeller/
 
 VOLUME /snakemake
 WORKDIR /snakemake

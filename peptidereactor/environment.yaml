@@ -22,7 +22,7 @@ dependencies:
   - blast=2.9.0
   - java-jdk
   - muscle=3.8.1551
-  - modeller=9.23
+  - modeller=9.25
   - openmm
   - rdkit
   - mordred=1.2.0
