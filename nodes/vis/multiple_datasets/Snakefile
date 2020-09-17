@@ -95,7 +95,7 @@ rule create_overview_site:
          chart_objects = joblib.load(input[3])
 
          objects = []
-         for p in glob(input[0] + "*.html"):
+         for p in sorted(glob(input[0] + "*.html")):
              if ".html" in p:
                 dataset = re.findall(input[0] + "(.*?).html", p)[0]
                 objects +=  [{"dataset": dataset, "p": f"/{dataset}"}]
