@@ -169,14 +169,17 @@
             </div>
         </nav>
         <main class="col-md-9 ml-sm-auto col-lg-11 px-md-4" role="main">
-            <div class="container" >
+            <div class="container-fluid pl-5" >
                 {% for obj in chart_objects %}
-                    <div class="row">
-                        <div class="col">
-                            <p class="font-weight-bold">{{ obj.header }}</p>
-                            <div id='vis{{ obj.i }}'></div>
-                        </div>
+
+{#                        <p class="font-weight-bold">{{ obj.header }}</p>#}
+{#                        <div id='vis{{ obj.i }}'></div>#}
+                    <div class="border-bottom mb-3 text-center">
+                        <p class="font-weight-bold">{{ obj.header }}</p>
+                        <div id='vis{{ obj.i }}'></div>
                     </div>
+
+
                 {% endfor %}
             </div>
         </main>
