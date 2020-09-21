@@ -12,7 +12,7 @@ def exec_cmd(cmd):
 dir = "/media/spaenigs/4B1DB7375F3291A1/"
 
 
-i = 203
+i = 179
 
 for p in glob("data/*"):
     if "temp" in p:
@@ -26,7 +26,7 @@ for p in glob("data/*"):
         if output.decode('ascii') and not os.path.exists(f"{p}/benchmark/dataset_correlation.csv"):
             print(f"Downloading {p}...")
             # benchmark data
-            exec_cmd(f"mkdir -p {p}/misc/benchmark/")
+            exec_cmd(f"mkdir -p {dir}/peptidereactor/{p}/misc/benchmark/")
             bash_command = f"scp ubuntu@172.16.103.{i}:/home/ubuntu/peptidereactor/{p}/misc/benchmark/*  " \
                            f"{dir}peptidereactor/{p}/misc/benchmark/"
             exec_cmd(bash_command)
