@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import altair as alt
 
+from modlamp.core import read_fasta
+
 import re
 
 from nodes.vis.single_dataset.scripts.utils \
@@ -48,7 +50,8 @@ for p in paths:
 
     df_group_size_tmp = df_medians.groupby(by="group").count()
     df_group_size_tmp["encoding"] = df_group_size_tmp.index
-    df_group_size_tmp.columns = ["size", "encoding"]
+    df_group_size_tmp["dataset"] = re.findall("data/(.*?)/", p)[0]
+    df_group_size_tmp.columns = ["size", "encoding", "dataset"]
     df_group_size_tmp["type"] = \
         ["structure based" if is_struc_based(e) else "sequence based" for e in df_group_size_tmp["encoding"]]
     df_group_size = pd.concat([df_group_size, df_group_size_tmp], axis=0)
@@ -177,4 +180,35 @@ chart4 = alt.vconcat(*vcharts, spacing=2).resolve_scale(
     x="shared"
 )
 
-alt.hconcat(chart2, chart4, chart3).save(out)
+
+
+in_seqs = glob("data/*/seqs.fasta")
+
+df_len = pd.DataFrame()
+for p in in_seqs:
+    seqs, _ = read_fasta(p)
+    lens = []
+    for s in seqs:
+        lens += [len(s)]
+    df_len = pd.concat([df_len, pd.DataFrame([[re.findall("data/(.*?)/", p)[0], np.median(lens)]])])
+
+df_len.columns = ["dataset", "median_len"]
+df_len.sort_values("median_len", inplace=True)
+
+df_merged = df_group_size.merge(df_len, left_on='dataset', right_on='dataset')
+
+print(df_merged.head())
+
+df_merged = df_merged.loc[df_merged["size"] != 1, :].loc[df_merged["encoding"] == "apaac_", :]
+
+chart5 = alt.Chart(df_merged).mark_point().encode(
+    y="median_len:Q",
+    x=alt.X("size:Q", title="# of encodings in group"),
+    tooltip=["dataset:N", "encoding:N"]
+)
+
+alt.vconcat(alt.hconcat(chart2, chart4, chart3), alt.hconcat(chart4, chart5)).save(out)
+
+
+
+
