@@ -1,6 +1,7 @@
 from glob import glob
 from functools import reduce
 
+import altair_saver
 import pandas as pd
 import numpy as np
 import altair as alt
@@ -80,24 +81,23 @@ source = pd.DataFrame({"Dataset": x.ravel(),
                        "F1": heatmap_data.values.ravel()
                        })
 
-alt.Chart(source).mark_rect().encode(
+chart = alt.Chart(source).mark_rect().encode(
     x=alt.X("Dataset:N", sort=alt.Sort(alt.SortArray(heatmap_data.columns.to_list()))),
     y=alt.X("Encoding:N", sort=alt.Sort(alt.SortArray(heatmap_data.index.to_list()))),
-    color="F1:Q"
+    color=alt.condition(alt.datum.F1 == 0.0, alt.value("white"), "F1:Q"),
+    tooltip="F1:Q"
 ).properties(
     height=600,
     width=600
-).save(out)
+)
 
-linkage = hierarchy.linkage(pdist(df_res.values), method="average", metric="euclidean")
-d = hierarchy.dendrogram(linkage, no_plot=True, color_threshold=-np.inf)
-
-print(d)
-
-# g = sns.clustermap(df_res.fillna(0.0))
+# linkage = hierarchy.linkage(pdist(df_res.values.T), method="average", metric="euclidean")
+# d = hierarchy.dendrogram(linkage, no_plot=False, color_threshold=-np.inf)
+#
+g = sns.clustermap(df_res.fillna(0.0))
 # g.savefig("cluster.png")
-
-# plt.show()
+# #
+plt.show()
 
 # x, y = np.meshgrid(df_res.columns, df_res.index)
 #
@@ -152,9 +152,9 @@ print(d)
 #     hcharts += [alt.vconcat(*vcharts, spacing=2)]
 #
 # chart2 = alt.hconcat(*hcharts, spacing=5)
-#
-# ###
-#
+# #
+# # ###
+# #
 # fields_dict = {"sequence based": 1, "structure based": 2}
 # source["type_field"] = source["type"].apply(lambda t: fields_dict[t])
 #
