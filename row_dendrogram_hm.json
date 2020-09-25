@@ -4,7 +4,7 @@
   "width": 400,
   "height": 400,
   "layout": {
-    "padding": 1,
+    "padding": -3,
     "columns": 3
   },
   "data": [
@@ -8179,7 +8179,7 @@
         },
         {
           "scale": "y",
-          "orient": "left",
+          "orient": "right",
           "grid": false,
           "zindex": 1
         }

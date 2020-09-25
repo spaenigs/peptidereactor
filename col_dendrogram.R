@@ -4,7 +4,7 @@ library(data.tree)
 
 df1 <- read.csv("heatmap_data.csv", row.names = 1, stringsAsFactors = FALSE)
 
-hr <- hclust(dist(df1), method = "average", members = NULL)
+hr <- hclust(dist(t(df1)), method = "average", members = NULL)
 de <- as.dendrogram(hr)
 n <- as.Node(de)
 
@@ -53,4 +53,4 @@ colors <- mapply(function(x, y) c(x, y), lvls, lvl_cnts)
 
 df_res[df_res["name"] == "Root", "name"] <- ""
 
-write_json(df_res, pretty = T, "dataset_row_out.json")
+write_json(df_res, pretty = T, "dataset_col_out.json")
