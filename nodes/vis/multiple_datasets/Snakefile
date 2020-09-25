@@ -62,6 +62,7 @@ rule aggregate_overview_charts:
     input:
          expand(f"data/temp/{TOKEN}/{{chart}}.json",
                 chart=[
+                    "hm_cluster",
                     "overview_hm",
                     "tsne"
                 ])
@@ -76,6 +77,8 @@ rule aggregate_overview_charts:
                  tmp["spec"] = json.load(f)
                  if "overview_hm" in p:
                      tmp["header"] = "Overview"
+                 elif "hm_cluster" in p:
+                     tmp["header"] = "Clustering"
                  elif "tsne" in p:
                      tmp["header"] = "t-SNE"
                  tmp["id"] = tmp["header"].replace(" ", "").lower()
