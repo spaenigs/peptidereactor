@@ -1,0 +1,17 @@
+FROM python:3.7
+
+EXPOSE 8501
+
+WORKDIR /usr/src/app
+
+COPY resources/requirements.txt ./
+COPY resources/entrypoint.sh ./
+
+RUN pip install -r requirements.txt
+
+VOLUME /wd
+WORKDIR /wd
+
+ENV PYTHONPATH /wd
+
+ENTRYPOINT ["sh", "/wd/peptidereactor-vis/resources/entrypoint.sh"]

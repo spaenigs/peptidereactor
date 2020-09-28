@@ -1,0 +1,11 @@
+.reportview-container .main {
+    align-items: flex-start; !important;
+}
+
+.reportview-container .element-container .overlayBtn {
+    visibility: hidden;
+}
+
+#MainMenu #MainMenuButton {
+    visibility: hidden;
+}
