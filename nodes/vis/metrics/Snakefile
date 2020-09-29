@@ -9,10 +9,6 @@ from nodes.vis.single_dataset.scripts.utils \
 
 TOKEN = config["token"]
 
-# import pydevd_pycharm
-# pydevd_pycharm.settrace('localhost', port=8000, stdoutToServer=True, stderrToServer=True)
-
-# DATASET = config["dataset"]
 NR_TOP_ENCODINGS = 20
 
 rule all:
@@ -71,12 +67,6 @@ rule create_metrics_chart:
 
          metric = wildcards.metric
 
-         # adopt url, such that it can be found from server
-         # repl_path = \
-         #     lambda path: DATASET + "/" + path.replace(config["html_dir_out"], "")
-
-         repl_path = lambda path: path
-
          url_scatter, url_box, url_hline, url_anno, url_vline = \
              input[0], input[1], output[0], output[1], output[2]
 
@@ -86,7 +76,7 @@ rule create_metrics_chart:
          d, r = ["sequence based", "structure based"], ["#7570b3", "#d95f02"]
 
          scatter = alt.layer(
-             alt.Chart(repl_path(url_scatter)).mark_circle().encode(
+             alt.Chart(url_scatter).mark_circle().encode(
                  x=alt.X(
                      "Encoding:N", sort="-y",
                      axis=alt.Axis(labels=False, ticks=False, title=None)
@@ -108,13 +98,13 @@ rule create_metrics_chart:
              ).properties(
                 width=600
              ),
-             alt.Chart(repl_path(url_hline)).mark_rule(
+             alt.Chart(url_hline).mark_rule(
                  color="grey",
                  strokeDash=[1, 1],
                  opacity=0.5).encode(
                  y="a:Q"
              ),
-             alt.Chart(repl_path(url_anno)).mark_rule(opacity=0.3).encode(
+             alt.Chart(url_anno).mark_rule(opacity=0.3).encode(
                  x=alt.X("Encoding:N", sort="-y"),
                  y="Value:Q",
                  color="type:N"
@@ -122,14 +112,14 @@ rule create_metrics_chart:
          )
 
          if metric == "mcc":
-             scatter = scatter + alt.Chart(repl_path(url_vline)).mark_rule(
+             scatter = scatter + alt.Chart(url_vline).mark_rule(
                  color="black",
                  opacity=0.5
              ).encode(
                  y="y:Q"
              )
 
-         bp = alt.Chart(repl_path(url_box)).mark_boxplot().encode(
+         bp = alt.Chart(url_box).mark_boxplot().encode(
              x=alt.X("Encoding:N", title=None, sort=scatter_plot_data["Encoding"][:NR_TOP_ENCODINGS].tolist()),
              y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[min, 1.0])),
              color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),

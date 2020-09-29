@@ -1,61 +1,28 @@
-import pandas as pd
-import altair as alt
-import streamlit as st
-import numpy as np
-
-import secrets
-
 from glob import glob
 
-# from snakemake import shell
-#
-# with open("server1.py", "w") as f:
-#     f.write("""
-# from flask import Flask, render_template
-# from flask_cors import CORS
-#
-# app = Flask(__name__, static_folder='')
-# CORS(app)
-# """)
-#
-#     for p in glob("data/ace_vaxinpad/vis/*/*.json"):
-#         f.write(f"""
-# @app.route("/{p}")
-# def ace_vaxinpad_{secrets.token_hex(4)}():
-#     return app.send_static_file("{p}")
-# """)
-#
-#     f.write("""
-# if __name__ == '__main__':
-#   app.run(debug=True)
-# """)
-#
-#     f.flush()
-#
-# shell("export FLASK_APP=server1.py; flask run")
+import altair as alt
+import streamlit as st
+
+import re
+import json
 
 with open("peptidereactor-vis/resources/style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
 st.sidebar.image("http://192.168.178.30:8501/logo.png", width=200)
 
-import json
+dataset_paths = glob("data/*/vis/")
 
-ds = st.sidebar.selectbox("Choose dataset:", ["ace_vaxinpad", "hiv_protease"])
+res = {}
+for p in dataset_paths:
+    dataset = re.findall("data/(.*?)/vis/", p)[0]
+    v = glob(f"data/{dataset}/vis/*/")
+    res[dataset] = [re.findall(f"data/{dataset}/vis/(.*?)/", v_)[0] for v_ in v]
 
-with open(f"data/{ds}/vis/overview/overview.json") as f:
-    c1 = alt.Chart().from_dict(json.load(f))
+ds = st.sidebar.selectbox("Choose dataset:", list(res.keys()))
+option = st.sidebar.selectbox("Choose vis:", res[ds])
 
-with open(f"data/{ds}/vis/metrics/metrics.json") as f:
+with open(f"data/{ds}/vis/{option}/{option}.json") as f:
     c2 = alt.Chart().from_dict(json.load(f))
+    st.altair_chart(c2)
 
-option = st.sidebar.selectbox("Choose vis:", ["overview", "metrics"])
-
-if option == "overview":
-    c = c1
-elif option == "metrics":
-    c = c2
-else:
-    c = c1
-
-st.altair_chart(c)
