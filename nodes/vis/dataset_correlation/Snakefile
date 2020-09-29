@@ -1,0 +1,38 @@
+import jinja2 as j2
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         config["html_dir_out"] + "dataset_correlation.json"
+
+rule compute_dendrogram:
+    input:
+         config["f1_csv_in"],
+         config["dataset_correlation_in"]
+    output:
+         config["html_dir_out"] + "dataset_correlation_data.json"
+    script:
+         "scripts/compute_dendrogram.R"
+
+rule create_dendrogram:
+    input:
+         config["html_dir_out"] + "dataset_correlation_data.json"
+    output:
+         config["html_dir_out"] + "dataset_correlation.json"
+    run:
+         env = j2.Environment(
+             loader=j2.FileSystemLoader("nodes/vis/dataset_correlation/templates/"),
+             autoescape=j2.select_autoescape(["json"])
+         )
+
+         url = input[0]
+
+         title = [
+             "Correlation of encoded datasets, based on the adjusted RV coefficient."
+         ]
+
+         template = env.get_template("dendrogram.json")
+         template\
+            .stream(url=url, title=title)\
+            .dump(output[0])
