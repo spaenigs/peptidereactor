@@ -1,5 +1,7 @@
 import jinja2 as j2
 
+import json
+
 TOKEN = config["token"]
 
 rule all:
@@ -32,7 +34,8 @@ rule create_dendrogram:
              "Correlation of encoded datasets, based on the adjusted RV coefficient."
          ]
 
-         template = env.get_template("dendrogram.json")
-         template\
-            .stream(url=url, title=title)\
-            .dump(output[0])
+         with open(input[0]) as f:
+             template = env.get_template("dendrogram.json")
+             template\
+                .stream(values=json.load(f), title=title)\
+                .dump(output[0])

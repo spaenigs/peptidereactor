@@ -21,7 +21,7 @@
   "data": [
     {
       "name": "tree",
-      "url": "{{ url }}",
+      "values": {{ values|tojson|safe }},
       "transform": [
         {
           "type": "stratify",
