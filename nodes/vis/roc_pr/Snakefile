@@ -5,8 +5,8 @@ import altair as alt
 import re
 import joblib
 
-from nodes.vis.single_dataset.scripts.roc_pr_curve import *
-from nodes.vis.single_dataset.scripts.utils import *
+from nodes.vis.roc_pr.scripts.roc_pr_curve import *
+from nodes.vis.roc_pr.scripts.utils import is_struc_based, path
 
 
 def transform_curve_data(encodings, dataset, curve):

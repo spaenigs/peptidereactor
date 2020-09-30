@@ -4,18 +4,20 @@ import numpy as np
 
 import joblib
 
-from nodes.vis.single_dataset.scripts.utils \
+from nodes.vis.elapsed_time.scripts.utils \
     import is_struc_based
 
 TOKEN = config["token"]
 
-DATASET = config["dataset"]
+rule all:
+    input:
+         config["html_dir_out"] + "elapsed_time.json"
 
 rule dump_elapsed_time_data:
     input:
          config["benchmark_csv_in"]
     output:
-         config["html_dir_out"] + f"elapsed_time/elapsed_time.json"
+         config["html_dir_out"] + "elapsed_time_data.json"
     run:
          df_time = pd.read_csv(input[0], index_col=0)
          df_time["meta_rule"] = df_time.index
@@ -23,10 +25,10 @@ rule dump_elapsed_time_data:
 
 rule dump_time_vs_performance_data:
     input:
-        config["metrics_dir_in"] + "f1.csv",
+        config["f1_csv_in"],
         config["benchmark_csv_in"]
     output:
-        config["html_dir_out"] + f"elapsed_time/time_vs_performance.json"
+        config["html_dir_out"] + "time_vs_performance_data.json"
     run:
         df = pd.read_csv(input[0], index_col=0)
         df_time = pd.read_csv(input[1], index_col=0)
@@ -70,15 +72,13 @@ rule dump_time_vs_performance_data:
 
         df_medians.to_json(output[0], orient="records")
 
-
 rule create_time_vs_performance_chart:
     input:
-         config["html_dir_out"] + f"elapsed_time/time_vs_performance.json"
+         config["html_dir_out"] + "time_vs_performance_data.json"
     output:
          temp(f"data/temp/{TOKEN}/time_vs_performance.joblib")
     run:
-         url = \
-             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+         url = input[0]
 
          c = alt.Chart(url).mark_point(filled=True).encode(
              x=alt.X("time:Q", title="Hours (log scale)", scale=alt.Scale(type="log")),
@@ -102,12 +102,11 @@ rule create_time_vs_performance_chart:
 
 rule create_elapsed_time_chart:
     input:
-         config["html_dir_out"] + f"elapsed_time/elapsed_time.json"
+         config["html_dir_out"] + "elapsed_time_data.json"
     output:
          temp(f"data/temp/{TOKEN}/elapsed_time.joblib")
     run:
-         url = \
-             DATASET + "/" + input[0].replace(config["html_dir_out"], "")
+         url = input[0]
 
          d, rc = \
              ["encoding", "benchmark", "utils"], \
@@ -147,7 +146,7 @@ rule concat_time_charts:
          f"data/temp/{TOKEN}/time_vs_performance.joblib",
          f"data/temp/{TOKEN}/elapsed_time.joblib"
     output:
-         temp(f"data/temp/{TOKEN}/elapsed_time.json")
+         config["html_dir_out"] + "elapsed_time.json"
     run:
          time_vs_perf = joblib.load(input[0])
          elapsed_time = joblib.load(input[1])

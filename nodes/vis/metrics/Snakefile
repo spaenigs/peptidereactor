@@ -4,7 +4,7 @@ import altair as alt
 
 import joblib
 
-from nodes.vis.single_dataset.scripts.utils \
+from nodes.vis.metrics.scripts.utils \
     import is_struc_based
 
 TOKEN = config["token"]
