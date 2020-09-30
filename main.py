@@ -19,66 +19,66 @@ TOKEN = secrets.token_hex(6)
 
 CORES = 1
 DATASETS = [
-    "bce_ibce",
+    # "bce_ibce",
     "ace_vaxinpad",
-    "acp_anticp",
-    "acp_iacp",
-    "acp_mlacp",
-    "afp_amppred",
-    "afp_antifp",
-    # "amp_ampep",
-    # "amp_amppred",
-    "amp_antibp",
-    "amp_antibp2",
-    # "amp_ascan",
-    "amp_csamp",
-    "amp_fernandes",
-    "amp_gonzales",
-    # "amp_iamp2l",
-    "amp_modlamp",
-    # "atb_antibp",
-    "atb_antitbp",
-    "avp_amppred",
-    "avp_avppred",
-    "bce_bcm",
-    # "bce_lbeep",
-    # "bvf_spaan",
-    "cpp_cellppd",
-    "cpp_cellppdmod",
-    "cpp_cppredfl",
-    "cpp_kelmcpp",
-    # "cpp_mixed",
-    "cpp_mlcpp",
-    # "cpp_mlcppue",
-    # "cpp_sanders",
-    # "hiv_3tc",
-    "hiv_abc",
-    "hiv_apv",
-    # "hiv_azt",
-    # "hiv_bevirimat",
-    # "hiv_d4t",
-    "hiv_ddi",
-    "hiv_dlv",
-    # "hiv_efv",
-    # "hiv_idv",
-    # "hiv_lpv",
-    "hiv_nfv",
-    "hiv_nvp",
+    # "acp_anticp",
+    # "acp_iacp",
+    # "acp_mlacp",
+    # "afp_amppred",
+    # "afp_antifp",
+    # # "amp_ampep",
+    # # "amp_amppred",
+    # "amp_antibp",
+    # "amp_antibp2",
+    # # "amp_ascan",
+    # "amp_csamp",
+    # "amp_fernandes",
+    # "amp_gonzales",
+    # # "amp_iamp2l",
+    # "amp_modlamp",
+    # # "atb_antibp",
+    # "atb_antitbp",
+    # "avp_amppred",
+    # "avp_avppred",
+    # "bce_bcm",
+    # # "bce_lbeep",
+    # # "bvf_spaan",
+    # "cpp_cellppd",
+    # "cpp_cellppdmod",
+    # "cpp_cppredfl",
+    # "cpp_kelmcpp",
+    # # "cpp_mixed",
+    # "cpp_mlcpp",
+    # # "cpp_mlcppue",
+    # # "cpp_sanders",
+    # # "hiv_3tc",
+    # "hiv_abc",
+    # "hiv_apv",
+    # # "hiv_azt",
+    # # "hiv_bevirimat",
+    # # "hiv_d4t",
+    # "hiv_ddi",
+    # "hiv_dlv",
+    # # "hiv_efv",
+    # # "hiv_idv",
+    # # "hiv_lpv",
+    # "hiv_nfv",
+    # "hiv_nvp",
     "hiv_protease",
-    # "hiv_rtv",
-    "hiv_sqv",
-    "hiv_v3",
-    "isp_il10pred",
-    "nep_neuropipred",
-    # "npp_profet",
-    "pip_pipel",
-    # "rbp_tripep",
-    # "sec_pengaroo",
-    # "sig_signalp",
-    # "sol_han",
-    "tce_zhao",
-    "top_toxinpred",
-    "tph_profet",
+    # # "hiv_rtv",
+    # "hiv_sqv",
+    # "hiv_v3",
+    # "isp_il10pred",
+    # "nep_neuropipred",
+    # # "npp_profet",
+    # "pip_pipel",
+    # # "rbp_tripep",
+    # # "sec_pengaroo",
+    # # "sig_signalp",
+    # # "sol_han",
+    # "tce_zhao",
+    # "top_toxinpred",
+    # "tph_profet",
     ]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
@@ -220,67 +220,78 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         html_dir_out="data/{dataset}/vis/roc_pr/"
     ))
 
+    w.add(vis.similarity.rule(
+        similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
+        similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
+        html_dir_out="data/{dataset}/vis/similarity/"
+    ))
+
+    w.add(vis.pairwise_diversity.rule(
+        similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
+        similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
+        ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        html_dir_out="data/{dataset}/vis/pairwise_diversity/"
+    ))
+
+    w.add(vis.critical_difference.rule(
+        crit_diff_dir_in="data/{dataset}/benchmark/friedman/",
+        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        html_dir_out="data/{dataset}/vis/critical_difference/"
+    ))
+
+    w.add(vis.amino_acid_comp.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta",
+        classes_in="data/{dataset}/classes.txt",
+        html_dir_out="data/{dataset}/vis/amino_acid_comp/"
+    ))
+
+    w.add(vis.dataset_correlation.rule(
+        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
+        html_dir_out="data/{dataset}/vis/dataset_correlation/"
+    ))
+
+    w.add(vis.elapsed_time.rule(
+        benchmark_csv_in=w.benchmark_dir + "benchmark.csv",
+        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        html_dir_out="data/{dataset}/vis/elapsed_time/"
+    ))
+
+    w.add(vis.md_overview_hm.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/md_overview_hm/"
+    ))
+
+    w.add(vis.md_clustering_hm.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/md_clustering_hm/"
+    ))
+
+    w.add(vis.md_tsne.rule(
+        fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
+        classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/md_tsne/"
+    ))
+
     target = expand([
         "data/{dataset}/vis/overview/",
         "data/{dataset}/vis/metrics/",
-        "data/{dataset}/vis/roc_pr/"
+        "data/{dataset}/vis/roc_pr/",
+        "data/{dataset}/vis/similarity/",
+        "data/{dataset}/vis/pairwise_diversity/",
+        "data/{dataset}/vis/critical_difference/",
+        "data/{dataset}/vis/amino_acid_comp/",
+        "data/{dataset}/vis/dataset_correlation/",
+        "data/{dataset}/vis/elapsed_time/",
+        "data/multiple_datasets/vis/md_overview_hm/",
+        "data/multiple_datasets/vis/md_clustering_hm/",
+        "data/multiple_datasets/vis/md_tsne/"
     ], dataset=DATASETS)
 
-    # w.add(vis.similarity.rule(
-    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
-    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # w.add(vis.pairwise_diversity.rule(
-    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
-    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
-    #     ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
-    #     ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
-    #     ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
-    #     ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-    #     f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # w.add(vis.critical_difference.rule(
-    #     crit_diff_dir_in="data/{dataset}/benchmark/friedman/",
-    #     f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # w.add(vis.amino_acid_comp.rule(
-    #     fasta_in="data/{dataset}/seqs_mapped.fasta",
-    #     classes_in="data/{dataset}/classes.txt",
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # w.add(vis.dataset_dendrogram.rule(
-    #     f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
-    #     dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # w.add(vis.elapsed_time.rule(
-    #     benchmark_csv_in=w.benchmark_dir + "benchmark.csv",
-    #     f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
-    #
-    #     html_dir_out="data/{dataset}/vis/"
-    # ))
-    #
-    # # w.add(vis.single_dataset.rule(
-    # #     fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
-    # #     encoding_benchmark_dir_in="data/{dataset}/benchmark/", html_dir_out="data/{dataset}/vis/",
-    # #     benchmark_dir=w.benchmark_dir, benchmark_csv_in=w.benchmark_dir + "benchmark.csv"))
-    #
-    # w.add(vis.multiple_datasets.rule(
-    #     fastas_in=expand("data/{dataset}/seqs_mapped.fasta", dataset=DATASETS),
-    #     classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
-    #     metrics_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
-    #     html_dirs_in=expand("data/{dataset}/vis/", dataset=DATASETS),
-    #     benchmark_csvs_in=expand(w.benchmark_dir + "benchmark.csv", dataset=DATASETS),
-    #     html_dir_out="data/temp/final/", benchmark_dir="data/temp/final/"))
-    #
     # target = \
     #     expand("data/temp/final/", dataset=DATASETS)
 

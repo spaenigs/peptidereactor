@@ -12,7 +12,7 @@
   "data": [
     {
       "name": "tree_col",
-      "url": "{{ url_col_dendro }}",
+      "values": {{ values_col_dendro|tojson|safe }},
       "transform": [
         {
           "type": "stratify",
@@ -41,7 +41,7 @@
     },
     {
       "name": "tree",
-      "url": "{{ url_row_dendro }}",
+      "values": {{ values_row_dendro|tojson|safe }},
       "transform": [
         {
           "type": "stratify",
@@ -85,7 +85,7 @@
     },
     {
       "name": "data-hm",
-      "url": "{{ url_hm_values }}"
+      "values": {{ values_hm_values |tojson|safe }}
     },
     {
       "name": "data_0",

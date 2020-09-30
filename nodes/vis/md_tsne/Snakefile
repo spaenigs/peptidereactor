@@ -12,12 +12,16 @@ import secrets
 
 TOKEN = config["token"]
 
+rule all:
+    input:
+         config["html_dir_out"] + "md_tsne.json"
+
 rule transform_tsne_data:
     input:
          fastas=config["fastas_in"],
          classes=config["classes_in"]
     output:
-         config["html_dir_out"] + f"data/tsne/data.json"
+         config["html_dir_out"] + "tsne_data.json"
     run:
         df_res = pd.DataFrame()
         for fasta_path, class_path in zip(input.fastas, input.classes):
@@ -42,12 +46,11 @@ rule transform_tsne_data:
 
 rule tsne_chart:
     input:
-         config["html_dir_out"] + f"data/tsne/data.json"
+         config["html_dir_out"] + "tsne_data.json"
     output:
-         temp(f"data/temp/{TOKEN}/tsne.json")
+         config["html_dir_out"] + "md_tsne.json"
     run:
          df_tsne = pd.read_json(input[0])
-         url = input[0].replace(config["html_dir_out"], "")
 
          df_convex_hull = df_tsne.groupby(by="dataset")\
             .apply(lambda df: ConvexHull(df.iloc[:, :-1].values))\
@@ -73,9 +76,8 @@ rule tsne_chart:
              for n in df_convex_hull.index[c[0]:c[-1]]:
 
                  df_tmp = df_tsne.loc[df_tsne["dataset"].isin([n]), :]
-                 filename = config["html_dir_out"] + f"data/tsne/data_{secrets.token_hex(4)}.json"
-                 df_tmp.to_json(filename, orient="records")
-                 url = filename.replace(config["html_dir_out"], "")
+                 url = config["html_dir_out"] + f"tsne_data_{secrets.token_hex(4)}.json"
+                 df_tmp.to_json(url, orient="records")
                  scatterc = alt.Chart(url).mark_circle(size=3, color="#fdc086").encode(
                      x=alt.X(
                          "x:Q",
@@ -101,9 +103,8 @@ rule tsne_chart:
                  source = pd.concat([source, source.iloc[:1, :]])
                  source["order"] = range(1, source.shape[0]+1)
                  source.index = range(0, source.shape[0])
-                 filename = config["html_dir_out"] + f"data/tsne/hull_{secrets.token_hex(4)}.json"
-                 source.to_json(filename, orient="records")
-                 url_hull = filename.replace(config["html_dir_out"], "")
+                 url_hull = config["html_dir_out"] + f"tsne_fhull_{secrets.token_hex(4)}.json"
+                 source.to_json(url_hull, orient="records")
                  hullc = alt.Chart(url_hull).mark_line(
                      color="#386cb0",
                      strokeDash=[5, 3],
@@ -125,9 +126,12 @@ rule tsne_chart:
 
                  chart_column += [alt.layer(scatterc, hullc, textc, title=alt.TitleParams(text=n, anchor="middle"))]
 
-             chart_rows += [alt.hconcat(*chart_column)]
+             if len(chart_column) != 0:
+                 chart_rows += [alt.hconcat(*chart_column)]
 
          chart_json = alt.vconcat(*chart_rows).to_json(indent=None)
+
+         print(chart_json)
 
          with open(output[0], "w") as f:
              f.write(chart_json)

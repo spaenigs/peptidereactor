@@ -1,9 +1,0 @@
-FILE=data/temp/final/server.py
-
-if [[ -f "$FILE" ]]; then
-  echo "Starting server on http://127.0.0.1:5000/ (Press CTRL+C to quit)"
-  export FLASK_APP=$FILE
-  flask run > /dev/null 2>&1
-else
-  echo "Flask file not available. Please run node/vis/multiple_datasets first."
-fi

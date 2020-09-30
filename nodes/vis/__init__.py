@@ -9,3 +9,7 @@ from . import critical_difference
 from . import amino_acid_comp
 from . import dataset_correlation
 from . import elapsed_time
+
+from . import md_overview_hm
+from . import md_clustering_hm
+from . import md_tsne
