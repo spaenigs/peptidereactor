@@ -1,4 +1,4 @@
-from streamlit.components.v1 import html, iframe
+from streamlit.components.v1 import html
 from glob import glob
 
 import altair as alt
@@ -6,6 +6,8 @@ import streamlit as st
 
 import re
 import json
+
+st.beta_set_page_config(page_title="PEPTIDE REACToR", page_icon="http://192.168.178.30:8501/favicon.png")
 
 with open("peptidereactor-vis/resources/style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
@@ -17,7 +19,7 @@ analysis = st.sidebar.selectbox("Choose analysis:", ["Multiple datasets", "Singl
 if analysis == "Multiple datasets":
     v = glob(f"data/multiple_datasets/vis/*/")
     options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
-    option = st.sidebar.selectbox("Choose vis:", options)
+    option = st.sidebar.selectbox("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
 
     with open(f"data/multiple_datasets/vis/{option}/{option}.json") as f:
         d = json.load(f)
@@ -38,9 +40,9 @@ else:
             continue
         dataset = re.findall("data/(.*?)/vis/", p)[0]
         v = glob(f"data/{dataset}/vis/*/")
-        res[dataset] = [re.findall(f"data/{dataset}/vis/(.*?)/", v_)[0] for v_ in v]
+        res[dataset] = sorted([re.findall(f"data/{dataset}/vis/(.*?)/", v_)[0] for v_ in v])
 
-    ds = st.sidebar.selectbox("Choose dataset:", list(res.keys()))
+    ds = st.sidebar.selectbox("Choose dataset:", sorted(list(res.keys())))
     option = st.sidebar.selectbox("Choose vis:", res[ds])
 
     with open(f"data/{ds}/vis/{option}/{option}.json") as f:
