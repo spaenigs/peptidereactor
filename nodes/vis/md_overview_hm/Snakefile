@@ -32,11 +32,13 @@ rule overview_data:
     input:
         config["metric_dirs_in"]
     output:
-        temp(f"data/temp/{TOKEN}/hm_data.csv")
+        temp(f"data/temp/{TOKEN}/hm_data.csv"),
+        temp(f"data/temp/{TOKEN}/hm_data_names.csv")
     run:
         paths = [p + "f1.csv" for p in list(input)]
 
         df_res = pd.DataFrame()
+        df_names = pd.DataFrame()
         for p in paths:
             df = pd.read_csv(p, index_col=0)
             df_medians = df.apply(np.median).to_frame("median")
@@ -45,23 +47,39 @@ rule overview_data:
             df_medians["group"] = [group(x) for x in df_medians.index]
 
             df_tmp = df_medians.groupby(by="group").max()
-            df_tmp.columns = [re.findall("data/(.*?)/", p)[0]]
+            dataset = re.findall("data/(.*?)/", p)[0]
+            df_tmp.columns = [dataset]
+
+            df_medians["encoding_max"] = df_medians.index
+            df_medians = df_medians.groupby(by="group").max()
+            df_names_tmp = pd.DataFrame({dataset: df_medians["encoding_max"]})
+
+            df_names = pd.concat([df_names, df_names_tmp], axis=1)
             df_res = pd.concat([df_res, df_tmp], axis=1)
 
         df_res.fillna(0.0, inplace=True)
         df_res.to_csv(output[0])
 
+        df_names.to_csv(output[1])
+
 rule source_data:
     input:
-         f"data/temp/{TOKEN}/hm_data.csv"
+         f"data/temp/{TOKEN}/hm_data.csv",
+         f"data/temp/{TOKEN}/hm_data_names.csv"
     output:
          config["html_dir_out"] + "hm_source_data.json"
     run:
          df_res = pd.read_csv(input[0], index_col=0)
+         df_names = pd.read_csv(input[1], index_col=0)
 
          x, y = np.meshgrid(df_res.columns, df_res.index)
 
-         source = pd.DataFrame({"Dataset": x.ravel(), "Encoding": y.ravel(), "F1": df_res.values.ravel()})
+         source = pd.DataFrame({
+             "Dataset": x.ravel(),
+             "Encoding": y.ravel(),
+             "Encoding_max": df_names.values.ravel(),
+             "F1": df_res.values.ravel()
+         })
 
          source["type"] = ["structure based" if is_struc_based(e) else "sequence based" for e in source["Encoding"]]
          source["is_imbalanced"] = source["Dataset"].apply(lambda ds: is_imbalanced(f"data/{ds}/classes.txt"))
@@ -154,8 +172,6 @@ rule heatmap_imbalanced:
                          'Dataset:N',
                          sort=alt.Sort(alt.SortArray(names_imbalanced)),
                          title=None,
-                         # title=None if t == "sequence based" else ["Imbalanced", "datasets"] if thresholds[1] == 0.3 else [
-                         #     "Balanced", "datasets"],
                          axis=alt.Axis(labels=False if t == "sequence based" else True,
                                        ticks=False if t == "sequence based" else True)
                      ),
@@ -191,6 +207,8 @@ rule heatmap_ranks:
                  df_tmp = source.loc[source["type"] == t, :].loc[source["is_imbalanced"].between(*thresholds), :]
                  url = input[0].replace("source", f"ranks_source_{t}_{thresholds[0]}")
                  df_tmp.to_json(url, orient="records")
+                 # import pydevd_pycharm
+                 # pydevd_pycharm.settrace('localhost', port=4000, stdoutToServer=True, stderrToServer=True)
                  vcharts += [alt.Chart(url).mark_rect().encode(
                      y=alt.Y(
                          'Encoding:N',
@@ -216,7 +234,7 @@ rule heatmap_ranks:
                              legend=alt.Legend(values=[1, 2, 3])
                          )
                      ),
-                     tooltip="F1:Q"
+                     tooltip="Encoding_max:N"
                  ).properties(
                      height=500 if t == "sequence based" else 150
                  )]

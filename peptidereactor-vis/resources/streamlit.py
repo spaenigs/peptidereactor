@@ -12,7 +12,7 @@ st.beta_set_page_config(page_title="PEPTIDE REACToR", page_icon="http://192.168.
 with open("peptidereactor-vis/resources/style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
-st.sidebar.image("http://192.168.178.30:8501/logo.png", width=200)
+st.sidebar.image("http://127.0.0.1:8501/logo.png", width=200)
 
 analysis = st.sidebar.radio("Choose analysis:", ["Multiple datasets", "Single dataset"])
 
