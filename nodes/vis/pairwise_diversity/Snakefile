@@ -21,7 +21,7 @@ rule all:
 
 rule pairwise_div_transform_data:
     input:
-         config["f1_csv_in"],
+         config["metrics_dir_in"] + "f1.csv",
          SIMILARITY_DIR_IN + "{comparision}/diversity.csv",
          ENSEMBLE_CV_DIR_IN + "{comparision}/"
     output:

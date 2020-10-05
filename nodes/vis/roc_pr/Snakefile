@@ -32,7 +32,7 @@ rule all:
 
 rule metric_curves_transform_data:
     input:
-         config["f1_csv_in"]
+         config["metrics_dir_in"] + "f1.csv"
     output:
          config["html_dir_out"] + "{curve}_data_{topencs}.json"
     run:

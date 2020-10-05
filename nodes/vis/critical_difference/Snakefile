@@ -46,7 +46,7 @@ rule transform_heat_map_data:
 
 rule transform_bar_chart_data:
     input:
-         config["f1_csv_in"],
+         config["metrics_dir_in"] + "f1.csv",
          CRIT_DIFF_DIR_IN + "diff_matrix.csv"
     output:
          config["html_dir_out"] + "barchart_data.json"

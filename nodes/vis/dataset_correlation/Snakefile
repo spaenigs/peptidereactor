@@ -10,7 +10,7 @@ rule all:
 
 rule compute_dendrogram:
     input:
-         config["f1_csv_in"],
+         config["metrics_dir_in"],
          config["dataset_correlation_in"]
     output:
          config["html_dir_out"] + "dataset_correlation_data.json"

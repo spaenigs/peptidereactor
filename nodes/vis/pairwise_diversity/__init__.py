@@ -14,7 +14,7 @@ def _get_benchmark(benchmark_out):
 
 def _get_main(similarity_dir_group_1_in, similarity_dir_group_2_in,
               ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
-              ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, f1_csv_in, html_dir_out):
+              ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, metrics_dir_in, html_dir_out):
     return f'''
     input:
          similarity_dir_group_1_in="{similarity_dir_group_1_in}",
@@ -23,7 +23,7 @@ def _get_main(similarity_dir_group_1_in, similarity_dir_group_2_in,
          ensemble_cv_group_2a_in="{ensemble_cv_group_2a_in}",
          ensemble_cv_group_1b_in="{ensemble_cv_group_1b_in}", 
          ensemble_cv_group_2b_in="{ensemble_cv_group_2b_in}",
-         f1_csv_in="{f1_csv_in}"
+         metrics_dir_in="{metrics_dir_in}"
     output:
          html_dir_out=directory("{html_dir_out}")
     threads:
@@ -39,7 +39,7 @@ def _get_main(similarity_dir_group_1_in, similarity_dir_group_2_in,
 
 def rule(similarity_dir_group_1_in, similarity_dir_group_2_in,
          ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
-         ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, f1_csv_in, html_dir_out,
+         ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, metrics_dir_in, html_dir_out,
          benchmark_dir=None):
     token = secrets.token_hex(4)
     rule = _get_header(token)
@@ -48,5 +48,5 @@ def rule(similarity_dir_group_1_in, similarity_dir_group_2_in,
         rule += _get_benchmark(benchmark_out)
     rule += _get_main(similarity_dir_group_1_in, similarity_dir_group_2_in,
               ensemble_cv_group_1a_in, ensemble_cv_group_2a_in,
-              ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, f1_csv_in, html_dir_out)
+              ensemble_cv_group_1b_in, ensemble_cv_group_2b_in, metrics_dir_in, html_dir_out)
     return rule

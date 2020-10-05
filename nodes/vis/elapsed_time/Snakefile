@@ -25,7 +25,7 @@ rule dump_elapsed_time_data:
 
 rule dump_time_vs_performance_data:
     input:
-        config["f1_csv_in"],
+        config["metrics_dir_in"] + "f1.csv",
         config["benchmark_csv_in"]
     output:
         config["html_dir_out"] + "time_vs_performance_data.json"
