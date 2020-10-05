@@ -14,12 +14,12 @@ with open("peptidereactor-vis/resources/style.css") as f:
 
 st.sidebar.image("http://192.168.178.30:8501/logo.png", width=200)
 
-analysis = st.sidebar.selectbox("Choose analysis:", ["Multiple datasets", "Single datasets"])
+analysis = st.sidebar.radio("Choose analysis:", ["Multiple datasets", "Single dataset"])
 
 if analysis == "Multiple datasets":
     v = glob(f"data/multiple_datasets/vis/*/")
     options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
-    option = st.sidebar.selectbox("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
+    option = st.sidebar.radio("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
 
     with open(f"data/multiple_datasets/vis/{option}/{option}.json") as f:
         d = json.load(f)
@@ -43,7 +43,7 @@ else:
         res[dataset] = sorted([re.findall(f"data/{dataset}/vis/(.*?)/", v_)[0] for v_ in v])
 
     ds = st.sidebar.selectbox("Choose dataset:", sorted(list(res.keys())))
-    option = st.sidebar.selectbox("Choose vis:", res[ds])
+    option = st.sidebar.radio("Choose vis:", res[ds])
 
     with open(f"data/{ds}/vis/{option}/{option}.json") as f:
         d = json.load(f)

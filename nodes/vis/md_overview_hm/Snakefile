@@ -103,7 +103,7 @@ rule heatmap_biomedical_application:
                          y=alt.Y(
                              'Encoding:N',
                              title=None if not b.startswith("ace") else \
-                                 "Sequence-based encodings" if t == "sequence based" else "Structure-based encodings",
+                                 "Sequence-based" if t == "sequence based" else "Structure-based",
                              axis=alt.Axis(labels=True if b == first_field else False,
                                            ticks=True if b == first_field else False),
                              sort=alt.Sort(alt.SortArray(sorted(sorted_encodings)))
@@ -145,10 +145,8 @@ rule heatmap_imbalanced:
                  vcharts += [alt.Chart(url).mark_rect().encode(
                      y=alt.Y(
                          'Encoding:N',
-                         title=None,
-                         # title=None if thresholds[1] == 1.0 else \
-                         #     "Sequence-based encodings" if t == "sequence based" else "Structure-based encodings",
-                         # axis=alt.Axis(labels=False, ticks=False)
+                         title=None if thresholds[1] == 1.0 else \
+                             "Sequence-based" if t == "sequence based" else "Structure-based",
                          axis=alt.Axis(labels=False if thresholds[1] == 1.0 else True,
                                        ticks=False if thresholds[1] == 1.0 else True),
                      ),
@@ -184,8 +182,6 @@ rule heatmap_ranks:
          source = pd.read_json(input[0])
          names_imbalanced = source["Dataset"].unique()
 
-         # source = source.drop(source[source["Dataset"]=="hiv_v3"].index)
-         # source = source.drop(source[source["Encoding"]=="qsar"].index)
          source = source.groupby("Dataset").apply(annotate).reset_index(drop=True)
 
          hcharts = []
@@ -198,7 +194,8 @@ rule heatmap_ranks:
                  vcharts += [alt.Chart(url).mark_rect().encode(
                      y=alt.Y(
                          'Encoding:N',
-                         title=None,
+                         title=None if thresholds[1] == 1.0 else \
+                             "Sequence-based" if t == "sequence based" else "Structure-based",
                          axis=alt.Axis(labels=False if thresholds[1] == 1.0 else True,
                                        ticks=False if thresholds[1] == 1.0 else True),
                      ),
