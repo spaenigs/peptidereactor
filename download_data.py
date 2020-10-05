@@ -9,15 +9,16 @@ def exec_cmd(cmd):
     return process.communicate()
 
 # dir = "/home/spaenigs/PycharmProjects/"  # home-office PC
-dir = "/media/spaenigs/4B1DB7375F3291A1/"  # office PC
+# dir = "/media/spaenigs/4B1DB7375F3291A1/"  # office PC
 # dir = "/home/ubuntu/"  # de.NBI VM
+dir = "/media/spaenigs/565f856e-2d16-4784-a91c-c36edf56faf4/"  # SSD
 
 
 all = True
 
 for user, ip in [
-    ["spaenigs", "137.248.121.201"],
-    ["ubuntu", "172.16.103.179"],
+    # ["spaenigs", "137.248.121.201"],
+    # ["ubuntu", "172.16.103.179"],
     ["ubuntu", "172.16.103.199"],
     ["ubuntu", "172.16.103.203"]
 ]:
@@ -26,7 +27,9 @@ for user, ip in [
         if "temp" in p:
             continue
         elif all:
-            print(f"Downloading {p} (complete)...")
+            if os.path.exists(f"{p}/csv") and os.path.exists(f"{p}/benchmark"):
+                print("Data already downloaded. Skipping ...")
+                continue
             bash_command = f"ssh {user}@{ip} " \
                            f"test -e /home/{user}/peptidereactor/{p}/benchmark/ && " \
                            f"echo $?"
@@ -36,6 +39,7 @@ for user, ip in [
                            f"echo $?"
             csv_dir_exists, _ = exec_cmd(bash_command)
             if bm_dir_exists and csv_dir_exists:
+                print(f"Downloading {p} (complete)...")
                 bash_command = f"rm -r {dir}peptidereactor/{p}"
                 exec_cmd(bash_command)
                 bash_command = f"scp -r {user}@{ip}:/home/{user}/peptidereactor/{p}/  " \

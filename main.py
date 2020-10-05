@@ -17,69 +17,57 @@ from peptidereactor.workflow_executer \
 
 TOKEN = secrets.token_hex(6)
 
-CORES = 1
+CORES = 4
 DATASETS = [
-    # "bce_ibce",
     "ace_vaxinpad",
-    # "acp_anticp",
-    # "acp_iacp",
-    # "acp_mlacp",
-    # "afp_amppred",
-    # "afp_antifp",
-    # # "amp_ampep",
-    # # "amp_amppred",
-    # "amp_antibp",
-    # "amp_antibp2",
-    # # "amp_ascan",
-    # "amp_csamp",
-    # "amp_fernandes",
-    # "amp_gonzales",
-    # # "amp_iamp2l",
-    # "amp_modlamp",
-    # # "atb_antibp",
-    # "atb_antitbp",
-    # "avp_amppred",
-    # "avp_avppred",
-    # "bce_bcm",
-    # # "bce_lbeep",
-    # # "bvf_spaan",
-    # "cpp_cellppd",
-    # "cpp_cellppdmod",
-    # "cpp_cppredfl",
-    # "cpp_kelmcpp",
-    # # "cpp_mixed",
-    # "cpp_mlcpp",
-    # # "cpp_mlcppue",
-    # # "cpp_sanders",
-    # # "hiv_3tc",
-    # "hiv_abc",
-    # "hiv_apv",
-    # # "hiv_azt",
-    # # "hiv_bevirimat",
-    # # "hiv_d4t",
-    # "hiv_ddi",
-    # "hiv_dlv",
-    # # "hiv_efv",
-    # # "hiv_idv",
-    # # "hiv_lpv",
-    # "hiv_nfv",
-    # "hiv_nvp",
+    "acp_anticp",
+    "acp_iacp",
+    "acp_mlacp",
+    "afp_amppred",
+    "afp_antifp",
+    "amp_antibp",
+    "amp_antibp2",
+    "amp_csamp",
+    "amp_fernandes",
+    "amp_gonzales",
+    "amp_iamp2l",
+    "amp_modlamp",
+    "atb_antitbp",
+    "avp_amppred",
+    "avp_avppred",
+    "bce_bcm",
+    "bce_ibce",
+    "cpp_cellppd",
+    "cpp_cellppdmod",
+    "cpp_cppredfl",
+    "cpp_kelmcpp",
+    "cpp_mixed",
+    "cpp_mlcpp",
+    "cpp_mlcppue",
+    "cpp_sanders",
+    "hiv_3tc",
+    "hiv_abc",
+    "hiv_apv",
+    "hiv_azt",
+    "hiv_bevirimat",
+    "hiv_d4t",
+    "hiv_ddi",
+    "hiv_dlv",
+    "hiv_efv",
+    "hiv_idv",
+    "hiv_lpv",
+    "hiv_nfv",
+    "hiv_nvp",
     "hiv_protease",
-    # # "hiv_rtv",
-    # "hiv_sqv",
-    # "hiv_v3",
-    # "isp_il10pred",
-    # "nep_neuropipred",
-    # # "npp_profet",
-    # "pip_pipel",
-    # # "rbp_tripep",
-    # # "sec_pengaroo",
-    # # "sig_signalp",
-    # # "sol_han",
-    # "tce_zhao",
-    # "top_toxinpred",
-    # "tph_profet",
-    ]
+    "hiv_rtv",
+    "hiv_sqv",
+    "hiv_v3",
+    "isp_il10pred",
+    "nep_neuropipred",
+    "pip_pipel",
+    "tce_zhao",
+    "top_toxinpred"
+]
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -216,7 +204,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     ))
 
     w.add(vis.roc_pr.rule(
-        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         html_dir_out="data/{dataset}/vis/roc_pr/"
     ))
 
@@ -233,13 +221,13 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
         ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
         ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         html_dir_out="data/{dataset}/vis/pairwise_diversity/"
     ))
 
     w.add(vis.critical_difference.rule(
         crit_diff_dir_in="data/{dataset}/benchmark/friedman/",
-        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         html_dir_out="data/{dataset}/vis/critical_difference/"
     ))
 
@@ -250,14 +238,14 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     ))
 
     w.add(vis.dataset_correlation.rule(
-        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
         html_dir_out="data/{dataset}/vis/dataset_correlation/"
     ))
 
     w.add(vis.elapsed_time.rule(
         benchmark_csv_in=w.benchmark_dir + "benchmark.csv",
-        f1_csv_in="data/{dataset}/benchmark/metrics/f1.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
         html_dir_out="data/{dataset}/vis/elapsed_time/"
     ))
 
@@ -277,6 +265,12 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         html_dir_out="data/multiple_datasets/vis/md_tsne/"
     ))
 
+    w.add(vis.md_elapsed_time.rule(
+        fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
+        benchmark_csvs_in=expand("data/{dataset}/misc/benchmark/benchmark.csv", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/md_elapsed_time/"
+    ))
+
     target = expand([
         "data/{dataset}/vis/overview/",
         "data/{dataset}/vis/metrics/",
@@ -289,11 +283,9 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         "data/{dataset}/vis/elapsed_time/",
         "data/multiple_datasets/vis/md_overview_hm/",
         "data/multiple_datasets/vis/md_clustering_hm/",
-        "data/multiple_datasets/vis/md_tsne/"
+        "data/multiple_datasets/vis/md_tsne/",
+        "data/multiple_datasets/vis/md_elapsed_time/"
     ], dataset=DATASETS)
-
-    # target = \
-    #     expand("data/temp/final/", dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
     main_cmd = "./peptidereactor/run_pipeline -s peptidereactor.smk --configfile peptidereactor.yaml"
