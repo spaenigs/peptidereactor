@@ -20,60 +20,63 @@ TOKEN = secrets.token_hex(6)
 CORES = 32
 DATASETS = [
     # mosla
-    "cpp_mixed",
-    "amp_gonzales",
-    "cpp_sanders",
-    "hiv_bevirimat",
-    "tce_zhao",
-    "amp_fernandes",
+    # "cpp_mixed",
+    # "amp_gonzales",
+    # "cpp_sanders",
+    # "hiv_bevirimat",
+    # "tce_zhao",
+    # "amp_fernandes",
 
     # 179
-    "amp_csamp",
-    "acp_iacp",
-    "cpp_mlcppue",
-    "acp_anticp",
-    "atb_antitbp",
-    "hiv_lpv",
-    "acp_mlacp",
-    "hiv_abc",
-    "hiv_azt",
-    "hiv_d4t",
-    "hiv_ddi",
-    "hiv_3tc",
-    "amp_iamp2l",
-    "hiv_v3",
+    # "amp_csamp",
+    # "acp_iacp",
+    # "cpp_mlcppue",
+    # "acp_anticp",
+    # "atb_antitbp",
+    # "hiv_lpv",
+    # "acp_mlacp",
+    # "hiv_abc",
+    # "hiv_azt",
+    # "hiv_d4t",
+    # "hiv_ddi",
+    # "hiv_3tc",
+    # "amp_iamp2l",
+    # "hiv_v3",
 
     # 199
-    "hiv_apv",
-    "hiv_dlv",
-    "hiv_efv",
-    "hiv_rtv",
-    "hiv_nvp",
-    "hiv_idv",
-    "hiv_sqv",
-    "hiv_nfv",
-    "amp_antibp",
-    "cpp_cppredfl",
-    "hiv_protease",
-    "cpp_kelmcpp",
-    "avp_avppred",
-    "cpp_cellppdmod",
-    "pip_pipel",
+    # "hiv_apv",
+    # "hiv_dlv",
+    # "hiv_efv",
+    # "hiv_rtv",
+    # "hiv_nvp",
+    # "hiv_idv",
+    # "hiv_sqv",
+    # "hiv_nfv",
+    # "amp_antibp",
+    # "cpp_cppredfl",
+    # "hiv_protease",
+    # "cpp_kelmcpp",
+    # "avp_avppred",
+    # "cpp_cellppdmod",
+    # "pip_pipel",
 
     # 203
-    "avp_amppred",
-    "cpp_cellppd",
-    "nep_neuropipred",
-    "cpp_mlcpp",
-    "amp_antibp2",
-    "bce_ibce",
-    "amp_modlamp",
-    "afp_amppred",
-    "afp_antifp",
-    "isp_il10pred",
-    "ace_vaxinpad",
-    "top_toxinpred",
+    # "avp_amppred",
+    # "cpp_cellppd",
+    # "nep_neuropipred",
+    # "cpp_mlcpp",
+    # "amp_antibp2",
+    # "bce_ibce",
+    # "amp_modlamp",
+    # "afp_amppred",
+    # "afp_antifp",
+    # "isp_il10pred",
+    # "ace_vaxinpad",
+    # "top_toxinpred",
 ]
+
+# ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
+# find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -111,9 +114,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_seq_in=seqb.target_csvs, csv_str_in=strb.target_csvs,
         csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
         csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
-
-    # ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
-    # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
     sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
         "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/", "data/{dataset}/csv/all/"
