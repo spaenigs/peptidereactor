@@ -37,7 +37,7 @@ DATASETS = [
     # "avp_amppred",
 
     # 199
-    # "avp_avppred",
+    "avp_avppred",
     # "bce_bcm",
     # "bce_ibce",
     # "cpp_cellppd",
@@ -78,41 +78,40 @@ DATASETS = [
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
-    # w.add(utils.map_sequence_names.rule(
-    #     fasta_in="data/{dataset}/seqs.fasta", classes_in="data/{dataset}/classes.txt", benchmark_dir=w.benchmark_dir,
-    #     fasta_out="data/{dataset}/seqs_mapped.fasta", maps_out="data/{dataset}/misc/mapped_sequence_names.yaml"))
-    #
-    # w.add(utils.tertiary_structure_search.rule(
-    #     fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
-    #     fasta_sec_out="data/{dataset}/seqs_sec.fasta", classes_sec_out="data/{dataset}/classes_sec.txt",
-    #     fasta_ter_out="data/{dataset}/seqs_ter.fasta", classes_ter_out="data/{dataset}/classes_ter.txt",
-    #     pdb_dir="data/{dataset}/pdb/", profile_dir="data/{dataset}/profile/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(utils.multiple_sequence_alignment.rule(
-    #     fastas_in=["data/{dataset}/seqs_mapped.fasta", "data/{dataset}/seqs_sec.fasta",
-    #                "data/{dataset}/seqs_ter.fasta"],
-    #     fastas_out=["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta",
-    #                 "data/{dataset}/seqs_msa_ter.fasta"],
-    #     benchmark_dir=w.benchmark_dir))
-    #
-    # seqb = encodings.sequence_based.Rule()
-    # w.add(seqb.rule(
-    #     fasta_in="data/{dataset}/seqs_mapped.fasta", fasta_msa_in="data/{dataset}/seqs_msa.fasta",
-    #     classes_in="data/{dataset}/classes.txt", path_to_config="config.yaml",
-    #     misc_dir="data/{dataset}/misc/", csv_dir="data/{dataset}/csv/", benchmark_dir=w.benchmark_dir))
-    #
-    # strb = encodings.structure_based.Rule()
-    # w.add(strb.rule(
-    #     fasta_sec_in="data/{dataset}/seqs_sec.fasta", fasta_msa_sec_in="data/{dataset}/seqs_msa_sec.fasta",
-    #     classes_sec_in="data/{dataset}/classes_sec.txt", fasta_ter_in="data/{dataset}/seqs_ter.fasta",
-    #     classes_ter_in="data/{dataset}/classes_ter.txt", path_to_config="config.yaml", pdb_dir="data/{dataset}/pdb/",
-    #     profile_dir="data/{dataset}/profile/", csv_dir="data/{dataset}/csv/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(utils.collect_encodings.rule(
-    #     csv_seq_in=seqb.target_csvs, csv_str_in=strb.target_csvs,
-    #     csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
-    #     csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
-    #
+    w.add(utils.map_sequence_names.rule(
+        fasta_in="data/{dataset}/seqs.fasta", classes_in="data/{dataset}/classes.txt", benchmark_dir=w.benchmark_dir,
+        fasta_out="data/{dataset}/seqs_mapped.fasta", maps_out="data/{dataset}/misc/mapped_sequence_names.yaml"))
+
+    w.add(utils.tertiary_structure_search.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta", classes_in="data/{dataset}/classes.txt",
+        fasta_sec_out="data/{dataset}/seqs_sec.fasta", classes_sec_out="data/{dataset}/classes_sec.txt",
+        fasta_ter_out="data/{dataset}/seqs_ter.fasta", classes_ter_out="data/{dataset}/classes_ter.txt",
+        pdb_dir="data/{dataset}/pdb/", profile_dir="data/{dataset}/profile/", benchmark_dir=w.benchmark_dir))
+
+    w.add(utils.multiple_sequence_alignment.rule(
+        fastas_in=["data/{dataset}/seqs_mapped.fasta", "data/{dataset}/seqs_sec.fasta",
+                   "data/{dataset}/seqs_ter.fasta"],
+        fastas_out=["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta",
+                    "data/{dataset}/seqs_msa_ter.fasta"],
+        benchmark_dir=w.benchmark_dir))
+
+    seqb = encodings.sequence_based.Rule()
+    w.add(seqb.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta", fasta_msa_in="data/{dataset}/seqs_msa.fasta",
+        classes_in="data/{dataset}/classes.txt", path_to_config="config.yaml",
+        misc_dir="data/{dataset}/misc/", csv_dir="data/{dataset}/csv/", benchmark_dir=w.benchmark_dir))
+
+    strb = encodings.structure_based.Rule()
+    w.add(strb.rule(
+        fasta_sec_in="data/{dataset}/seqs_sec.fasta", fasta_msa_sec_in="data/{dataset}/seqs_msa_sec.fasta",
+        classes_sec_in="data/{dataset}/classes_sec.txt", fasta_ter_in="data/{dataset}/seqs_ter.fasta",
+        classes_ter_in="data/{dataset}/classes_ter.txt", path_to_config="config.yaml", pdb_dir="data/{dataset}/pdb/",
+        profile_dir="data/{dataset}/profile/", csv_dir="data/{dataset}/csv/", benchmark_dir=w.benchmark_dir))
+
+    w.add(utils.collect_encodings.rule(
+        csv_seq_in=seqb.target_csvs, csv_str_in=strb.target_csvs,
+        csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
+        csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
 
     # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
