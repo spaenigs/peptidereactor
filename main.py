@@ -113,6 +113,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
         csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
 
+    # ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
     # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
     sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
@@ -121,10 +122,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     w.add(dataset_filter.non_empty.rule(
         csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
         csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/", benchmark_dir=w.benchmark_dir))
-
-    # w.add(dataset_filter.curse_of_dim.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/",
-    #     csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/curse_of_dim/", benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.aaindex.rule(
         csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/",
@@ -136,10 +133,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
 
     w.add(dataset_filter.non_empty.rule(
         csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/",
-        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/", benchmark_dir=w.benchmark_dir))
-
-    w.add(dataset_filter.curse_of_dim.rule(
-        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/",
         csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
 
     w.add(dataset_filter.aggregate_directories.rule(
