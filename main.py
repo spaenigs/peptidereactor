@@ -107,7 +107,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     #     csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
     #
 
-    # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
+    # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
     sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
         "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/", "data/{dataset}/csv/all/"
