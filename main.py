@@ -17,7 +17,7 @@ from peptidereactor.workflow_executer \
 
 TOKEN = secrets.token_hex(6)
 
-CORES = 4
+CORES = 32
 DATASETS = [
     "ace_vaxinpad",
     "acp_anticp",
@@ -106,79 +106,82 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     #     csv_seq_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
     #     csv_str_out=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/"))
     #
-    # sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
-    #     "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/", "data/{dataset}/csv/all/"
-    #
-    # w.add(dataset_filter.non_empty.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
-    #     csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/", benchmark_dir=w.benchmark_dir))
-    #
+
+    # find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
+
+    sequence_based_encodings_dir, structure_based_encodings_dir, all_encodings_dir = \
+        "data/{dataset}/csv/sequence_based/", "data/{dataset}/csv/structure_based/", "data/{dataset}/csv/all/"
+
+    w.add(dataset_filter.non_empty.rule(
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/sequence_based/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/", benchmark_dir=w.benchmark_dir))
+
     # w.add(dataset_filter.curse_of_dim.rule(
     #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/",
     #     csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/curse_of_dim/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(dataset_filter.aaindex.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/curse_of_dim/",
-    #     csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(dataset_filter.psekraac.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/",
-    #     csv_out=sequence_based_encodings_dir, benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(dataset_filter.non_empty.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/",
-    #     csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(dataset_filter.curse_of_dim.rule(
-    #     csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/",
-    #     csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(dataset_filter.aggregate_directories.rule(
-    #     dirs_in=[sequence_based_encodings_dir, structure_based_encodings_dir],
-    #     dir_out=all_encodings_dir, benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.cross_validation.single.rule(
-    #     csv_seq_in=sequence_based_encodings_dir, csv_str_in=structure_based_encodings_dir,
-    #     csv_dir_out="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.compute_metrics.rule(
-    #     csv_dir_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
-    #     metrics_dir_out="data/{dataset}/benchmark/metrics/"))
-    #
-    # w.add(benchmark.feature_importance.rule(
-    #     feat_imp_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
-    #     feat_imp_out="data/{dataset}/benchmark/feature_importance.csv"))
-    #
-    # w.add(benchmark.cross_validation.ensemble.rule(
-    #     group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
-    #     group_1_out="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
-    #     group_2_out="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
-    #     benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.cross_validation.ensemble.rule(
-    #     group_1_in=all_encodings_dir, group_2_in=all_encodings_dir,
-    #     group_1_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
-    #     group_2_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-    #     benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.similarity.rule(
-    #     group_1_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
-    #     group_2_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
-    #     corr_dir_out="data/{dataset}/benchmark/similarity/seq_vs_str/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.similarity.rule(
-    #     group_1_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
-    #     group_2_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-    #     corr_dir_out="data/{dataset}/benchmark/similarity/all_vs_all/", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(benchmark.critical_difference.rule(
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
-    #     cd_dir_out="data/{dataset}/benchmark/friedman/"))
-    #
-    # w.add(benchmark.dataset_correlation.rule(
-    #     group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.aaindex.rule(
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/non_empty/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/", benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.psekraac.rule(
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/sequence_based/aaindex/",
+        csv_out=sequence_based_encodings_dir, benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.non_empty.rule(
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/original/structure_based/",
+        csv_out=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/", benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.curse_of_dim.rule(
+        csv_in=f"data/temp/{TOKEN}/{{dataset}}/csv/structure_based/non_empty/",
+        csv_out=structure_based_encodings_dir, benchmark_dir=w.benchmark_dir))
+
+    w.add(dataset_filter.aggregate_directories.rule(
+        dirs_in=[sequence_based_encodings_dir, structure_based_encodings_dir],
+        dir_out=all_encodings_dir, benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.cross_validation.single.rule(
+        csv_seq_in=sequence_based_encodings_dir, csv_str_in=structure_based_encodings_dir,
+        csv_dir_out="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.compute_metrics.rule(
+        csv_dir_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
+        metrics_dir_out="data/{dataset}/benchmark/metrics/"))
+
+    w.add(benchmark.feature_importance.rule(
+        feat_imp_in="data/{dataset}/benchmark/single/", benchmark_dir=w.benchmark_dir,
+        feat_imp_out="data/{dataset}/benchmark/feature_importance.csv"))
+
+    w.add(benchmark.cross_validation.ensemble.rule(
+        group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
+        group_1_out="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        group_2_out="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.cross_validation.ensemble.rule(
+        group_1_in=all_encodings_dir, group_2_in=all_encodings_dir,
+        group_1_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        group_2_out="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.similarity.rule(
+        group_1_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        group_2_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        corr_dir_out="data/{dataset}/benchmark/similarity/seq_vs_str/", benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.similarity.rule(
+        group_1_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        group_2_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        corr_dir_out="data/{dataset}/benchmark/similarity/all_vs_all/", benchmark_dir=w.benchmark_dir))
+
+    w.add(benchmark.critical_difference.rule(
+        metrics_dir_in="data/{dataset}/benchmark/metrics/", benchmark_dir=w.benchmark_dir,
+        cd_dir_out="data/{dataset}/benchmark/friedman/"))
+
+    w.add(benchmark.dataset_correlation.rule(
+        group_1_in=sequence_based_encodings_dir, group_2_in=structure_based_encodings_dir,
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        dataset_corr_out="data/{dataset}/benchmark/dataset_correlation.csv", benchmark_dir=w.benchmark_dir))
 
     w.add(utils.collect_benchmark.rule(
         final_dirs_in=[
