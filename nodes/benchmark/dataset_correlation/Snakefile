@@ -7,6 +7,8 @@ import numpy as np
 
 import yaml
 
+"./peptidereactor/run_pipeline -s nodes/benchmark/dataset_correlation/Snakefile --config token=asd metrics_dir_in=data/ace_vaxinpad/benchmark/metrics/ dataset_corr_out=data/temp/asd/ds.csv group_1_in=data/ace_vaxinpad/csv/sequence_based/ group_2_in=data/ace_vaxinpad/csv/structure_based/ --cores 1 --quiet -nr"
+
 TOKEN = config["token"]
 
 df_f1 = pd.read_csv(config["metrics_dir_in"] + "f1.csv", index_col=0)
@@ -24,7 +26,7 @@ FILES_PRODUCT_1, FILES_PRODUCT_2 = \
     zip(*combinations(FILES, 2))
 
 FROMs, TOs = \
-    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 200)])
+    zip(*[(c[0], c[-1]+1) for c in chunked(range(len(FILES_PRODUCT_1)), 70)])
 
 rule all:
     input:
