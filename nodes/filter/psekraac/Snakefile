@@ -101,7 +101,7 @@ def get_files(wildcards):
         if len(hits) > 0:
             psekraac_types += [hits[0]]
     res = \
-        expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv", psekraac_type=list(set(psekraac_types))[:1])
+        expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv", psekraac_type=set(psekraac_types))
     return res
 
 rule collect:
