@@ -53,9 +53,18 @@ rule all:
 #          df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
 #          df_res.to_csv(output[0])
 
-rule correlation_2:
+rule combinations:
     input:
          lambda wildcards: generate_input_files(wildcards.psekraac_type)
+    output:
+         temp(f"data/temp/{TOKEN}/{{psekraac_type}}_combinations.csv")
+    run:
+         df = pd.DataFrame(combinations(list(input), 2))
+         df.to_csv(output[0])
+
+rule correlation:
+    input:
+         f"data/temp/{TOKEN}/{{psekraac_type}}_combinations.csv"
     output:
          temp(f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv")
     threads:
@@ -124,7 +133,7 @@ def get_files(wildcards):
         if len(hits) > 0:
             psekraac_types += [hits[0]]
     res = \
-        expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv", psekraac_type=set(psekraac_types))
+        expand(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv", psekraac_type=list(set(psekraac_types))[:1])
     return res
 
 rule collect:

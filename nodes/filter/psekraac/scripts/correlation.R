@@ -7,8 +7,7 @@ cl <- makeCluster(cores)
 
 registerDoParallel(cl)
 
-files <- unlist(snakemake@input)
-c <- combinations(length(files), 2, files)
+c <- read.csv(snakemake@input[[1]], row.names = 1)
 
 finalMatrix <- foreach(i=1:dim(c)[1], .combine=rbind) %dopar% {
 
