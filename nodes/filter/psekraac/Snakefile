@@ -21,43 +21,54 @@ rule all:
     input:
          f"data/temp/{TOKEN}/psekraac_filtered.txt"
 
-rule correlation:
+# rule correlation:
+#     input:
+#          lambda wildcards: generate_input_files(wildcards.psekraac_type)
+#     output:
+#          f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.alt.csv"
+#     threads:
+#          1000
+#     run:
+#          def interpolate_to(X: np.array, dim: int):
+#              ydim = X.shape[1]
+#              x = np.arange(0, ydim if ydim >= 2 else ydim + 1)
+#              func = interpolate.interp1d(x, X, kind="linear")
+#              return func(np.linspace(0, ydim - 1, dim))
+#
+#          # TODO https://deepgraph.readthedocs.io/en/latest/
+#
+#          # maybe use kruskal wallis?
+#          def f(csv_paths):
+#              csv_path_1, csv_path_2 = csv_paths
+#              df1 = pd.read_csv(csv_path_1, index_col=0).iloc[:, :-1]
+#              df2 = pd.read_csv(csv_path_2, index_col=0).iloc[:, :-1]
+#              to_dim = int(np.ceil(np.mean([df1.shape[1], df2.shape[1]])))
+#              ds1_interpolated, ds2_interpolated = interpolate_to(df1, to_dim), interpolate_to(df2, to_dim)
+#              corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
+#              return pd.DataFrame({"e1": [csv_path_1], "e2": [csv_path_2], "R": [corr]})
+#
+#          p = Pool(workflow.cores)
+#          csv_paths = list(input)
+#          print(csv_paths)
+#          df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
+#          df_res.to_csv(output[0])
+
+rule correlation_2:
     input:
          lambda wildcards: generate_input_files(wildcards.psekraac_type)
     output:
-         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv"
+         temp(f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv")
     threads:
          1000
-    run:
-         def interpolate_to(X: np.array, dim: int):
-             ydim = X.shape[1]
-             x = np.arange(0, ydim if ydim >= 2 else ydim + 1)
-             func = interpolate.interp1d(x, X, kind="linear")
-             return func(np.linspace(0, ydim - 1, dim))
-
-         # TODO https://deepgraph.readthedocs.io/en/latest/
-
-         # maybe use kruskal wallis?
-         def f(csv_paths):
-             csv_path_1, csv_path_2 = csv_paths
-             df1 = pd.read_csv(csv_path_1, index_col=0)
-             df2 = pd.read_csv(csv_path_2, index_col=0)
-             to_dim = int(np.ceil(np.mean([df1.shape[1], df2.shape[1]])))
-             ds1_interpolated, ds2_interpolated = interpolate_to(df1, to_dim), interpolate_to(df2, to_dim)
-             corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
-             return pd.DataFrame({"e1": [csv_path_1], "e2": [csv_path_2], "R": [corr]})
-
-         p = Pool(workflow.cores)
-         csv_paths = list(input)
-         df_res = pd.concat(p.map(f, combinations(csv_paths, 2)))
-         df_res.to_csv(output[0])
+    script:
+        "scripts/correlation.R"
 
 rule corr_matrix:
     input:
          f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix_tmp.csv",
          lambda wildcards: generate_input_files(wildcards.psekraac_type)
     output:
-         f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv"
+         temp(f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv")
     run:
           df = pd.read_csv(input[0], index_col=0)
           df.set_index(["e1", "e2"], inplace=True)
@@ -88,7 +99,7 @@ rule run_pca:
     input:
          f"data/temp/{TOKEN}/{{psekraac_type}}_distance_matrix.csv"
     output:
-         f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv"
+         temp(f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv")
     run:
          matrix = pd.read_csv(input[0], index_col=0)
 
@@ -102,7 +113,7 @@ rule clustering:
     input:
          f"data/temp/{TOKEN}/{{psekraac_type}}_pca.csv"
     output:
-         f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv"
+         temp(f"data/temp/{TOKEN}/{{psekraac_type}}_filtered.csv")
     script:
          "scripts/clustering.R"
 
