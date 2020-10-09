@@ -14,4 +14,7 @@ WORKDIR /wd
 
 ENV PYTHONPATH /wd
 
+RUN mkdir /.streamlit
+RUN chmod 777 /.streamlit
+
 ENTRYPOINT ["sh", "/wd/peptidereactor-vis/resources/entrypoint.sh"]
