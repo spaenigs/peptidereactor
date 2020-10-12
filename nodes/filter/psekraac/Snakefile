@@ -37,7 +37,6 @@ rule correlation:
 
          # TODO https://deepgraph.readthedocs.io/en/latest/
 
-         # maybe use kruskal wallis?
          def f(csv_paths):
              csv_path_1, csv_path_2 = csv_paths
              df1 = pd.read_csv(csv_path_1, index_col=0).iloc[:,:-1]
@@ -45,6 +44,7 @@ rule correlation:
              to_dim = int(np.ceil(np.mean([df1.shape[1], df2.shape[1]])))
              ds1_interpolated, ds2_interpolated = interpolate_to(df1, to_dim), interpolate_to(df2, to_dim)
              corr, _ = stats.pearsonr(ds1_interpolated.ravel(), ds2_interpolated.ravel())
+             corr = 0.0 if np.isnan(corr) else corr
              return pd.DataFrame({"e1": [csv_path_1], "e2": [csv_path_2], "R": [corr]})
 
          p = Pool(workflow.cores)
