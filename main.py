@@ -26,6 +26,7 @@ DATASETS = [
     # "hiv_bevirimat",
     # "tce_zhao",
     # "amp_fernandes",
+    # "hiv_nfv"
 
     # 179
     # "amp_csamp",
@@ -51,7 +52,6 @@ DATASETS = [
     # "hiv_nvp",
     # "hiv_idv",
     # "hiv_sqv",
-    # "hiv_nfv",
     # "amp_antibp",
     # "cpp_cppredfl",
     # "hiv_protease",
