@@ -14,7 +14,7 @@ with open("peptidereactor-vis/resources/style.css") as f:
 
 st.sidebar.image("http://127.0.0.1:8501/logo.png", width=200)
 
-analysis = st.sidebar.radio("Choose analysis:", ["Multiple datasets", "Single dataset"])
+analysis = st.sidebar.radio("Choose analysis:", ["Home", "Multiple datasets", "Single dataset"])
 
 if analysis == "Multiple datasets":
     v = glob(f"data/multiple_datasets/vis/*/")
@@ -31,7 +31,7 @@ if analysis == "Multiple datasets":
             c2 = alt.Chart().from_dict(d)
             st.altair_chart(c2)
 
-else:
+elif analysis == "Single dataset":
     dataset_paths = glob("data/*/vis/")
 
     res = {}
@@ -55,3 +55,27 @@ else:
             c2 = alt.Chart().from_dict(d)
             st.altair_chart(c2)
 
+else:
+    st.header("Welcome to the PEPTIDE REACToR")
+    st.markdown("A tool for **in-depth comparison** and **benchmarking** of **peptide encodings**. All computations "
+                "are **highly parallelized** and work efficiently across **multiple datasets and encodings**.")
+    # st.markdown("_______")
+
+    st.text("")
+    st.text("")
+    st.text("")
+    st.text("")
+
+    with open(f"data/multiple_datasets/vis/md_elapsed_time/md_elapsed_time.json") as f:
+        d = json.load(f)
+        del d["title"]
+        del d["vconcat"][1:]
+        c2 = alt.Chart().from_dict(d)
+        st.altair_chart(c2, use_container_width=True)
+
+    st.text("")
+    st.text("")
+    st.text("")
+    st.text("")
+
+    st.text("Copyright (c) 2020 Heiderlab")

@@ -1,2 +1,2 @@
-streamlit
-altair
+streamlit~=0.69.2
+altair~=4.1.0
