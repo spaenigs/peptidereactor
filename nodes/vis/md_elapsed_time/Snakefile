@@ -76,7 +76,8 @@ rule make_chart:
 
          bars = alt.Chart(url).mark_bar().encode(
              x=alt.X("dataset:N", title="Dataset", sort="y"),
-             y=alt.Y("hours:Q", title="Elapsed time (h)")
+             y=alt.Y("hours:Q", title="Elapsed time (h)"),
+             tooltip="hours:Q"
          )
 
          scatter = alt.Chart(url).mark_point(filled=True).encode(
@@ -91,7 +92,25 @@ rule make_chart:
              tooltip="dataset:N"
          )
 
-         chart_json = (bars | scatter | scatter2).to_json(indent=None)
+         chart = alt.vconcat(
+             bars, scatter, scatter2,
+             center=True,
+             title=alt.TitleParams(
+                 text=[
+                     "A title."
+                     "",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         )
+
+         chart_json = chart.to_json(indent=None)
 
          with open(output[0], "w") as f:
             f.write(chart_json)
