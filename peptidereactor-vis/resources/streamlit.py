@@ -7,16 +7,78 @@ import streamlit as st
 import re
 import json
 
-st.beta_set_page_config(page_title="PEPTIDE REACToR", page_icon="http://192.168.178.30:8501/favicon.png")
+st.beta_set_page_config(
+    page_title="PEPTIDE REACToR",
+    page_icon="http://192.168.178.30:8501/favicon.png"
+)
 
 with open("peptidereactor-vis/resources/style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
 st.sidebar.image("http://127.0.0.1:8501/logo.png", width=200)
 
-analysis = st.sidebar.radio("Choose analysis:", ["Home", "Multiple datasets", "Single dataset"])
+HOME, MDS, SDS = "Home", "Multiple datasets", "Single dataset"
 
-if analysis == "Multiple datasets":
+analysis = st.sidebar.radio("Choose analysis:", [HOME, MDS, SDS])
+
+if analysis == HOME:
+    st.header("Welcome to the PEPTIDE REACToR")
+
+    text = "A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
+           "All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and " \
+           "encodings</b>. Start exploring: "
+    st.markdown(f"<div style='text-align: justify'>{text}</div>", unsafe_allow_html=True)
+
+    st.text("")
+
+    col1, col2 = st.beta_columns([1, 1])
+
+    with col1:
+        st.text("")
+        btn1 = st.button(MDS)
+        st.text("")
+        st.text("")
+
+        with open(f"data/multiple_datasets/vis/md_elapsed_time/md_elapsed_time.json") as f:
+            d = json.load(f)
+            del d["title"]
+            del d["vconcat"][2]
+            del d["vconcat"][0]
+            d["config"]["view"]["continuousWidth"] = 250
+            d["config"]["view"]["continuousHeight"] = 250
+            c2 = alt.Chart().from_dict(d)
+            st.altair_chart(c2, use_container_width=True)
+
+        if btn1:
+            st.info(f"Sidebar: {MDS}")
+
+    with col2:
+        st.text("")
+        btn2 = st.button(SDS)
+        st.text("")
+        st.text("")
+
+        with open(f"data/multiple_datasets/vis/md_tsne/md_tsne.json") as f:
+            d = json.load(f)
+            del d["vconcat"][:2]
+            del d["vconcat"][0]["hconcat"][1:]
+            d["vconcat"][0]["hconcat"][0]["title"]["text"] = ""
+            d["vconcat"][0]["hconcat"][0]["layer"][0]["width"] = 250
+            d["vconcat"][0]["hconcat"][0]["layer"][0]["height"] = 250
+            c2 = alt.Chart().from_dict(d)
+            st.altair_chart(c2, use_container_width=True)
+
+        if btn2:
+            st.info(f"Sidebar: {SDS}")
+
+    st.text("")
+    st.text("")
+    st.text("")
+    st.text("")
+
+    st.text("Copyright (c) 2020 Heiderlab")
+
+elif analysis == MDS:
     v = glob(f"data/multiple_datasets/vis/*/")
     options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
     option = st.sidebar.radio("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
@@ -31,7 +93,7 @@ if analysis == "Multiple datasets":
             c2 = alt.Chart().from_dict(d)
             st.altair_chart(c2)
 
-elif analysis == "Single dataset":
+elif analysis == SDS:
     dataset_paths = glob("data/*/vis/")
 
     res = {}
@@ -54,28 +116,3 @@ elif analysis == "Single dataset":
         else:
             c2 = alt.Chart().from_dict(d)
             st.altair_chart(c2)
-
-else:
-    st.header("Welcome to the PEPTIDE REACToR")
-    st.markdown("A tool for **in-depth comparison** and **benchmarking** of **peptide encodings**. All computations "
-                "are **highly parallelized** and work efficiently across **multiple datasets and encodings**.")
-    # st.markdown("_______")
-
-    st.text("")
-    st.text("")
-    st.text("")
-    st.text("")
-
-    with open(f"data/multiple_datasets/vis/md_elapsed_time/md_elapsed_time.json") as f:
-        d = json.load(f)
-        del d["title"]
-        del d["vconcat"][1:]
-        c2 = alt.Chart().from_dict(d)
-        st.altair_chart(c2, use_container_width=True)
-
-    st.text("")
-    st.text("")
-    st.text("")
-    st.text("")
-
-    st.text("Copyright (c) 2020 Heiderlab")

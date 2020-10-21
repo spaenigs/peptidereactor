@@ -1,11 +1,14 @@
+/* aligns view to the left side */
 .reportview-container .main {
     align-items: flex-start; !important;
 }
 
-.reportview-container .element-container .overlayBtn {
+/* hides hamburger menu in the top right corner */
+#MainMenu {
     visibility: hidden;
 }
 
-#MainMenu #MainMenuButton {
+/* hides "full screen button" of plots */
+.open-iconic {
     visibility: hidden;
 }
