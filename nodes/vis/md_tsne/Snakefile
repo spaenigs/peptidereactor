@@ -82,13 +82,13 @@ rule tsne_chart:
                      x=alt.X(
                          "x:Q",
                          title="tSNE-1",
-                         axis=alt.Axis(grid=False),
+                         axis=alt.Axis(grid=False, titleFontWeight="normal"),
                          scale=alt.Scale(domain=[x_min, x_max])
                      ),
                      y=alt.Y(
                          "y:Q",
                          title="tSNE-2",
-                         axis=alt.Axis(grid=False),
+                         axis=alt.Axis(grid=False, titleFontWeight="normal"),
                          scale=alt.Scale(domain=[y_min, y_max])
                      ),
                      tooltip="dataset:N"
@@ -130,8 +130,6 @@ rule tsne_chart:
                  chart_rows += [alt.hconcat(*chart_column)]
 
          chart_json = alt.vconcat(*chart_rows).to_json(indent=None)
-
-         print(chart_json)
 
          with open(output[0], "w") as f:
              f.write(chart_json)
