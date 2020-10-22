@@ -57,7 +57,6 @@ rule overview_data:
             df_names = pd.concat([df_names, df_names_tmp], axis=1)
             df_res = pd.concat([df_res, df_tmp], axis=1)
 
-        df_res.fillna(0.0, inplace=True)
         df_res.to_csv(output[0])
 
         df_names.to_csv(output[1])
@@ -92,6 +91,8 @@ rule source_data:
          type_dict = {"sequence based": 1, "structure based": 2}
          source["type_field"] = source["type"].apply(lambda t: type_dict[t])
 
+         source["missing"] = source["F1"].apply(lambda f1: True if np.isnan(f1) else False)
+
          source.to_json(output[0], orient="records")
 
 rule heatmap_biomedical_application:
@@ -99,162 +100,46 @@ rule heatmap_biomedical_application:
          config["html_dir_out"] + "hm_source_data.json",
     output:
          temp(f"data/temp/{TOKEN}/hm_bio_appl.joblib")
-    run:
-         source = pd.read_json(input[0])
-
-         sorted_encodings = source\
-             .groupby(by="Encoding")\
-             .mean().sort_values("F1", ascending=False)\
-             .index.to_list()
-
-         first_field = sorted(source["bio_field"].unique())[0]
-
-         hcharts = []
-         for b in sorted(source["bio_field"].unique()):
-             vcharts = []
-             for t in source["type"].unique():
-                 df_tmp = source.loc[source["bio_field"] == b, :].loc[source["type"] == t, :]
-                 df_tmp.sort_values(by="is_imbalanced", inplace=True)
-                 url = input[0].replace("source", f"source_{b}_{t.replace(' ', '')}")
-                 df_tmp.to_json(url, orient="records")
-                 vcharts += [alt.Chart(url).mark_rect(strokeWidth=5.0).encode(
-                         y=alt.Y(
-                             'Encoding:N',
-                             title=None if not b.startswith("ace") else \
-                                 "Sequence-based" if t == "sequence based" else "Structure-based",
-                             axis=alt.Axis(labels=True if b == first_field else False,
-                                           ticks=True if b == first_field else False),
-                             sort=alt.Sort(alt.SortArray(sorted(sorted_encodings)))
-                         ),
-                         x=alt.Y(
-                             'Dataset:N',
-                             title=None,
-                             axis=alt.Axis(labels=False if t == "sequence based" else True,
-                                           ticks=False if t == "sequence based" else True),
-                             sort=alt.Sort(alt.SortArray(source["Dataset"].unique()))
-                         ),
-                         color=alt.condition(alt.datum.F1 == 0, alt.value("white"), alt.Color("F1:Q", title="F1")),
-                         tooltip=["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
-                     ).properties(
-                         height=500 if t == "sequence based" else 150
-                     )
-                 ]
-             hcharts += [alt.vconcat(*vcharts, spacing=2)]
-
-         joblib.dump(alt.hconcat(*hcharts, spacing=5), output[0])
+    script:
+        "scripts/hm_bio.py"
 
 rule heatmap_imbalanced:
     input:
          config["html_dir_out"] + "hm_source_data.json",
     output:
          temp(f"data/temp/{TOKEN}/hm_imbalanced.joblib")
-    run:
-         source = pd.read_json(input[0])
-
-         names_imbalanced = source["Dataset"].unique()
-
-         hcharts = []
-         for thresholds in [[0.0, 0.35], [0.35, 1.0]]:
-             vcharts = []
-             for t in source["type"].unique():
-                 df_tmp = source.loc[source["type"] == t, :].loc[source["is_imbalanced"].between(*thresholds), :]
-                 url = input[0].replace("source", f"source_{t}_{thresholds[0]}")
-                 df_tmp.to_json(url, orient="records")
-                 vcharts += [alt.Chart(url).mark_rect().encode(
-                     y=alt.Y(
-                         'Encoding:N',
-                         title=None if thresholds[1] == 1.0 else \
-                             "Sequence-based" if t == "sequence based" else "Structure-based",
-                         axis=alt.Axis(labels=False if thresholds[1] == 1.0 else True,
-                                       ticks=False if thresholds[1] == 1.0 else True),
-                     ),
-                     x=alt.X(
-                         'Dataset:N',
-                         sort=alt.Sort(alt.SortArray(names_imbalanced)),
-                         title=None,
-                         axis=alt.Axis(labels=False if t == "sequence based" else True,
-                                       ticks=False if t == "sequence based" else True)
-                     ),
-                     color=alt.condition(alt.datum.F1 == 0, alt.value("white"), alt.Color("F1:Q", title="F1")),
-                     tooltip=["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
-                 ).properties(
-                     height=500 if t == "sequence based" else 150
-                 )]
-             hcharts += [alt.vconcat(*vcharts, spacing=2)]
-
-         joblib.dump(alt.hconcat(*hcharts, spacing=5), output[0])
-
-rule heatmap_ranks:
-    input:
-         config["html_dir_out"] + "hm_source_data.json",
-    output:
-         temp(f"data/temp/{TOKEN}/hm_ranks.joblib")
-    run:
-         def annotate(df):
-             df_tmp = df.sort_values("F1", ascending=False)
-             df_tmp["rank"] = [i if i < 4 else 4 for i, e in enumerate(df_tmp["F1"], start=1)]
-             return df_tmp
-
-         source = pd.read_json(input[0])
-         names_imbalanced = source["Dataset"].unique()
-
-         source = source.groupby("Dataset").apply(annotate).reset_index(drop=True)
-
-         hcharts = []
-         for thresholds in [[0.0, 0.35], [0.35, 1.0]]:
-             vcharts = []
-             for t in source["type"].unique():
-                 df_tmp = source.loc[source["type"] == t, :].loc[source["is_imbalanced"].between(*thresholds), :]
-                 url = input[0].replace("source", f"ranks_source_{t}_{thresholds[0]}")
-                 df_tmp.to_json(url, orient="records")
-                 # import pydevd_pycharm
-                 # pydevd_pycharm.settrace('localhost', port=4000, stdoutToServer=True, stderrToServer=True)
-                 vcharts += [alt.Chart(url).mark_rect().encode(
-                     y=alt.Y(
-                         'Encoding:N',
-                         title=None if thresholds[1] == 1.0 else \
-                             "Sequence-based" if t == "sequence based" else "Structure-based",
-                         axis=alt.Axis(labels=False if thresholds[1] == 1.0 else True,
-                                       ticks=False if thresholds[1] == 1.0 else True),
-                     ),
-                     x=alt.X(
-                         'Dataset:N',
-                         sort=alt.Sort(alt.SortArray(names_imbalanced)),
-                         title=None,
-                         axis=alt.Axis(labels=False if t == "sequence based" else True,
-                                       ticks=False if t == "sequence based" else True)
-                     ),
-                     color=alt.condition(
-                         alt.datum.rank == 4,
-                         alt.value("white"),
-                         alt.Color(
-                             "rank:N",
-                             title="Rank",
-                             scale=alt.Scale(domain=[1, 2 ,3], range=["#353535", "#888888", "#d4d4d4"]),
-                             legend=alt.Legend(values=[1, 2, 3])
-                         )
-                     ),
-                     tooltip="Encoding_max:N"
-                 ).properties(
-                     height=500 if t == "sequence based" else 150
-                 )]
-             hcharts += [alt.vconcat(*vcharts, spacing=2)]
-
-         joblib.dump(alt.hconcat(*hcharts, spacing=5), output[0])
+    script:
+         "scripts/hm_imb.py"
 
 rule concat_heatmaps:
     input:
          f"data/temp/{TOKEN}/hm_bio_appl.joblib",
          f"data/temp/{TOKEN}/hm_imbalanced.joblib",
-         f"data/temp/{TOKEN}/hm_ranks.joblib"
     output:
          config["html_dir_out"] + "md_overview_hm.json"
     run:
          hm_bio = joblib.load(input[0])
          hm_imb = joblib.load(input[1])
-         hm_ran = joblib.load(input[2])
 
-         chart = alt.vconcat(hm_bio, hm_imb, hm_ran)
+         chart = alt.vconcat(
+             hm_imb, hm_bio,
+             title=alt.TitleParams(
+                 text=[
+                     "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
+                     "X-axis are organized by sequence and structure based encodings. Y-axis are sorted by class",
+                     "balance (cut-off 0.3, top) and in addition by biomedical application (bottom). Groups are",
+                     "separated by white bars."
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 view=alt.ViewConfig(width=600),
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         )
 
          with open(output[0], "w") as f:
              f.write(chart.to_json(indent=None))
