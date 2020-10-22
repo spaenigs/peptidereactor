@@ -27,7 +27,7 @@ DATASETS = [
     "tce_zhao",
     "amp_fernandes",
     "hiv_nfv",
-    # "hiv_v3",
+    "hiv_v3",
 
     # 179
     "amp_csamp",
@@ -42,7 +42,7 @@ DATASETS = [
     "hiv_d4t",
     "hiv_ddi",
     "hiv_3tc",
-    # "amp_iamp2l",
+    "amp_iamp2l",
     # # "hem_hemopi",
 
     # # 199
@@ -52,14 +52,14 @@ DATASETS = [
     "hiv_rtv",
     "hiv_nvp",
     "hiv_idv",
-    # "hiv_sqv",
     "amp_antibp",
     "cpp_cppredfl",
     "hiv_protease",
     "cpp_kelmcpp",
     "avp_avppred",
-    # "cpp_cellppdmod",
-    # # "pip_pipel",
+    "cpp_cellppdmod",
+    "pip_pipel",
+    # "hiv_sqv",
     #
     # # 203
     "avp_amppred",
@@ -70,9 +70,9 @@ DATASETS = [
     "bce_ibce",
     "amp_modlamp",
     "afp_amppred",
-    # "afp_antifp",
-    # # "isp_il10pred",
-    # # "ace_vaxinpad",
+    "afp_antifp",
+    "isp_il10pred",
+    "ace_vaxinpad",
     # # "top_toxinpred",
 ]
 
@@ -256,6 +256,11 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         html_dir_out="data/multiple_datasets/vis/md_overview_hm/"
     ))
 
+    w.add(vis.md_ranks_hm.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/md_ranks_hm/"
+    ))
+
     w.add(vis.md_clustering_hm.rule(
         metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
         html_dir_out="data/multiple_datasets/vis/md_clustering_hm/"
@@ -284,6 +289,7 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         # "data/{dataset}/vis/dataset_correlation/",
         # "data/{dataset}/vis/elapsed_time/",
         "data/multiple_datasets/vis/md_overview_hm/",
+        "data/multiple_datasets/vis/md_ranks_hm/",
         "data/multiple_datasets/vis/md_clustering_hm/",
         "data/multiple_datasets/vis/md_tsne/",
         "data/multiple_datasets/vis/md_elapsed_time/"

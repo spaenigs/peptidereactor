@@ -11,12 +11,13 @@
 #  "hiv_d4t"
 #  "hiv_ddi"
 #  "hiv_3tc"
+#  "amp_iamp2l"
 #)
-#
+
 #HOST=172.16.103.179
 #NAME=ubuntu
 
-#DATASET_NAMES=(
+DATASET_NAMES=(
 #  "hiv_apv"
 #  "hiv_dlv"
 #  "hiv_efv"
@@ -29,10 +30,12 @@
 #  "hiv_protease"
 #  "cpp_kelmcpp"
 #  "avp_avppred"
-#)
-#
-#HOST=172.16.103.199
-#NAME=ubuntu
+#  "cpp_cellppdmod"
+  "pip_pipel"
+)
+
+HOST=172.16.103.199
+NAME=ubuntu
 
 #DATASET_NAMES=(
 #  "avp_amppred"
@@ -43,23 +46,27 @@
 #  "bce_ibce"
 #  "amp_modlamp"
 #  "afp_amppred"
+#  "afp_antifp"
+#  "isp_il10pred"
+#  "ace_vaxinpad"
 #)
-#
+
 #HOST=172.16.103.203
 #NAME=ubuntu
 
-DATASET_NAMES=(
-  "cpp_mixed"
-  "amp_gonzales"
-  "cpp_sanders"
-  "hiv_bevirimat"
-  "tce_zhao"
-  "amp_fernandes"
-  "hiv_nfv"
-)
+#DATASET_NAMES=(
+#  "cpp_mixed"
+#  "amp_gonzales"
+#  "cpp_sanders"
+#  "hiv_bevirimat"
+#  "tce_zhao"
+#  "amp_fernandes"
+#  "hiv_nfv"
+#  "hiv_v3"
+#)
 
-HOST=137.248.121.201
-NAME=spaenigs
+#HOST=137.248.121.201
+#NAME=spaenigs
 
 
 for i in "${DATASET_NAMES[@]}"
