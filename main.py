@@ -43,7 +43,7 @@ DATASETS = [
     "hiv_ddi",
     "hiv_3tc",
     "amp_iamp2l",
-    # # "hem_hemopi",
+    "hem_hemopi",
 
     # # 199
     "hiv_apv",
@@ -59,7 +59,7 @@ DATASETS = [
     "avp_avppred",
     "cpp_cellppdmod",
     "pip_pipel",
-    # "hiv_sqv",
+    "hiv_sqv",
     #
     # # 203
     "avp_amppred",

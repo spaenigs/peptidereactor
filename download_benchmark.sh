@@ -1,4 +1,4 @@
-#DATASET_NAMES=(
+DATASET_NAMES=(
 #  "amp_csamp"
 #  "acp_iacp"
 #  "cpp_mlcppue"
@@ -12,12 +12,13 @@
 #  "hiv_ddi"
 #  "hiv_3tc"
 #  "amp_iamp2l"
-#)
+  "hem_hemopi"
+)
 
-#HOST=172.16.103.179
-#NAME=ubuntu
+HOST=172.16.103.179
+NAME=ubuntu
 
-DATASET_NAMES=(
+#DATASET_NAMES=(
 #  "hiv_apv"
 #  "hiv_dlv"
 #  "hiv_efv"
@@ -31,11 +32,12 @@ DATASET_NAMES=(
 #  "cpp_kelmcpp"
 #  "avp_avppred"
 #  "cpp_cellppdmod"
-  "pip_pipel"
-)
+#  "pip_pipel"
+#  "hiv_sqv"
+#)
 
-HOST=172.16.103.199
-NAME=ubuntu
+#HOST=172.16.103.199
+#NAME=ubuntu
 
 #DATASET_NAMES=(
 #  "avp_amppred"
