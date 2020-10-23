@@ -38,10 +38,10 @@ rule overview_data:
             df_tmp.columns = [re.findall("data/(.*?)/", p)[0]]
             df_res = pd.concat([df_res, df_tmp], axis=1)
 
-        df_res.fillna(0.0, inplace=True)
+        hm_tmp = df_res.fillna(0.0).copy(deep=True)
 
-        row_indices = cluster(df_res.values, axis=0)
-        col_indices = cluster(df_res.values, axis=1)
+        row_indices = cluster(hm_tmp.values, axis=0)
+        col_indices = cluster(hm_tmp.values, axis=1)
         heatmap_data = df_res.iloc[row_indices, col_indices]
 
         heatmap_data.to_csv(output[0])
@@ -67,17 +67,49 @@ rule cluster_hm_data:
 
          source = pd.DataFrame({"Dataset": x.ravel(),
                                 "Encoding": y.ravel(),
-                                "F1": heatmap_data.values.ravel()
+                                "F1": heatmap_data.values.ravel(),
+                                "sort_ds_idx": range(len(x.ravel())),
+                                "sort_en_idx": range(len(y.ravel()))
                                 })
 
-         source.to_json(output[0], orient="records")
+         # source.to_json(output[0], orient="records")
 
-         chart = alt.Chart(source).mark_rect().encode(
-             x=alt.X("Dataset:N", sort=alt.Sort(alt.SortArray(heatmap_data.columns.to_list()))),
-             y=alt.X("Encoding:N", sort=alt.Sort(alt.SortArray(heatmap_data.index.to_list()))),
-             color=alt.condition(alt.datum.F1 == 0.0, alt.value("white"), "F1:Q"),
-             tooltip="F1:Q"
+         source["missing"] = source["F1"].apply(lambda f1: True if np.isnan(f1) else False)
+
+         RECT_SIZE = 13
+
+         sort_x = alt.Sort(alt.SortArray(heatmap_data.columns.to_list()))
+         sort_y = sort=alt.Sort(alt.SortArray(heatmap_data.index.to_list()))
+
+         tooltip = ["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
+
+         chart1 = alt.Chart(source).mark_rect().encode(
+             y=alt.Y('Encoding:N',sort=sort_y),
+             x=alt.X('Dataset:N', sort=sort_x),
+             color=alt.Color('F1:Q', scale=alt.Scale(
+                 domain=[0.0, 1.0], range=["#a6bddb", "#023858"]
+             )),
+             tooltip=tooltip
          )
+
+         chart2 = alt.Chart(source).mark_rect(size=RECT_SIZE).encode(
+             y=alt.Y('Encoding:N', sort=sort_y),
+             x=alt.X('Dataset:N', axis=alt.Axis(labelAngle=-45), sort=sort_x),
+             color=alt.Color(
+                 'F1_new:N',
+                 title="Value",
+                 scale=alt.Scale(domain=["NA"], range=["#a6611a"])
+             )
+         ).transform_calculate(
+             F1_new="datum.F1 == null ? 'NA' : 'NA'"
+         ).transform_filter(
+             alt.datum.F1 == None
+         ).properties(
+             height={"step": RECT_SIZE},
+             width={"step": RECT_SIZE}
+         )
+
+         chart = (chart1 + chart2)
 
          with NamedTemporaryFile("w", dir=f"data/temp/{TOKEN}/", suffix=".vg.json") as f:
              altair_saver.save(chart, f.name)
@@ -87,6 +119,8 @@ rule cluster_hm_data:
                      open(output[1], "w") as data_0_out, \
                      open(output[2], "w") as data_1_out:
                  vg_spec = json.load(json_in)
+                 import pydevd_pycharm
+                 pydevd_pycharm.settrace('localhost', port=4000, stdoutToServer=True, stderrToServer=True)
                  vg_spec["data"][0]["name"] = "data-hm"
                  vg_spec["data"][1]["source"] = "data-hm"
                  json.dump(vg_spec["data"][0]["values"], data_hm_out),
