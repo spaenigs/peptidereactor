@@ -27,7 +27,8 @@ names_str = list(source.loc[source.type == "structure based", "Encoding"].sort_v
 
 axis = alt.Axis(
     tickCount=len(source.Encoding),
-    labelExpr="datum.label == 'zzz' ? null : datum.label"
+    labelExpr="datum.label == 'zzz' ? null : datum.label",
+    labelAngle=-45,
 )
 
 sort_x_axis = alt.Sort(alt.SortArray(names_seq + names_str))

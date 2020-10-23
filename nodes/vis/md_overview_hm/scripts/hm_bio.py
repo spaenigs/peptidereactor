@@ -32,7 +32,8 @@ names_str = list(source.loc[source.type == "structure based", "Encoding"].sort_v
 
 x_axis = alt.Axis(
     tickCount=len(source.Encoding),
-    labelExpr="datum.label == 'zzz' ? null : datum.label"
+    labelExpr="datum.label == 'zzz' ? null : datum.label",
+    labelAngle=-45
 )
 
 y_axis = alt.Axis(

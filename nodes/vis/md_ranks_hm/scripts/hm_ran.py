@@ -52,6 +52,7 @@ color = alt.condition(
             domain=["1", "2", "3", ">3"],
             range=["#023858", "#0570b0", "#74a9cf", "white"]
         ),
+        legend=alt.Legend(symbolStrokeWidth=0.2)
     )
 )
 
@@ -60,16 +61,16 @@ tooltip = ["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
 url = snakemake.input[0].replace("source", "ran")
 source.to_json(url, orient="records")
 
-chart1 = alt.Chart(url).mark_rect().encode(
+chart1 = alt.Chart(url).mark_rect(stroke='black', strokeWidth=0.2).encode(
     y=alt.Y('Encoding:N', axis=axis, sort=sort_y_axis),
-    x=alt.X('Dataset:N', sort=sort_x_axis),
+    x=alt.X('Dataset:N', axis=alt.Axis(labelAngle=-45), sort=sort_x_axis),
     color=color,
     tooltip=tooltip
 )
 
 chart2 = alt.Chart(url).mark_rect(size=RECT_SIZE).encode(
     y=alt.Y('Encoding:N', axis=axis, sort=sort_y_axis),
-    x=alt.X('Dataset:N', sort=sort_x_axis),
+    x=alt.X('Dataset:N', axis=alt.Axis(labelAngle=-45), sort=sort_x_axis),
     color=alt.Color(
         'F1_new:N',
         title="Value",
