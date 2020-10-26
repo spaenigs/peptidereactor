@@ -1,47 +1,50 @@
 {
-  "$schema": "https://vega.github.io/schema/vega/v3.0.json",
-  "padding": 0,
-  "width": 500,
-  "height": 500,
-
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "autosize": "pad",
+  "padding": 5,
+  "width": 300,
+  "height": 585,
+  "style": "cell",
   "layout": {
-    "padding": -3,
-    "columns": 2
+    "columns": 2,
+    "padding": {
+      "column": -2,
+      "row": 15
+    }
   },
-
   "data": [
     {
-      "name": "tree_col",
-      "values": {{ values_col_dendro|tojson|safe }},
+      "name": "hm_data",
+      "values": {{ hm_data|tojson|safe }}
+    },
+    {
+      "name": "data_1",
+      "source": "hm_data",
       "transform": [
         {
-          "type": "stratify",
-          "key": "id",
-          "parentKey": "parent"
+          "type": "filter",
+          "expr": "datum['F1'] !== null && !isNaN(datum['F1'])"
+        }
+      ]
+    },
+    {
+      "name": "data_2",
+      "source": "hm_data",
+      "transform": [
+        {
+          "type": "formula",
+          "expr": "datum.F1 == null ? 'NA' : 'NA'",
+          "as": "F1_new"
         },
         {
-          "type": "tree",
-          "method": "cluster",
-          "size": [{"signal": "height"}, {"signal": "width - 100"}],
-          "separation": false
+          "type": "filter",
+          "expr": "(datum.F1 === null)"
         }
       ]
     },
     {
-      "name": "links_col",
-      "source": "tree_col",
-      "transform": [
-        { "type": "treelinks" },
-        {
-          "type": "linkpath",
-          "orient": "vertical",
-          "shape": "orthogonal"
-        }
-      ]
-    },
-    {
-      "name": "tree",
-      "values": {{ values_row_dendro|tojson|safe }},
+      "name": "tree_hm1",
+      "values": {{ encoding_dendro|tojson|safe }},
       "transform": [
         {
           "type": "stratify",
@@ -70,8 +73,8 @@
       ]
     },
     {
-      "name": "links",
-      "source": "tree",
+      "name": "links_hm1",
+      "source": "tree_hm1",
       "transform": [
         {
           "type": "treelinks"
@@ -84,167 +87,69 @@
       ]
     },
     {
-      "name": "data-hm",
-      "values": {{ values_hm_values |tojson|safe }}
+      "name": "tree_hm2",
+      "values": {{ dataset_dendro|tojson|safe }},
+      "transform": [
+        {
+          "type": "stratify",
+          "key": "id",
+          "parentKey": "parent"
+        },
+        {
+          "type": "tree",
+          "method": "cluster",
+          "size": [
+            {
+              "signal": "height"
+            },
+            {
+              "signal": "width - 100"
+            }
+          ],
+          "separation": false,
+          "as": [
+            "y",
+            "x",
+            "depth",
+            "children"
+          ]
+        }
+      ]
     },
     {
-      "name": "data_0",
-      "source": "data-hm",
-      "transform": {{ data_0_transform|tojson|safe }}
-    },
-    {
-      "name": "data_1",
-      "source": "data_0",
-      "transform": {{ data_1_transform|tojson|safe }}
+      "name": "links_hm2",
+      "source": "tree_hm2",
+      "transform": [
+        {
+          "type": "treelinks"
+        },
+        {
+          "type": "linkpath",
+          "orient": "horizontal",
+          "shape": "orthogonal"
+        }
+      ]
     }
   ],
-
-  "scales": [
-    {
-      "name": "x",
-      "type": "band",
-      "domain": {
-        "data": "data_0",
-        "field": "Dataset",
-        "sort": {
-          "op": "min",
-          "field": "x_Dataset_sort_index"
-        }
-      },
-      "range": [
-        0,
-        {
-          "signal": "width"
-        }
-      ],
-      "paddingInner": 0,
-      "paddingOuter": 0
-    },
-    {
-      "name": "y",
-      "type": "band",
-      "domain": {
-        "data": "data_0",
-        "field": "Encoding",
-        "sort": {
-          "op": "min",
-          "field": "y_Encoding_sort_index"
-        }
-      },
-      "range": [
-        0,
-        {
-          "signal": "height"
-        }
-      ],
-      "paddingInner": 0,
-      "paddingOuter": 0
-    },
-    {
-      "name": "y2",
-      "type": "band",
-      "domain": {
-        "data": "data_0",
-        "field": "Encoding",
-        "sort": {
-          "op": "min",
-          "field": "y_Encoding_sort_index"
-        }
-      },
-      "range": [
-        0,
-        {
-          "signal": "height"
-        }
-      ],
-      "paddingInner": 0,
-      "paddingOuter": 0
-    },
-    {
-      "name": "color2",
-      "type": "linear",
-      "domain": {
-        "data": "data_1",
-        "field": "F1"
-      },
-      "range": "heatmap",
-      "interpolate": "hcl",
-      "zero": false
-    }
-  ],
-
   "marks": [
     {
       "type": "group",
-      "name": "placeholder",
-      "marks": [
-        {
-          "type": "text",
-          "encode": {
-            "update": {
-              "x": {"value": 0},
-              "y": {"value": 0},
-              "text": {"value": ""}
-            }
-          }
-        }
-      ]
-    },
-    {
-      "type": "group",
-      "name": "col_dendrogram",
+      "name": "row_dendrogram_hm1",
+      "title": {
+        "text": "Encoding",
+        "orient": "left",
+        "fontWeight": "normal",
+        "fontSize": 12
+      },
       "marks": [
         {
           "type": "path",
           "from": {
-            "data": "links_col"
-          },
-          "encode": {
-            "enter": {
-              "height": {"value": 10}
-            },
-            "update": {
-              "path": {
-                "field": "path"
-              },
-              "stroke": {
-                "value": "#ccc"
-              }
-            }
-          }
-        }
-    ]
-    },
-    {
-      "type": "group",
-      "name": "row_dendrogram",
-      "axes": [
-        {
-          "orient": "left",
-          "scale": "y2",
-          "title": "Encoding",
-          "labels": false,
-          "ticks": false,
-          "domain": false,
-          "encode": {
-            "title": {
-              "update": {
-                "dy": {
-                  "value": -10
-                }
-              }
-            }
-          }
-        }
-      ],
-      "marks": [
-        {
-          "type": "path",
-          "from": {
-            "data": "links"
+            "data": "links_hm1"
           },
           "encode": {
             "update": {
+              "scaleY": {"value": {{ dendro_config.encoding.scaleY }}},
               "path": {
                 "field": "path"
               },
@@ -258,51 +163,10 @@
     },
     {
       "type": "group",
-      "name": "heatmap",
-      "encode": {
-        "enter": {
-          "width": {
-            "signal": "width"
-          },
-          "height": {
-            "signal": "height"
-          },
-          "fill": {
-            "value": "transparent"
-          }
-        }
-      },
-      "axes": [
-        {
-          "scale": "x",
-          "orient": "bottom",
-          "grid": false,
-          "title": "Dataset",
-          "labelAlign": "right",
-          "labelAngle": 270,
-          "labelBaseline": "middle",
-          "zindex": 1
-        },
-        {
-          "scale": "y",
-          "orient": "right",
-          "grid": false,
-          "zindex": 1
-        }
-      ],
-      "legends": [
-    {
-      "fill": "color2",
-      "gradientLength": {
-        "signal": "clamp(height, 64, 200)"
-      },
-      "symbolType": "square",
-      "title": "F1"
-    }
-  ],
+      "name": "hm1",
       "marks": [
         {
-          "name": "marks",
+          "name": "layer_0_marks",
           "type": "rect",
           "style": [
             "rect"
@@ -312,31 +176,327 @@
           },
           "encode": {
             "update": {
-              "fill": [
-                {"test": "(datum.F1 === 0.0)", "value": "white"},
-                {"scale": "color2", "field": "F1"}
-              ],
-              "tooltip": {"signal": "format(datum[\"F1\"], \"\")"},
+              "fill": {
+                "scale": "layer_0_color",
+                "field": "F1"
+              },
+              "tooltip": {
+                "signal": "{'Encoding': ''+datum['Encoding'], 'Dataset': ''+datum['Dataset'], 'F1': format(datum['F1'], '')}"
+              },
               "x": {
-                "scale": "x",
+                "scale": "x_hm1",
                 "field": "Dataset"
               },
               "width": {
-                "scale": "x",
+                "scale": "x_hm1",
                 "band": true
               },
               "y": {
-                "scale": "y",
+                "scale": "y_hm1",
                 "field": "Encoding"
               },
               "height": {
-                "scale": "y",
+                "scale": "y_hm1",
                 "band": true
+              }
+            }
+          }
+        },
+        {
+          "name": "layer_1_marks",
+          "type": "rect",
+          "style": [
+            "rect"
+          ],
+          "from": {
+            "data": "data_2"
+          },
+          "encode": {
+            "update": {
+              "fill": {
+                "scale": "layer_1_color",
+                "field": "F1_new"
+              },
+              "x": {
+                "scale": "x_hm1",
+                "field": "Dataset"
+              },
+              "width": {
+                "value": 13
+              },
+              "y": {
+                "scale": "y_hm1",
+                "field": "Encoding"
+              },
+              "height": {
+                "value": 13
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "name": "row_dendrogram_hm2",
+      "title": {
+        "text": "Dataset",
+        "orient": "left",
+        "fontWeight": "normal",
+        "fontSize": 12
+      },
+      "marks": [
+        {
+          "type": "path",
+          "from": {
+            "data": "links_hm2"
+          },
+          "encode": {
+            "update": {
+              "scaleY": {"value": {{ dendro_config.dataset.scaleY }}},
+              "path": {
+                "field": "path"
+              },
+              "stroke": {
+                "value": "#ccc"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "type": "group",
+      "name": "hm2",
+      "marks": [
+        {
+          "name": "layer_0_marks",
+          "type": "rect",
+          "style": [
+            "rect"
+          ],
+          "from": {
+            "data": "data_1"
+          },
+          "encode": {
+            "update": {
+              "fill": {
+                "scale": "layer_0_color",
+                "field": "F1"
+              },
+              "tooltip": {
+                "signal": "{'Encoding': ''+datum['Encoding'], 'Dataset': ''+datum['Dataset'], 'F1': format(datum['F1'], '')}"
+              },
+              "x": {
+                "scale": "x_hm2",
+                "field": "Encoding"
+              },
+              "width": {
+                "scale": "x_hm2",
+                "band": true
+              },
+              "y": {
+                "scale": "y_hm2",
+                "field": "Dataset"
+              },
+              "height": {
+                "scale": "y_hm2",
+                "band": true
+              }
+            }
+          }
+        },
+        {
+          "name": "layer_1_marks",
+          "type": "rect",
+          "style": [
+            "rect"
+          ],
+          "from": {
+            "data": "data_2"
+          },
+          "encode": {
+            "update": {
+              "fill": {
+                "scale": "layer_1_color",
+                "field": "F1_new"
+              },
+              "x": {
+                "scale": "x_hm2",
+                "field": "Encoding"
+              },
+              "width": {
+                "value": 13
+              },
+              "y": {
+                "scale": "y_hm2",
+                "field": "Dataset"
+              },
+              "height": {
+                "value": 13
               }
             }
           }
         }
       ]
     }
-  ]
+  ],
+  "scales": [
+    {
+      "name": "x_hm1",
+      "type": "band",
+      "domain": {
+        "fields": [
+          {
+            "data": "hm_data",
+            "field": "Dataset"
+          },
+          {
+            "data": "data_2",
+            "field": "Dataset"
+          }
+        ],
+        "sort": false
+      },
+      "range": {
+        "step": 13
+      },
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "y_hm1",
+      "type": "band",
+      "domain": {
+        "fields": [
+          {
+            "data": "hm_data",
+            "field": "Encoding"
+          },
+          {
+            "data": "data_2",
+            "field": "Encoding"
+          }
+        ],
+        "sort": false
+      },
+      "range": {
+        "step": 13
+      },
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "x_hm2",
+      "type": "band",
+      "domain": {
+        "fields": [
+          {
+            "data": "hm_data",
+            "field": "Encoding"
+          },
+          {
+            "data": "data_2",
+            "field": "Encoding"
+          }
+        ],
+        "sort": false
+      },
+      "range": {
+        "step": 13
+      },
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "y_hm2",
+      "type": "band",
+      "domain": {
+        "fields": [
+          {
+            "data": "hm_data",
+            "field": "Dataset"
+          },
+          {
+            "data": "data_2",
+            "field": "Dataset"
+          }
+        ],
+        "sort": false
+      },
+      "range": {
+        "step": 13
+      },
+      "paddingInner": 0,
+      "paddingOuter": 0
+    },
+    {
+      "name": "layer_0_color",
+      "type": "linear",
+      "domain": [
+        0,
+        1
+      ],
+      "range": [
+        "#a6bddb",
+        "#023858"
+      ],
+      "interpolate": "hcl",
+      "zero": true
+    },
+    {
+      "name": "layer_1_color",
+      "type": "ordinal",
+      "domain": [
+        "NA"
+      ],
+      "range": [
+        "#a6611a"
+      ]
+    }
+  ],
+  "axes": [
+    {
+      "scale": "y_hm1",
+      "orient": "right",
+      "grid": false,
+      "zindex": 1,
+      "offset": {{ axis_config.encoding.offset }}
+    },
+    {
+      "scale": "y_hm2",
+      "orient": "right",
+      "grid": false,
+      "labelBaseline": "middle",
+      "zindex": 1,
+      "position": {{ axis_config.dataset.position }},
+      "offset": {{ axis_config.dataset.offset }}
+    }
+  ],
+  "legends": [
+    {
+      "fill": "layer_0_color",
+      "gradientLength": {
+        "signal": "clamp(height, 64, 200)"
+      },
+      "symbolType": "square",
+      "title": "F1",
+      "offset": 10
+    },
+    {
+      "title": "Value",
+      "fill": "layer_1_color",
+      "gradientLength": {
+        "signal": "clamp(height, 64, 200)"
+      },
+      "symbolType": "square"
+    }
+  ],
+  "config": {
+    "style": {
+      "cell": {
+        "stroke": "transparent"
+      }
+    }
+  }
 }

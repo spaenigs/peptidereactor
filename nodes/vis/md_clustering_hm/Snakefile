@@ -1,14 +1,9 @@
-from tempfile import NamedTemporaryFile
-
 import pandas as pd
-import altair as alt
 import numpy as np
 import jinja2 as j2
 
-import altair_saver
 import re
 import json
-import os
 
 from nodes.vis.md_clustering_hm.scripts.utils import cluster
 
@@ -54,86 +49,30 @@ rule make_dendro_data:
     script:
          "scripts/compute_dendrogram.R"
 
-rule cluster_hm_data:
+rule cluster_hm_data2:
     input:
          f"data/temp/{TOKEN}/hm_dendro_data.csv"
     output:
          config["html_dir_out"] + "hm_dendro_data_hm_values_data.json",
-         temp(f"data/temp/{TOKEN}/hm_dendro_data_0_transform.json"),
-         temp(f"data/temp/{TOKEN}/hm_dendro_data_1_transform.json")
     run:
          heatmap_data = pd.read_csv(input[0], index_col=0)
          x, y = np.meshgrid(heatmap_data.columns, heatmap_data.index)
 
-         source = pd.DataFrame({"Dataset": x.ravel(),
-                                "Encoding": y.ravel(),
-                                "F1": heatmap_data.values.ravel(),
-                                "sort_ds_idx": range(len(x.ravel())),
-                                "sort_en_idx": range(len(y.ravel()))
-                                })
+         source = pd.DataFrame({
+             "Dataset": x.ravel(),
+             "Encoding": y.ravel(),
+             "F1": heatmap_data.values.ravel(),
+             "sort_ds_idx": range(len(x.ravel())),
+             "sort_en_idx": range(len(y.ravel()))
+         })
 
-         # source.to_json(output[0], orient="records")
-
-         source["missing"] = source["F1"].apply(lambda f1: True if np.isnan(f1) else False)
-
-         RECT_SIZE = 13
-
-         sort_x = alt.Sort(alt.SortArray(heatmap_data.columns.to_list()))
-         sort_y = sort=alt.Sort(alt.SortArray(heatmap_data.index.to_list()))
-
-         tooltip = ["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
-
-         chart1 = alt.Chart(source).mark_rect().encode(
-             y=alt.Y('Encoding:N',sort=sort_y),
-             x=alt.X('Dataset:N', sort=sort_x),
-             color=alt.Color('F1:Q', scale=alt.Scale(
-                 domain=[0.0, 1.0], range=["#a6bddb", "#023858"]
-             )),
-             tooltip=tooltip
-         )
-
-         chart2 = alt.Chart(source).mark_rect(size=RECT_SIZE).encode(
-             y=alt.Y('Encoding:N', sort=sort_y),
-             x=alt.X('Dataset:N', axis=alt.Axis(labelAngle=-45), sort=sort_x),
-             color=alt.Color(
-                 'F1_new:N',
-                 title="Value",
-                 scale=alt.Scale(domain=["NA"], range=["#a6611a"])
-             )
-         ).transform_calculate(
-             F1_new="datum.F1 == null ? 'NA' : 'NA'"
-         ).transform_filter(
-             alt.datum.F1 == None
-         ).properties(
-             height={"step": RECT_SIZE},
-             width={"step": RECT_SIZE}
-         )
-
-         chart = (chart1 + chart2)
-
-         with NamedTemporaryFile("w", dir=f"data/temp/{TOKEN}/", suffix=".vg.json") as f:
-             altair_saver.save(chart, f.name)
-             os.remove("geckodriver.log")
-             with open(f.name) as json_in, \
-                     open(output[0], "w") as data_hm_out, \
-                     open(output[1], "w") as data_0_out, \
-                     open(output[2], "w") as data_1_out:
-                 vg_spec = json.load(json_in)
-                 import pydevd_pycharm
-                 pydevd_pycharm.settrace('localhost', port=4000, stdoutToServer=True, stderrToServer=True)
-                 vg_spec["data"][0]["name"] = "data-hm"
-                 vg_spec["data"][1]["source"] = "data-hm"
-                 json.dump(vg_spec["data"][0]["values"], data_hm_out),
-                 json.dump(vg_spec["data"][1]["transform"], data_0_out),
-                 json.dump(vg_spec["data"][2]["transform"], data_1_out)
+         source.to_json(output[0], orient="records")
 
 rule aggregate_hm_cluster:
     input:
          expand(config["html_dir_out"] + "hm_dendro_{axis}_data.json",
                 axis=["row", "col"]),
          config["html_dir_out"] + "hm_dendro_data_hm_values_data.json",
-         f"data/temp/{TOKEN}/hm_dendro_data_0_transform.json",
-         f"data/temp/{TOKEN}/hm_dendro_data_1_transform.json"
     output:
          config["html_dir_out"] + "md_clustering_hm.json"
     run:
@@ -142,13 +81,27 @@ rule aggregate_hm_cluster:
              autoescape=j2.select_autoescape(["json"])
          )
 
-         with open(input[0]) as f0, open(input[1]) as f1, \
-             open(input[2]) as f2, open(input[3]) as f3, open(input[4]) as f4:
+         df = pd.read_json(input[2])
+         len_enc = df["Encoding"].unique().shape[0]
+         len_ds = df["Dataset"].unique().shape[0]
+
+         rect_size = 13
+
+         with open(input[0]) as f0, open(input[1]) as f1, open(input[2]) as f2:
              template = env.get_template("hm_cluster.json")
-             template\
-                .stream(values_row_dendro=json.load(f0),
-                        values_col_dendro=json.load(f1),
-                        values_hm_values=json.load(f2),
-                        data_0_transform=json.load(f3),
-                        data_1_transform=json.load(f4))\
-                .dump(output[0])
+             template.stream(
+                 encoding_dendro=json.load(f0),
+                 dataset_dendro=json.load(f1),
+                 hm_data=json.load(f2),
+                 dendro_config=dict(
+                     encoding=dict(scaleY=(len_enc * rect_size) / 585),
+                     dataset=dict(scaleY=(len_ds * rect_size) / 585)
+                 ),
+                 axis_config=dict(
+                     encoding=dict(offset=-100 + (len_ds * rect_size)),
+                     dataset=dict(
+                         offset=-100 + (len_enc * rect_size),
+                         position=(len_enc * rect_size) + 15
+                    )
+                 )
+             ).dump(output[0])

@@ -88,7 +88,7 @@ elif analysis == MDS:
         if "/vega/" in d["$schema"]:
             with open("peptidereactor-vis/resources/vega_template.html") as f:
                 content = f.read().replace("spec", json.dumps(d))
-                html(content, width=1200, height=1200, scrolling=True)
+                html(content, width=1200, height=1500, scrolling=True)
         else:
             c2 = alt.Chart().from_dict(d)
             st.altair_chart(c2)
