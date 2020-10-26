@@ -5,6 +5,10 @@
   "width": 300,
   "height": 585,
   "style": "cell",
+  "title": {
+    "anchor": "middle",
+    "text": {{ title|tojson|safe }}
+  },
   "layout": {
     "columns": 2,
     "padding": {

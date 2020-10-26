@@ -85,11 +85,20 @@ rule aggregate_hm_cluster:
          len_enc = df["Encoding"].unique().shape[0]
          len_ds = df["Dataset"].unique().shape[0]
 
+         title = [
+             "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
+             "Top plot: y-axis are organized by clustering sequence and structure based encodings.",
+             "Bottom plot: y-axis is arranged by clustering datasets, i.e., the biomedical application."
+             "",
+             ""
+         ]
+
          rect_size = 13
 
          with open(input[0]) as f0, open(input[1]) as f1, open(input[2]) as f2:
              template = env.get_template("hm_cluster.json")
              template.stream(
+                 title=title,
                  encoding_dendro=json.load(f0),
                  dataset_dendro=json.load(f1),
                  hm_data=json.load(f2),
