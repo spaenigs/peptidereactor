@@ -75,7 +75,7 @@ DATASETS = [
     "afp_antifp",
     "isp_il10pred",
     "ace_vaxinpad",
-    # # "top_toxinpred",
+    # "aip_antiinflam",
 ]
 
 # ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
