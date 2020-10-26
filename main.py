@@ -44,6 +44,7 @@ DATASETS = [
     "hiv_3tc",
     "amp_iamp2l",
     "hem_hemopi",
+    # "aip_aippred",
 
     # # 199
     "hiv_apv",
@@ -60,7 +61,8 @@ DATASETS = [
     "cpp_cellppdmod",
     "pip_pipel",
     "hiv_sqv",
-    #
+    # "atb_iantitb",
+
     # # 203
     "avp_amppred",
     "cpp_cellppd",
