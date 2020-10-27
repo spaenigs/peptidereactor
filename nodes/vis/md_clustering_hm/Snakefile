@@ -11,7 +11,8 @@ TOKEN = config["token"]
 
 rule all:
     input:
-         config["html_dir_out"] + "md_clustering_hm.json"
+         config["html_dir_out"] + "md_clustering_hm.json",
+         config["html_dir_out"] + "md_clustering2_hm.json"
 
 rule overview_data:
     input:
@@ -49,7 +50,7 @@ rule make_dendro_data:
     script:
          "scripts/compute_dendrogram.R"
 
-rule cluster_hm_data2:
+rule cluster_hm_data:
     input:
          f"data/temp/{TOKEN}/hm_dendro_data.csv"
     output:
@@ -87,7 +88,7 @@ rule aggregate_hm_cluster:
 
          title = [
              "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
-             "Top plot: y-axis are organized by clustering sequence and structure based encodings.",
+             "Top plot: y-axis is organized by clustering sequence and structure based encodings.",
              "Bottom plot: y-axis is arranged by clustering datasets, i.e., the biomedical application."
              "",
              ""
@@ -112,5 +113,55 @@ rule aggregate_hm_cluster:
                          offset=-100 + (len_enc * rect_size),
                          position=(len_enc * rect_size) + 15
                     )
+                 )
+             ).dump(output[0])
+
+rule aggregate_hm_cluster2:
+    input:
+         expand(config["html_dir_out"] + "hm_dendro_{axis}_data.json",
+                axis=["row", "col"]),
+         config["html_dir_out"] + "hm_dendro_data_hm_values_data.json",
+    output:
+         config["html_dir_out"] + "md_clustering2_hm.json"
+    run:
+         env = j2.Environment(
+             loader=j2.FileSystemLoader("nodes/vis/md_clustering_hm/templates/"),
+             autoescape=j2.select_autoescape(["json"])
+         )
+
+         df = pd.read_json(input[2])
+         len_enc = df["Encoding"].unique().shape[0]
+         len_ds = df["Dataset"].unique().shape[0]
+
+         title = [
+             "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
+             "X-axis is arranged by clustering datasets, i.e., the biomedical application. The y-axis is",
+             "organized by clustering sequence and structure based encodings."
+             "",
+             ""
+         ]
+
+         rect_size = 13
+
+         with open(input[0]) as f0, open(input[1]) as f1, open(input[2]) as f2:
+             template = env.get_template("hm_cluster2.json")
+             template.stream(
+                 title=title,
+                 encoding_dendro=json.load(f0),
+                 dataset_dendro=json.load(f1),
+                 hm_data=json.load(f2),
+                 dendro_config=dict(
+                     encoding=dict(scaleY=(len_enc * rect_size) / 585),
+                     dataset=dict(scaleX=(len_ds * rect_size) / 585)
+                 ),
+                 axis_config=dict(
+                     encoding=dict(offset=-100 + (len_ds * rect_size)),
+                     dataset=dict(
+                         offset=-385 + (len_enc * rect_size),
+                         position=(len_enc * rect_size) + 15
+                    )
+                 ),
+                 legend_config=dict(
+                     legendX=260 + (len_ds * rect_size)
                  )
              ).dump(output[0])

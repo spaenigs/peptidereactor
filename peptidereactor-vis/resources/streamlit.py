@@ -81,9 +81,12 @@ if analysis == HOME:
 elif analysis == MDS:
     v = glob(f"data/multiple_datasets/vis/*/")
     options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
+    options += ["md_clustering2_hm"]
     option = st.sidebar.radio("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
 
-    with open(f"data/multiple_datasets/vis/{option}/{option}.json") as f:
+    tmp = option.replace("clustering2", "clustering") if "clustering2" in option else option
+
+    with open(f"data/multiple_datasets/vis/{tmp}/{option}.json") as f:
         d = json.load(f)
         if "/vega/" in d["$schema"]:
             with open("peptidereactor-vis/resources/vega_template.html") as f:
