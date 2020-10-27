@@ -485,7 +485,9 @@
       },
       "symbolType": "square",
       "title": "F1",
-      "offset": 10
+      "offset": 10,
+      "titleFontSize": 12,
+      "labelFontSize": 12
     },
     {
       "title": "Value",
@@ -493,7 +495,9 @@
       "gradientLength": {
         "signal": "clamp(height, 64, 200)"
       },
-      "symbolType": "square"
+      "symbolType": "square",
+      "titleFontSize": 12,
+      "labelFontSize": 12
     }
   ],
   "config": {

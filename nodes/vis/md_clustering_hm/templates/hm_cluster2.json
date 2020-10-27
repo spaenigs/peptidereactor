@@ -258,7 +258,9 @@
       "offset": 20,
       "orient":"none",
       "legendX": {{ legend_config.legendX }},
-      "legendY": 200
+      "legendY": 200,
+      "titleFontSize": 12,
+      "labelFontSize": 12
     },
     {
       "title": "Value",
@@ -267,7 +269,9 @@
       "symbolType": "square",
       "orient":"none",
       "legendX": {{ legend_config.legendX }},
-      "legendY": 425
+      "legendY": 425,
+      "titleFontSize": 12,
+      "labelFontSize": 12
     }
   ],
   "config": {"style": {"cell": {"stroke": "transparent"}}}
