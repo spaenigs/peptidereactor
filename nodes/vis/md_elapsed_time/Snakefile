@@ -74,31 +74,47 @@ rule make_chart:
     run:
          url = input[0]
 
+         selection = alt.selection_single()
+
          bars = alt.Chart(url).mark_bar().encode(
              x=alt.X("dataset:N", title="Dataset", sort="y"),
-             y=alt.Y("hours:Q", title="Elapsed time (h)"),
-             tooltip="hours:Q"
+             y=alt.Y("hours:Q", title="Computation time (h)"),
+             color=alt.condition(selection, alt.value("#4C78A8"), alt.value("lightgrey")),
+             tooltip="h:N"
+         ).transform_calculate(
+             h="format(datum.hours, '.2f') + 'h'"
+         ).add_selection(
+             selection
+         ).properties(
+             width=885
          )
 
-         scatter = alt.Chart(url).mark_point(filled=True).encode(
-             x=alt.X("hours:Q", title="Elapsed time (h)"),
+         scatter = alt.Chart(url).mark_point(filled=True, size=60).encode(
+             x=alt.X("hours:Q", title="Computation time (h)"),
              y=alt.Y("seq_size:Q", title="# of sequences", sort="-x"),
+             opacity=alt.condition(selection, alt.value(1.0), alt.value(0.1)),
              tooltip="dataset:N"
+         ).add_selection(
+             selection
          )
 
-         scatter2 = alt.Chart(url).mark_point(filled=True).encode(
-             x=alt.X("hours:Q", title="Elapsed time (h)"),
+         scatter2 = alt.Chart(url).mark_point(filled=True, size=60).encode(
+             x=alt.X("hours:Q", title="Computation time (h)"),
              y=alt.Y("mean_seq_len:Q", title="Mean sequence length", sort="-x"),
+             opacity=alt.condition(selection, alt.value(1.0), alt.value(0.1)),
              tooltip="dataset:N"
+         ).add_selection(
+             selection
          )
 
          chart = alt.vconcat(
-             bars, scatter, scatter2,
+             bars, alt.hconcat(scatter, scatter2),
              center=True,
              title=alt.TitleParams(
                  text=[
-                     "A title."
-                     "",
+                     "Total computation time per dataset (top), number of sequences vs. computation",
+                     "time (bottom-left) and mean sequence length per dataset vs. computation time (bottom-right).",
+                     "Click on a field to enable filtering by datasets."
                      "",
                      ""
                  ],
