@@ -1,6 +1,4 @@
-from more_itertools import chunked
 from iFeature import AAC
-from scipy.spatial import ConvexHull
 from modlamp.core import read_fasta
 from sklearn.manifold import TSNE
 
@@ -8,7 +6,7 @@ import pandas as pd
 import altair as alt
 
 import re
-import secrets
+import yaml
 
 TOKEN = config["token"]
 
@@ -21,7 +19,7 @@ rule transform_tsne_data:
          fastas=config["fastas_in"],
          classes=config["classes_in"]
     output:
-         config["html_dir_out"] + "tsne_data.json"
+          temp(f"data/temp/{TOKEN}/tsne_data.csv")
     run:
         df_res = pd.DataFrame()
         for fasta_path, class_path in zip(input.fastas, input.classes):
@@ -35,103 +33,118 @@ rule transform_tsne_data:
             df_tmp["dataset"] = re.findall("data/(.*?)/", fasta_path)[0]
             df_res = pd.concat([df_res, df_tmp])
 
-        # df_res.columns = [res[1:] for res in AAC.AAC(seq_tuples, order=None)][0] + [df_res.columns[-1]]
-        X_embedded = TSNE(n_components=2, n_jobs=10).fit_transform(df_res.iloc[:, :-1].values)
+        X_embedded = TSNE(n_components=2, n_jobs=-1).fit_transform(df_res.iloc[:, :-1].values)
 
         df_tsne = pd.DataFrame(X_embedded)
         df_tsne.columns = ["x", "y"]
         df_tsne["dataset"] = df_res["dataset"].to_list()
 
-        df_tsne.to_json(output[0], orient="records")
+        df_tsne.to_csv(output[0])
+
+rule combine_data:
+    input:
+         f"data/temp/{TOKEN}/tsne_data.csv"
+    output:
+         config["html_dir_out"] + "tsne_data.json",
+         f"data/temp/{TOKEN}/axis_data.yaml"
+    script:
+         "scripts/combine_data.py"
 
 rule tsne_chart:
     input:
-         config["html_dir_out"] + "tsne_data.json"
+         config["html_dir_out"] + "tsne_data.json",
+         f"data/temp/{TOKEN}/axis_data.yaml"
     output:
          config["html_dir_out"] + "md_tsne.json"
     run:
          df_tsne = pd.read_json(input[0])
 
-         df_convex_hull = df_tsne.groupby(by="dataset")\
-            .apply(lambda df: ConvexHull(df.iloc[:, :-1].values))\
-            .to_frame("convex_hull")
-         df_convex_hull["area"] = df_convex_hull["convex_hull"].apply(lambda h: h.area)
-         df_convex_hull.sort_values(by="area", inplace=True)
+         with open(input[1]) as f:
+             x_min, x_max,y_min, y_max = yaml.safe_load(f)
 
-         xs, ys = [], []
-         for i in df_convex_hull.index:
-             df_tmp = df_tsne.loc[df_tsne["dataset"].isin([i]), :]
-             x = df_tmp.iloc[df_convex_hull.loc[i, "convex_hull"].vertices, 0]
-             y = df_tmp.iloc[df_convex_hull.loc[i, "convex_hull"].vertices, 1]
-             xs += x.to_list()
-             ys += y.to_list()
+         input_dropdown = alt.binding_select(options=sorted(df_tsne.range_batch.unique()))
+         selection = alt.selection_single(
+             fields=['range_batch'],
+             bind=input_dropdown,
+             init={"range_batch": "1-12"},
+             name="tSNE area"
+         )
 
-         xs, ys = sorted(xs), sorted(ys)
-         x_min, x_max,y_min, y_max = xs[0], xs[-1], ys[0], ys[-1]
+         scatterc = alt.Chart().mark_circle(
+             size=3,
+             color="#fdc086"
+         ).encode(
+             x=alt.X(
+                 "x:Q",
+                 title="tSNE-1",
+                 axis=alt.Axis(grid=False, titleFontWeight="normal"),
+                 scale=alt.Scale(domain=[x_min, x_max])
+             ),
+             y=alt.Y(
+                 "y:Q",
+                 title="tSNE-2",
+                 axis=alt.Axis(grid=False, titleFontWeight="normal"),
+                 scale=alt.Scale(domain=[y_min, y_max])
+             )
+         )
 
-         chart_rows = []
-         for c in chunked(range(15), 5):
+         hullc = alt.Chart().mark_line(
+             color="#386cb0",
+             strokeDash=[5, 3],
+             strokeWidth=1
+         ).encode(
+             x="x:Q",
+             y="y:Q",
+             order="order:O"
+         ).transform_filter(
+             alt.datum.hull_vertex == True
+         )
 
-             chart_column = []
-             for n in df_convex_hull.index[c[0]:c[-1]]:
+         textc = alt.Chart().mark_text().encode(
+             x="x:Q",
+             y="y:Q",
+             text="text:N"
+         ).transform_calculate(
+             text="join(['area=', round(datum.area)], '')"
+         ).transform_filter(
+             (alt.datum.x == 0) and (alt.datum.y == 0)
+         )
 
-                 df_tmp = df_tsne.loc[df_tsne["dataset"].isin([n]), :]
-                 url = config["html_dir_out"] + f"tsne_data_{secrets.token_hex(4)}.json"
-                 df_tmp.to_json(url, orient="records")
-                 scatterc = alt.Chart(url).mark_circle(size=3, color="#fdc086").encode(
-                     x=alt.X(
-                         "x:Q",
-                         title="tSNE-1",
-                         axis=alt.Axis(grid=False, titleFontWeight="normal"),
-                         scale=alt.Scale(domain=[x_min, x_max])
-                     ),
-                     y=alt.Y(
-                         "y:Q",
-                         title="tSNE-2",
-                         axis=alt.Axis(grid=False, titleFontWeight="normal"),
-                         scale=alt.Scale(domain=[y_min, y_max])
-                     ),
-                     tooltip="dataset:N"
-                  ).properties(
-                     height=130,
-                     width=130
-                 )
+         chart = alt.layer(scatterc, hullc, textc, data=input[0]).properties(
+             width=130,
+             height=130
+         ).facet(
+             facet=alt.Facet(
+                 "dataset:N",
+                 title=None,
+                 sort=alt.EncodingSortField("area")
+             ),
+             columns=4
+         ).transform_filter(
+             selection
+         ).add_selection(
+             selection
+         )
 
-                 hull = df_convex_hull.loc[n, "convex_hull"]
-                 points = df_tmp.iloc[hull.vertices, :]
-                 source = pd.DataFrame({"x": points["x"], "y": points["y"]})
-                 source = pd.concat([source, source.iloc[:1, :]])
-                 source["order"] = range(1, source.shape[0]+1)
-                 source.index = range(0, source.shape[0])
-                 url_hull = config["html_dir_out"] + f"tsne_fhull_{secrets.token_hex(4)}.json"
-                 source.to_json(url_hull, orient="records")
-                 hullc = alt.Chart(url_hull).mark_line(
-                     color="#386cb0",
-                     strokeDash=[5, 3],
-                     strokeWidth=1
-                 ).encode(
-                     x="x:Q",
-                     y="y:Q",
-                     order="order:O"
-                 )
-
-                 df_text = pd.DataFrame({"x": [0], "y": [0], "area": [hull.area]})
-                 textc = alt.Chart(df_text).mark_text().encode(
-                     x="x:Q",
-                     y="y:Q",
-                     text="text:N"
-                 ).transform_calculate(
-                     text="join(['area=', round(datum.area)], '')"
-                 )
-
-                 chart_column += [alt.layer(scatterc, hullc, textc, title=alt.TitleParams(text=n, anchor="middle"))]
-
-             if len(chart_column) != 0:
-                 chart_rows += [alt.hconcat(*chart_column)]
-
-         chart_json = alt.vconcat(*chart_rows).to_json(indent=None)
+         chart_json = alt.vconcat(
+             chart,
+              title=alt.TitleParams(
+                  text=[
+                      "tSNE-based embedding of sequences part of the positive class. The ordering of",
+                      "datasets corresponds  to the respective cluster area. Click on the button below,",
+                      "in order to display further datasets.",
+                      "",
+                      ""
+                  ],
+                  anchor="middle"
+              ),
+              config=alt.Config(
+                  view=alt.ViewConfig(width=600),
+                  legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12),
+                  axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+              )
+         ).to_json(indent=None)
 
          with open(output[0], "w") as f:
              f.write(chart_json)
              f.flush()
-
