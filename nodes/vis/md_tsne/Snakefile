@@ -62,12 +62,14 @@ rule tsne_chart:
          with open(input[1]) as f:
              x_min, x_max,y_min, y_max = yaml.safe_load(f)
 
-         input_dropdown = alt.binding_select(options=sorted(df_tsne.range_batch.unique()))
+         input_dropdown = alt.binding_select(
+             options=sorted(df_tsne.range_batch.unique()),
+             name=" "
+         )
          selection = alt.selection_single(
              fields=['range_batch'],
              bind=input_dropdown,
-             init={"range_batch": "1-12"},
-             name="tSNE area"
+             init={"range_batch": "1-12"}
          )
 
          scatterc = alt.Chart().mark_circle(
