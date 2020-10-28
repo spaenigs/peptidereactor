@@ -41,13 +41,13 @@ if analysis == HOME:
 
         with open(f"data/multiple_datasets/vis/md_elapsed_time/md_elapsed_time.json") as f:
             d = json.load(f)
-            del d["title"]
-            del d["vconcat"][2]
-            del d["vconcat"][0]
-            d["config"]["view"]["continuousWidth"] = 250
-            d["config"]["view"]["continuousHeight"] = 250
-            c2 = alt.Chart().from_dict(d)
-            st.altair_chart(c2, use_container_width=True)
+            # del d["title"]
+            # del d["vconcat"][2]
+            # del d["vconcat"][0]
+            # d["config"]["view"]["continuousWidth"] = 250
+            # d["config"]["view"]["continuousHeight"] = 250
+            # c2 = alt.Chart().from_dict(d)
+            # st.altair_chart(c2, use_container_width=True)
 
         if btn1:
             st.info(f"Sidebar: {MDS}")
@@ -60,13 +60,13 @@ if analysis == HOME:
 
         with open(f"data/multiple_datasets/vis/md_tsne/md_tsne.json") as f:
             d = json.load(f)
-            del d["vconcat"][:2]
-            del d["vconcat"][0]["hconcat"][1:]
-            d["vconcat"][0]["hconcat"][0]["title"]["text"] = ""
-            d["vconcat"][0]["hconcat"][0]["layer"][0]["width"] = 250
-            d["vconcat"][0]["hconcat"][0]["layer"][0]["height"] = 250
-            c2 = alt.Chart().from_dict(d)
-            st.altair_chart(c2, use_container_width=True)
+            # del d["vconcat"][:2]
+            # del d["vconcat"][0]["hconcat"][1:]
+            # d["vconcat"][0]["hconcat"][0]["title"]["text"] = ""
+            # d["vconcat"][0]["hconcat"][0]["layer"][0]["width"] = 250
+            # d["vconcat"][0]["hconcat"][0]["layer"][0]["height"] = 250
+            # c2 = alt.Chart().from_dict(d)
+            # st.altair_chart(c2, use_container_width=True)
 
         if btn2:
             st.info(f"Sidebar: {SDS}")
@@ -80,11 +80,33 @@ if analysis == HOME:
 
 elif analysis == MDS:
     v = glob(f"data/multiple_datasets/vis/*/")
-    options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
-    options += ["md_clustering2_hm"]
-    option = st.sidebar.radio("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
 
-    tmp = option.replace("clustering2", "clustering") if "clustering2" in option else option
+    options = ["Overview", "Ranks", "Clustering", "Clustering (alt)", "Embedding", "Elapsed time"]
+    option = st.sidebar.radio("Choose vis:", options)
+
+    use_alt = False
+
+    if option == options[0]:
+        option = "md_overview_hm"
+    elif option == options[1]:
+        option = "md_ranks_hm"
+    elif option == options[2]:
+        option = "md_clustering_hm"
+    elif option == options[3]:
+        use_alt = True
+        option = "md_clustering2_hm"
+    elif option == options[4]:
+        option = "md_tsne"
+    elif option == options[5]:
+        option = "md_elapsed_time"
+
+    tmp = option.replace("clustering2", "clustering") if use_alt else option
+
+    # options = [re.findall(f"data/multiple_datasets/vis/(.*?)/", v_)[0] for v_ in v]
+    # options += ["md_clustering2_hm"]
+    # option = st.sidebar.radio("Choose vis:", options, format_func=lambda x: x.replace("md_", ""))
+
+    # tmp = option.replace("clustering2", "clustering") if "clustering2" in option else option
 
     with open(f"data/multiple_datasets/vis/{tmp}/{option}.json") as f:
         d = json.load(f)
