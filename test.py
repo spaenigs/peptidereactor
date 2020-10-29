@@ -27,7 +27,7 @@ for p in list(fin_):
 df_len = pd.DataFrame(res, columns=["dataset", "seq_size"])
 
 df_res = pd.merge(df_time, df_len, on="dataset")
-df_res["bio_field"] = df_res.dataset.apply(lambda ds: ds[:3])
+# df_res["bio_field"] = df_res.dataset.apply(lambda ds: ds[:3])
 
 selection = alt.selection_single(
     fields=["dataset"],
@@ -35,7 +35,10 @@ selection = alt.selection_single(
     empty="none"
 )
 
-scatter = alt.Chart(df_res).mark_point(filled=True, size=60).encode(
+scatter = alt.Chart(
+    df_res,
+    title="Multiple datasets"
+).mark_point(filled=True, size=60).encode(
     x=alt.X(
         "hours:Q",
         title="log(Computation time) (h)",
@@ -53,12 +56,15 @@ scatter = alt.Chart(df_res).mark_point(filled=True, size=60).encode(
     color=alt.condition(selection, alt.value("#4C78A8"), alt.value("lightgrey"))
 ).add_selection(
     selection
+).properties(
+    height=250,
+    width=250
 ).interactive()
 
 df_tsne = pd.read_json("data/multiple_datasets/vis/md_tsne/tsne_data.json")
-df_tsne["bio_field"] = df_tsne.dataset.apply(lambda ds: ds[:3])
+# df_tsne["bio_field"] = df_tsne.dataset.apply(lambda ds: ds[:3])
 
-print(df_tsne.head())
+# print(df_tsne.head())
 
 x_min, x_max, y_min, y_max = -100, 100, -100, 100
 
@@ -108,7 +114,11 @@ textc = alt.Chart().mark_text().encode(
     selection
 )
 
-tsnec = alt.layer(scatterc, hullc, textc, data=df_tsne)
+tsnec = alt.layer(
+    scatterc, hullc, textc,
+    data=df_tsne,
+    title="Single dataset"
+).properties(height=250, width=250)
 
 alt.hconcat(scatter, tsnec).save("chart.html")
 
