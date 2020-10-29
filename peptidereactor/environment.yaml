@@ -41,5 +41,6 @@ dependencies:
   - pip:
     - modlamp
     - joblib
+    - streamlit=0.70.0
     - pydevd-pycharm # https://github.com/JetBrains-Research/snakecharm/issues/137
     - -e iFeature
