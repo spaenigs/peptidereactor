@@ -6,6 +6,8 @@ from modlamp.core import read_fasta
 
 import re
 
+from more_itertools import intersperse
+
 in_ = glob("data/*/misc/benchmark/benchmark.csv")
 
 res = []
@@ -27,7 +29,45 @@ for p in list(fin_):
 df_len = pd.DataFrame(res, columns=["dataset", "seq_size"])
 
 df_res = pd.merge(df_time, df_len, on="dataset")
-# df_res["bio_field"] = df_res.dataset.apply(lambda ds: ds[:3])
+print(df_res.head())
+
+df_res["desc"] = "a" * 15 + "\n" + "b" * 15 + "\n" + "a" * 15 + "\n" + "b" * 15 + "\n" + "a" * 15 + "\n" + "b" * 15 + "\n"
+df_res["ref"] = "www.heiderlab.de"
+
+
+def wrap_text(text):
+    word = text.strip()
+    words = word.split(" ")
+    if len(words) > 1:
+        wrapped_sentence = ""
+        tmp_sentence = ""
+        for w in words:
+            if len(tmp_sentence + w) <= 15:
+                tmp_sentence += w + " "
+            else:
+                wrapped_sentence += tmp_sentence + "\n"
+                tmp_sentence = w + " "
+        return wrapped_sentence + tmp_sentence
+    else:
+        return "".join(intersperse("\n", word, n=15))
+
+
+desc_col, ref_col = [], []
+for ds in df_res.dataset:
+    try:
+        with open(f"data/{ds}/README.md") as f:
+            col1, col2 = [], []
+            for h1, h2 in re.findall("\|(.*?)\|(.*?)\|", f.read()):
+                col1 += [h1]
+                col2 += [h2]
+            df_res.loc[df_res.dataset == ds, "desc"] = wrap_text(col1[-1])
+            df_res.loc[df_res.dataset == ds, "ref"] = wrap_text(col2[-1])
+            # desc_col += [col1[-1]]
+            # ref_col += [col2[-1]]
+    except Exception:
+        pass
+
+print(df_res.head())
 
 selection = alt.selection_single(
     fields=["dataset"],
@@ -61,10 +101,56 @@ scatter = alt.Chart(
     width=250
 ).interactive()
 
-df_tsne = pd.read_json("data/multiple_datasets/vis/md_tsne/tsne_data.json")
-# df_tsne["bio_field"] = df_tsne.dataset.apply(lambda ds: ds[:3])
+ds = alt.Chart().mark_text(
+    fontSize=12,
+    lineBreak="\n",
+).encode(
+    text="dataset:N"
+).properties(
+    height=80,
+    width=125
+)
 
-# print(df_tsne.head())
+ss = alt.Chart().mark_text(
+    fontSize=12
+).encode(
+    text="seq_size:O",
+).properties(
+    height=80,
+    width=125
+)
+
+t = alt.Chart().mark_text(
+    dy=-30,
+    fontSize=12,
+    lineBreak="\n",
+).encode(
+    text="desc:N"
+).properties(
+    height=80,
+    width=125
+)
+
+ref = alt.Chart().transform_calculate(
+    url="" + alt.datum.ref
+).mark_text(
+    dy=-30,
+    fontSize=12,
+    lineBreak="\n"
+).encode(
+    text="ref:N",
+    href="url:N",
+    tooltip="url:N"
+).properties(
+    height=80,
+    width=125
+)
+
+table = alt.hconcat(ds, ss, t, ref, data=df_res).transform_filter(
+   alt.datum.dataset == "hiv_ddi"
+)
+
+df_tsne = pd.read_json("data/multiple_datasets/vis/md_tsne/tsne_data.json")
 
 x_min, x_max, y_min, y_max = -100, 100, -100, 100
 
@@ -120,5 +206,6 @@ tsnec = alt.layer(
     title="Single dataset"
 ).properties(height=250, width=250)
 
-alt.hconcat(scatter, tsnec).save("chart.html")
+alt.vconcat(alt.hconcat(scatter, tsnec), table).save("chart.html", vegalite_version="4.17.0")
+# table.save("chart.html", vegalite_version="4.17.0")
 

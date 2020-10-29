@@ -1,13 +1,14 @@
 from streamlit.components.v1 import html
 from glob import glob
 
+import pandas as pd
 import altair as alt
 import streamlit as st
 
 import re
 import json
 
-st.beta_set_page_config(
+st.set_page_config(
     page_title="PEPTIDE REACToR",
     page_icon="http://192.168.178.30:8501/favicon.png"
 )
@@ -26,53 +27,22 @@ if analysis == HOME:
 
     text = "A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
            "All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and " \
-           "encodings</b>. Start exploring: "
+           "encodings</b>."
     st.markdown(f"<div style='text-align: justify'>{text}</div>", unsafe_allow_html=True)
 
     st.text("")
 
-    col1, col2 = st.beta_columns([1, 1])
-
-    with col1:
-        st.text("")
-        btn1 = st.button(MDS)
-        st.text("")
-        st.text("")
-
-        with open(f"data/multiple_datasets/vis/md_elapsed_time/md_elapsed_time.json") as f:
-            d = json.load(f)
-            # del d["title"]
-            # del d["vconcat"][2]
-            # del d["vconcat"][0]
-            # d["config"]["view"]["continuousWidth"] = 250
-            # d["config"]["view"]["continuousHeight"] = 250
-            # c2 = alt.Chart().from_dict(d)
-            # st.altair_chart(c2, use_container_width=True)
-
-        if btn1:
-            st.info(f"Sidebar: {MDS}")
-
-    with col2:
-        st.text("")
-        btn2 = st.button(SDS)
-        st.text("")
-        st.text("")
-
-        with open(f"data/multiple_datasets/vis/md_tsne/md_tsne.json") as f:
-            d = json.load(f)
-            # del d["vconcat"][:2]
-            # del d["vconcat"][0]["hconcat"][1:]
-            # d["vconcat"][0]["hconcat"][0]["title"]["text"] = ""
-            # d["vconcat"][0]["hconcat"][0]["layer"][0]["width"] = 250
-            # d["vconcat"][0]["hconcat"][0]["layer"][0]["height"] = 250
-            # c2 = alt.Chart().from_dict(d)
-            # st.altair_chart(c2, use_container_width=True)
-
-        if btn2:
-            st.info(f"Sidebar: {SDS}")
+    t2 = "Click on a dataset (left) to show tSNE-based embedding of sequences part of the positive class (right). " \
+         "as well as detailed dataset information (name, size, description, and DOI) (below). Start exploring:"
+    st.markdown(f"<div style='text-align: justify'>{t2}</div>", unsafe_allow_html=True)
 
     st.text("")
-    st.text("")
+
+    with open(f"data/multiple_datasets/vis/home_Home_tsne/home_tsne.json") as f:
+        d = json.load(f)
+        c2 = alt.Chart().from_dict(d)
+        st.altair_chart(c2, use_container_width=True)
+
     st.text("")
     st.text("")
 

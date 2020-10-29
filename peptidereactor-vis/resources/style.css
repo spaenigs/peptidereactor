@@ -3,12 +3,12 @@
     align-items: flex-start; !important;
 }
 
-/* hides hamburger menu in the top right corner */
-#MainMenu {
-    visibility: hidden;
-}
+/*!* hides hamburger menu in the top right corner *!*/
+/*#MainMenu {*/
+/*    visibility: hidden;*/
+/*}*/
 
 /* hides "full screen button" of plots */
-.open-iconic {
-    visibility: hidden;
-}
+/*.open-iconic {*/
+/*    visibility: hidden;*/
+/*}*/
