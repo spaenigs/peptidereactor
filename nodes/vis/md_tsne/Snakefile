@@ -46,7 +46,7 @@ rule combine_data:
          f"data/temp/{TOKEN}/tsne_data.csv"
     output:
          config["html_dir_out"] + "tsne_data.json",
-         f"data/temp/{TOKEN}/axis_data.yaml"
+         temp(f"data/temp/{TOKEN}/axis_data.yaml")
     script:
          "scripts/combine_data.py"
 
