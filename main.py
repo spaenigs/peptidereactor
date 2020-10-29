@@ -44,7 +44,7 @@ DATASETS = [
     "hiv_3tc",
     "amp_iamp2l",
     "hem_hemopi",
-    # "aip_aippred",
+    "aip_aippred",
 
     # # 199
     "hiv_apv",
@@ -61,7 +61,7 @@ DATASETS = [
     "cpp_cellppdmod",
     "pip_pipel",
     "hiv_sqv",
-    # "atb_iantitb",
+    "atb_iantitb",
 
     # # 203
     "avp_amppred",
@@ -75,7 +75,7 @@ DATASETS = [
     "afp_antifp",
     "isp_il10pred",
     "ace_vaxinpad",
-    # "aip_antiinflam",
+    "aip_antiinflam",
 ]
 
 # ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
@@ -280,6 +280,13 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         html_dir_out="data/multiple_datasets/vis/md_elapsed_time/"
     ))
 
+    w.add(vis.home_Home_tsne.rule(
+        fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
+        classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
+        benchmark_csvs_in=expand("data/{dataset}/misc/benchmark/benchmark.csv", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/home_Home_tsne/"
+    ))
+
     target = expand([
         # "data/{dataset}/vis/overview/",
         # "data/{dataset}/vis/metrics/",
@@ -290,11 +297,12 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
         # "data/{dataset}/vis/amino_acid_comp/",
         # "data/{dataset}/vis/dataset_correlation/",
         # "data/{dataset}/vis/elapsed_time/",
-        "data/multiple_datasets/vis/md_overview_hm/",
-        "data/multiple_datasets/vis/md_ranks_hm/",
-        "data/multiple_datasets/vis/md_clustering_hm/",
-        "data/multiple_datasets/vis/md_tsne/",
-        "data/multiple_datasets/vis/md_elapsed_time/"
+        # "data/multiple_datasets/vis/md_overview_hm/",
+        # "data/multiple_datasets/vis/md_ranks_hm/",
+        # "data/multiple_datasets/vis/md_clustering_hm/",
+        # "data/multiple_datasets/vis/md_tsne/",
+        # "data/multiple_datasets/vis/md_elapsed_time/",
+        "data/multiple_datasets/vis/home_Home_tsne/",
     ], dataset=DATASETS)
 
 with WorkflowExecuter(dict(), dict(out=target), "peptidereactor.yaml", cores=CORES) as e:
