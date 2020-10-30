@@ -12,5 +12,12 @@
     [2] Sequeira A.M., Lousa D., Rocha M., ProPythia: A Python Automated Platform for the Classification of Proteins 
         Using Machine Learning. Practical Applications of Computational Biology & Bioinformatics, 14th International 
         Conference (PACBB 2020): https://doi.org/10.1007/978-3-030-54568-0_4
+      
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| MLACP: machine-learning-based prediction of anticancer peptides. | https://dx.doi.org/10.18632%2Foncotarget.20365 |
+
     
    

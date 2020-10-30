@@ -22,3 +22,11 @@
         types. Bioinformatics (2016), 32 (24): https://doi.org/10.1093/bioinformatics/btw560
     [6] Veltri D., Kamath U., Shehu S., Deep learning improves antimicrobial peptide recognition. 
         Bioinformatics (2018), 34 (16): https://doi.org/10.1093/bioinformatics/bty179
+        
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| A two-level multi-label classifier for identifying antimicrobial peptides and their functional types. | https://doi.org/10.1016/j.ab.2013.01.019 |
+             
+    

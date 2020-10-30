@@ -9,3 +9,11 @@
 
     [1] Usmani S.S., Bhalla S. and Raghava, G.P.S. Prediction of Antitubercular Peptides From Sequence Information 
         Using Ensemble Classifier and Hybrid Features. Front. Pharmacol. (2018): doi.org/10.3389/fphar.2018.00954
+       
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| Prediction of Antitubercular Peptides From Sequence Information Using Ensemble Classifier and Hybrid Features. | https://doi.org/10.3389/fphar.2018.00954 |
+             
+    

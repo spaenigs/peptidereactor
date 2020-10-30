@@ -9,3 +9,10 @@
 
     [1] Lata, S., Sharma, B. & Raghava, G., Analysis and prediction of antibacterial peptides. 
         BMC Bioinformatics (2007), 8 (263): https://doi.org/10.1186/1471-2105-8-263
+        
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| Analysis and prediction of antibacterial peptides. | https://doi.org/10.1186/1471-2105-8-263  |
+     

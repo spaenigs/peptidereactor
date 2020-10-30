@@ -11,4 +11,11 @@
 
     [1] Müller A.T., Gabernet G., Hiss J.A., Schneider G., modlAMP: Python for antimicrobial peptides.
         Bioinformatics (2017), 33 (17): https://doi.org/10.1093/bioinformatics/btx285 
-   
+           
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| modlAMP: Python for antimicrobial peptides. | https://doi.org/10.1093/bioinformatics/btx285  |
+             
+    

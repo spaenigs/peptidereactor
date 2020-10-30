@@ -18,5 +18,10 @@
         multi-scale features using gradient boost decision tree. J Comput Aided Mol Des (2020): 
         https://doi.org/10.1007/s10822-020-00307-z
 
-        
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| CPPred-FL: a sequence-based predictor for large-scale identification of cell-penetrating peptides by feature representation learning. | https://doi.org/10.1093/bib/bby091 |
+             
 

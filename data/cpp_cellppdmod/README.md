@@ -9,3 +9,10 @@
     [1] Kumar V., Agrawal P., Kumar R., Bhalla S., Usmani SS, Varshney GC, Raghava GPS. Prediction of Cell-Penetrating 
         Potential of Modified Peptides Containng Natural and Chemically Modified Residues. Front. Microbiol. (2018): 
         https://doi.org/10.3389/fmicb.2018.00725
+        
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| Prediction of Cell-Penetrating Potential of Modified Peptides Containng Natural and Chemically Modified Residues. | https://doi.org/10.3389/fmicb.2018.00725 |
+     

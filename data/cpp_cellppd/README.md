@@ -10,3 +10,9 @@
     [1] Gautam A., Chaudhary K., Kumar R. et al. In silico approaches for designing highly effective cell penetrating 
         peptides. J Transl Med (2013), 11 (74): https://doi.org/10.1186/1479-5876-11-74
     
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| In silico approaches for designing highly effective cell penetrating peptides. | https://doi.org/10.1186/1479-5876-11-74 |
+     

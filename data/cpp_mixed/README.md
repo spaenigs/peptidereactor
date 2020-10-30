@@ -15,3 +15,11 @@
     [3] Hällbrink M., Kilk K., Elmquist A., Lundberg P., Lindgren M., Jiang Y., Pooga M., Soomets U., Langel U., 
         Prediction of Cell-Penetrating Peptides. International Journal of Peptide Research and Therapeuti (2005), 11: 
         https://doi.org/10.1007/s10989-005-9393-1
+        
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| Prediction of Cell-Penetrating Peptides Using Artificial Neural Networks. | https://doi.org/10.2174/157340910791202478 |
+             
+

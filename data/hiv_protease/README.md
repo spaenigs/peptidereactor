@@ -13,3 +13,11 @@
 
     [1] Rögnvaldsson T., You L., Garwicz D., State of the art prediction of HIV-1 protease cleavage sites. 
         Bioinformatics (2015) 31 (8): 1204-1210. doi: 10.1093/bioinformatics/btu810
+        
+##### Summary
+ 
+| Description                                              | Reference                                     |
+|----------------------------------------------------------|-----------------------------------------------|
+| State of the art prediction of HIV-1 protease cleavage sites. | https://doi.org/10.1093/bioinformatics/btu810 |
+
+           

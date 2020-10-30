@@ -11,3 +11,9 @@
         Linear B-Cell Epitope Prediction. Frontiers in Immunology (2018), 9: 
         https://www.frontiersin.org/article/10.3389/fimmu.2018.01695
     
+##### Summary
+ 
+| Description                                                               | Reference                         |
+|---------------------------------------------------------------------------|-----------------------------------|
+| iBCE-EL: A New Ensemble Learning Framework for Improved Linear B-Cell Epitope Prediction. | https://doi.org/10.3389/fimmu.2018.01695 |
+     
