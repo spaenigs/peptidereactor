@@ -12,7 +12,7 @@ TOKEN = config["token"]
 
 rule all:
     input:
-         config["html_dir_out"] + "home_tsne.json"
+         config["html_dir_out"] + "home_Home_tsne.json"
 
 rule total_elapsed_time:
     input:
@@ -118,7 +118,7 @@ rule make_chart:
          config["html_dir_out"] + "tsne_data.json",
          f"data/temp/{TOKEN}/axis_data.yaml"
     output:
-         config["html_dir_out"] + "home_tsne.json"
+         config["html_dir_out"] + "home_Home_tsne.json"
     script:
          "scripts/make_chart.py"
 

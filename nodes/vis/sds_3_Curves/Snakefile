@@ -1,0 +1,157 @@
+from functools import reduce
+
+import altair as alt
+
+import re
+import joblib
+
+from nodes.vis.sds_3_Curves.scripts.roc_pr_curve import *
+from nodes.vis.sds_3_Curves.scripts.utils import is_struc_based, path
+
+
+def transform_curve_data(encodings, dataset, curve):
+    test_dfs, prob_dfs, names = [], [], []
+    for e in encodings:
+        test_dfs += [pd.read_csv(f"data/{dataset}/benchmark/single/y_true_cv_{e}.csv", index_col=0)]
+        prob_dfs += [pd.read_csv(f"data/{dataset}/benchmark/single/y_prob_cv_{e}.csv", index_col=0)]
+        names += [e]
+    df = reduce(
+        lambda a, b: pd.concat([a, b]),
+        map(get_roc_data if curve == "roc" else get_pr_data, test_dfs, prob_dfs, names)
+    )
+    df["type"] = ["structure based" if is_struc_based(e) else "sequence based"
+                  for e in df["Encoding"]]
+    return df
+
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         config["html_dir_out"] + "sds_3_Curves.json"
+
+rule metric_curves_transform_data:
+    input:
+         config["metrics_dir_in"] + "f1.csv"
+    output:
+         config["html_dir_out"] + "{curve}_data_{topencs}.json"
+    run:
+         df_f1 = pd.read_csv(input[0], index_col=0)
+
+         indices = df_f1.apply(np.median)\
+             .sort_values(ascending=False)\
+             .index.tolist()
+
+         dataset = re.findall("data/(.*?)/", config["html_dir_out"])[0]
+
+         if wildcards.topencs == "t6":
+            top_six_encodings = indices[:6]
+            df = transform_curve_data(top_six_encodings, dataset, wildcards.curve)
+            df.to_csv(output[0])
+         else:
+            top_three_seq = indices[:3]
+            top_three_str = [i for i in indices if is_struc_based(i)][:3]
+            df = transform_curve_data(top_three_seq + top_three_str, dataset, wildcards.curve)
+
+         df.to_json(output[0], orient="records")
+
+rule random_guess_line_data:
+    output:
+         config["html_dir_out"] + "rnd_guess_line.json"
+    run:
+         df_rnd = pd.DataFrame({"x": [0.0, 1.0], "y": [0.0, 1.0]})
+         df_rnd.to_json(output[0], orient="records")
+
+rule create_sub_chart:
+    input:
+         config["html_dir_out"] + "{curve}_data_{topencs}.json",
+         config["html_dir_out"] + "rnd_guess_line.json"
+    output:
+         temp(f"data/temp/{TOKEN}/{{curve}}_{{topencs}}.joblib")
+    run:
+         url_scatter = input[0]
+         url_rnd_line = input[1]
+
+         random_guess_line = alt.Chart(url_rnd_line).mark_line(
+                 color="lightgrey",
+                 strokeDash=[3, 1]
+             ).encode(
+                 x="x:Q",
+                 y="y:Q"
+             )
+
+         path = input[0]
+         if "roc_data_t6" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
+                 x=alt.X("x:Q", axis=alt.Axis(title=None)),
+                 y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
+                 color=alt.Color("Encoding:N"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_auc:Q", title="AUC")]
+             ) + random_guess_line
+         elif "pr_data_t6" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
+                 x=alt.X("x:Q", axis=alt.Axis(title=None)),
+                 y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
+                 color="Encoding:N",
+                 tooltip=["Encoding:N", alt.Tooltip("mean_ap:Q", title="AP")]
+             )
+         elif "roc_data_t33" in path:
+             chart = alt.Chart(url_scatter).mark_line().encode(
+                 x=alt.X("x:Q", axis=alt.Axis(title="1 - Specificity")),
+                 y=alt.Y("y:Q", axis=alt.Axis(title="Sensitivity")),
+                 color="Encoding:N",
+                 strokeDash=alt.StrokeDash("type:N", title="Encoding type"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_auc:Q", title="AUC")]
+             ) + random_guess_line
+         else:
+             chart = alt.Chart(url_scatter).mark_line().encode(
+                 x=alt.X("x:Q", axis=alt.Axis(title="Recall")),
+                 y=alt.Y("y:Q", axis=alt.Axis(title="Precision")),
+                 color="Encoding:N",
+                 strokeDash=alt.StrokeDash("type:N", title="Encoding type"),
+                 tooltip=["Encoding:N", alt.Tooltip("mean_ap:Q", title="AP")]
+             )
+
+         chart = chart.interactive().properties(
+             width=400,
+             height=400
+         )
+
+         joblib.dump(chart, output[0])
+
+rule create_roc_pr_chart:
+    input:
+         expand(f"data/temp/{TOKEN}/{{curve}}_{{topencs}}.joblib",
+                curve=["roc", "pr"], topencs=["t6", "t33"])
+    output:
+         config["html_dir_out"] + "sds_3_Curves.json"
+    run:
+         paths = list(input)
+         c1 = joblib.load(path(paths, "roc", "t6"))
+         c2 = joblib.load(path(paths, "pr", "t6"))
+         cA = joblib.load(path(paths, "roc", "t33"))
+         cB = joblib.load(path(paths, "pr", "t33"))
+
+         chart = alt.vconcat(
+             (c1 | c2), (cA | cB),
+             title=alt.TitleParams(
+                 text=[
+                     "ROC (left) and precision/recall curve (right) for ",
+                     "top 6 encodings (top) and ",
+                     "top 3 sequence and top 3 structure based encodings (bottom), ",
+                     "based on F1 measure.",
+                     "",
+                     ""
+                 ],
+                 anchor="middle"
+             ),
+             config=alt.Config(
+                 legend=alt.LegendConfig(titleFontSize=12, labelFontSize=12, labelLimit=0),
+                 axis=alt.AxisConfig(titleFontSize=12, titleFontWeight="normal")
+             )
+         )
+
+         with open(output[0], "w") as f:
+             f.write(chart.to_json(indent=None))
+             f.flush()
+

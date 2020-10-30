@@ -1,0 +1,119 @@
+import pandas as pd
+import numpy as np
+import jinja2 as j2
+
+import re
+import json
+
+from nodes.vis.mds_3_Clustering.scripts.utils import cluster
+
+TOKEN = config["token"]
+
+rule all:
+    input:
+         config["html_dir_out"] + "mds_3_Clustering.json"
+
+rule overview_data:
+    input:
+        config["metric_dirs_in"]
+    output:
+        temp(f"data/temp/{TOKEN}/hm_dendro_data.csv")
+    run:
+        paths = [p + "f1.csv" for p in list(input)]
+
+        df_res = pd.DataFrame()
+        for p in paths:
+            df = pd.read_csv(p, index_col=0)
+            df_medians = df.apply(np.median).to_frame("median")
+            group = lambda enc: \
+                "psekraac" if "lambda-corr" in enc or "g-gap" in enc else enc[:6]
+            df_medians["group"] = [group(x) for x in df_medians.index]
+
+            df_tmp = df_medians.groupby(by="group").max()
+            df_tmp.columns = [re.findall("data/(.*?)/", p)[0]]
+            df_res = pd.concat([df_res, df_tmp], axis=1)
+
+        hm_tmp = df_res.fillna(0.0).copy(deep=True)
+
+        row_indices = cluster(hm_tmp.values, axis=0)
+        col_indices = cluster(hm_tmp.values, axis=1)
+        heatmap_data = df_res.iloc[row_indices, col_indices]
+
+        heatmap_data.to_csv(output[0])
+
+rule make_dendro_data:
+    input:
+         f"data/temp/{TOKEN}/hm_dendro_data.csv"
+    output:
+         config["html_dir_out"] + "hm_dendro_{axis}_data.json"
+    script:
+         "scripts/compute_dendrogram.R"
+
+rule cluster_hm_data:
+    input:
+         f"data/temp/{TOKEN}/hm_dendro_data.csv"
+    output:
+         config["html_dir_out"] + "hm_dendro_data_hm_values_data.json",
+    run:
+         heatmap_data = pd.read_csv(input[0], index_col=0)
+         x, y = np.meshgrid(heatmap_data.columns, heatmap_data.index)
+
+         source = pd.DataFrame({
+             "Dataset": x.ravel(),
+             "Encoding": y.ravel(),
+             "F1": heatmap_data.values.ravel(),
+             "sort_ds_idx": range(len(x.ravel())),
+             "sort_en_idx": range(len(y.ravel()))
+         })
+
+         source.to_json(output[0], orient="records")
+
+rule aggregate_hm_cluster:
+    input:
+         expand(config["html_dir_out"] + "hm_dendro_{axis}_data.json",
+                axis=["row", "col"]),
+         config["html_dir_out"] + "hm_dendro_data_hm_values_data.json",
+    output:
+         config["html_dir_out"] + "mds_3_Clustering.json"
+    run:
+         env = j2.Environment(
+             loader=j2.FileSystemLoader("nodes/vis/mds_3_Clustering/templates/"),
+             autoescape=j2.select_autoescape(["json"])
+         )
+
+         df = pd.read_json(input[2])
+         len_enc = df["Encoding"].unique().shape[0]
+         len_ds = df["Dataset"].unique().shape[0]
+
+         title = [
+             "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
+             "X-axis is arranged by clustering datasets, i.e., the biomedical application. The y-axis is",
+             "organized by clustering sequence and structure based encodings."
+             "",
+             ""
+         ]
+
+         rect_size = 13
+
+         with open(input[0]) as f0, open(input[1]) as f1, open(input[2]) as f2:
+             template = env.get_template("hm_cluster.json")
+             template.stream(
+                 title=title,
+                 encoding_dendro=json.load(f0),
+                 dataset_dendro=json.load(f1),
+                 hm_data=json.load(f2),
+                 dendro_config=dict(
+                     encoding=dict(scaleY=(len_enc * rect_size) / 585),
+                     dataset=dict(scaleX=(len_ds * rect_size) / 585)
+                 ),
+                 axis_config=dict(
+                     encoding=dict(offset=-100 + (len_ds * rect_size)),
+                     dataset=dict(
+                         offset=-385 + (len_enc * rect_size),
+                         position=(len_enc * rect_size) + 15
+                    )
+                 ),
+                 legend_config=dict(
+                     legendX=260 + (len_ds * rect_size)
+                 )
+             ).dump(output[0])
