@@ -1,7 +1,0 @@
-__default__:
-  memory: 4G
-  cores: 4
-
-pssm:
-  memory: 12G
-  cores: 6
