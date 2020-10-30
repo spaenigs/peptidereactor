@@ -75,11 +75,8 @@ DATASETS = [
     "afp_antifp",
     "isp_il10pred",
     "ace_vaxinpad",
-    "aip_antiinflam",
+    "aip_antiinflam"
 ]
-
-# ds=avp_avppred; rm -r data/$ds/benchmark/ data/$ds/vis/ data/$ds/csv/sequence_based/ data/$ds/csv/structure_based/ data/$ds/csv/all/ data/$ds/misc/benchmark/benchmark.csv
-# find data/ -name dataset_correlation.csv | awk '{ sub("data/", "\t# \""); print }' | awk '{ sub("/benchmark/dataset_correlation.csv", "\","); print }'
 
 with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/") as w:
 
@@ -196,112 +193,113 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
     #         "data/{dataset}/benchmark/dataset_correlation.csv"
     #     ],
     #     csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir))
-    #
-    # w.add(vis.overview.rule(
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/overview/"
-    # ))
-    #
-    # w.add(vis.metrics.rule(
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/metrics/"
-    # ))
-    #
-    # w.add(vis.roc_pr.rule(
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/roc_pr/"
-    # ))
-    #
-    # w.add(vis.similarity.rule(
-    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
-    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
-    #     html_dir_out="data/{dataset}/vis/similarity/"
-    # ))
-    #
-    # w.add(vis.pairwise_diversity.rule(
-    #     similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
-    #     similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
-    #     ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
-    #     ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
-    #     ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
-    #     ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/pairwise_diversity/"
-    # ))
-    #
-    # w.add(vis.critical_difference.rule(
-    #     crit_diff_dir_in="data/{dataset}/benchmark/friedman/",
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/critical_difference/"
-    # ))
-    #
-    # w.add(vis.amino_acid_comp.rule(
-    #     fasta_in="data/{dataset}/seqs_mapped.fasta",
-    #     classes_in="data/{dataset}/classes.txt",
-    #     html_dir_out="data/{dataset}/vis/amino_acid_comp/"
-    # ))
-    #
-    # w.add(vis.dataset_correlation.rule(
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
-    #     html_dir_out="data/{dataset}/vis/dataset_correlation/"
-    # ))
-    #
-    # w.add(vis.elapsed_time.rule(
-    #     benchmark_csv_in=w.benchmark_dir + "benchmark.csv",
-    #     metrics_dir_in="data/{dataset}/benchmark/metrics/",
-    #     html_dir_out="data/{dataset}/vis/elapsed_time/"
-    # ))
 
-    w.add(vis.md_overview_hm.rule(
-        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
-        html_dir_out="data/multiple_datasets/vis/md_overview_hm/"
+    w.add(vis.sds_1_Overview.rule(
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_1_Overview/"
     ))
 
-    w.add(vis.md_ranks_hm.rule(
-        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
-        html_dir_out="data/multiple_datasets/vis/md_ranks_hm/"
+    w.add(vis.sds_2_Metrics.rule(
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_2_Metrics/"
     ))
 
-    w.add(vis.md_clustering_hm.rule(
-        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
-        html_dir_out="data/multiple_datasets/vis/md_clustering_hm/"
+    w.add(vis.sds_3_Curves.rule(
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_3_Curves/"
     ))
 
-    w.add(vis.md_tsne.rule(
+    w.add(vis.sds_4_Similarity.rule(
+        similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
+        similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
+        html_dir_out="data/{dataset}/vis/sds_4_Similarity/"
+    ))
+
+    w.add(vis.sds_5_Diversity.rule(
+        similarity_dir_group_1_in="data/{dataset}/benchmark/similarity/seq_vs_str/",
+        similarity_dir_group_2_in="data/{dataset}/benchmark/similarity/all_vs_all/",
+        ensemble_cv_group_1a_in="data/{dataset}/benchmark/ensemble/seq_vs_str/sequence_based/",
+        ensemble_cv_group_1b_in="data/{dataset}/benchmark/ensemble/seq_vs_str/structure_based/",
+        ensemble_cv_group_2a_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_1/",
+        ensemble_cv_group_2b_in="data/{dataset}/benchmark/ensemble/all_vs_all/group_2/",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_5_Diversity/"
+    ))
+
+    w.add(vis.sds_6_Difference.rule(
+        crit_diff_dir_in="data/{dataset}/benchmark/friedman/",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_6_Difference/"
+    ))
+
+    w.add(vis.sds_7_Composition.rule(
+        fasta_in="data/{dataset}/seqs_mapped.fasta",
+        classes_in="data/{dataset}/classes.txt",
+        html_dir_out="data/{dataset}/vis/sds_7_Composition/"
+    ))
+
+    w.add(vis.sds_8_Correlation.rule(
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        dataset_correlation_in="data/{dataset}/benchmark/dataset_correlation.csv",
+        html_dir_out="data/{dataset}/vis/sds_8_Correlation/"
+    ))
+
+    w.add(vis.sds_9_Time.rule(
+        benchmark_csv_in=w.benchmark_dir + "benchmark.csv",
+        metrics_dir_in="data/{dataset}/benchmark/metrics/",
+        html_dir_out="data/{dataset}/vis/sds_9_Time/"
+    ))
+
+    w.add(vis.mds_1_Overview.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/mds_1_Overview/"
+    ))
+
+    w.add(vis.mds_2_Ranks.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/mds_2_Ranks/"
+    ))
+
+    w.add(vis.mds_3_Clustering.rule(
+        metric_dirs_in=expand("data/{dataset}/benchmark/metrics/", dataset=DATASETS),
+        html_dir_out="data/multiple_datasets/vis/mds_3_Clustering/"
+    ))
+
+    w.add(vis.mds_4_Embedding.rule(
         fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
         classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
-        html_dir_out="data/multiple_datasets/vis/md_tsne/"
+        html_dir_out="data/multiple_datasets/vis/mds_4_Embedding/"
     ))
 
-    w.add(vis.md_elapsed_time.rule(
+    w.add(vis.mds_5_Time.rule(
         fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
         benchmark_csvs_in=expand("data/{dataset}/misc/benchmark/benchmark.csv", dataset=DATASETS),
-        html_dir_out="data/multiple_datasets/vis/md_elapsed_time/"
+        html_dir_out="data/multiple_datasets/vis/mds_5_Time/"
     ))
 
     w.add(vis.home_Home_tsne.rule(
         fastas_in=expand("data/{dataset}/seqs.fasta", dataset=DATASETS),
         classes_in=expand("data/{dataset}/classes.txt", dataset=DATASETS),
+        readmes_in=expand("data/{dataset}/README.md", dataset=DATASETS),
         benchmark_csvs_in=expand("data/{dataset}/misc/benchmark/benchmark.csv", dataset=DATASETS),
         html_dir_out="data/multiple_datasets/vis/home_Home_tsne/"
     ))
 
     target = expand([
-        # "data/{dataset}/vis/overview/",
-        # "data/{dataset}/vis/metrics/",
-        # "data/{dataset}/vis/roc_pr/",
-        # "data/{dataset}/vis/similarity/",
-        # "data/{dataset}/vis/pairwise_diversity/",
-        # "data/{dataset}/vis/critical_difference/",
-        # "data/{dataset}/vis/amino_acid_comp/",
-        # "data/{dataset}/vis/dataset_correlation/",
-        # "data/{dataset}/vis/elapsed_time/",
-        # "data/multiple_datasets/vis/md_overview_hm/",
-        # "data/multiple_datasets/vis/md_ranks_hm/",
-        # "data/multiple_datasets/vis/md_clustering_hm/",
-        # "data/multiple_datasets/vis/md_tsne/",
-        # "data/multiple_datasets/vis/md_elapsed_time/",
+        "data/{dataset}/vis/sds_1_Overview/",
+        "data/{dataset}/vis/sds_2_Metrics/",
+        "data/{dataset}/vis/sds_3_Curves/",
+        "data/{dataset}/vis/sds_4_Similarity/",
+        "data/{dataset}/vis/sds_5_Diversity/",
+        "data/{dataset}/vis/sds_6_Difference/",
+        "data/{dataset}/vis/sds_7_Composition/",
+        "data/{dataset}/vis/sds_8_Correlation/",
+        "data/{dataset}/vis/sds_9_Time/",
+        "data/multiple_datasets/vis/mds_1_Overview/",
+        "data/multiple_datasets/vis/mds_2_Ranks/",
+        "data/multiple_datasets/vis/mds_3_Clustering/",
+        "data/multiple_datasets/vis/mds_4_Embedding/",
+        "data/multiple_datasets/vis/mds_5_Time/",
         "data/multiple_datasets/vis/home_Home_tsne/",
     ], dataset=DATASETS)
 
