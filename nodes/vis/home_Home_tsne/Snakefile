@@ -54,33 +54,26 @@ rule concat_data:
 
 rule annotate_data:
     input:
-         f"data/temp/{TOKEN}/elapsed_time_data.csv"
+         f"data/temp/{TOKEN}/elapsed_time_data.csv",
+         config["readmes_in"]
     output:
          config["html_dir_out"] + "elapsed_time_data.json"
     run:
          df_res = pd.read_csv(input[0], index_col=0)
 
-         # TODO remove me
-         df_res["desc"] = "a" * 15 + "\n" + "b" * 15 + "\n" + "a" * 15 + \
-                          "\n" + "b" * 15 + "\n" + "a" * 15 + "\n" + "b" * 15 + "\n"
-         df_res["ref"] = "www.heiderlab.de"
-
-         # desc_col, ref_col = [], []
+         desc_col, ref_col = [], []
          for ds in df_res.dataset:
-             try:
-                 # TODO use from config input
-                 with open(f"data/{ds}/README.md") as f:
-                     col1, col2 = [], []
-                     for h1, h2 in re.findall("\|(.*?)\|(.*?)\|", f.read()):
-                         col1 += [h1]
-                         col2 += [h2]
-                     df_res.loc[df_res.dataset == ds, "desc"] = wrap_text(col1[-1])
-                     df_res.loc[df_res.dataset == ds, "ref"] = wrap_text(col2[-1])
-                     # desc_col += [col1[-1]]
-                     # ref_col += [col2[-1]]
-             except Exception:
-                 pass
+             path = [p for p in list(input[1:]) if ds in p][0]
+             with open(path) as f:
+                 col1, col2 = [], []
+                 for h1, h2 in re.findall("\|(.*?)\|(.*?)\|", f.read()):
+                     col1 += [h1]
+                     col2 += [h2]
+                 desc_col += [wrap_text(col1[-1])]
+                 ref_col += [wrap_text(col2[-1])]
 
+         df_res["desc"] = desc_col
+         df_res["ref"] = ref_col
          df_res.to_json(output[0], orient="records")
 
 rule transform_tsne_data:

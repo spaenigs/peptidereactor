@@ -1,18 +1,20 @@
+from functools import reduce
 from more_itertools import intersperse
 
 
 def wrap_text(text, line_length=15):
-    word = text.strip()
-    words = word.split(" ")
-    if len(words) > 1:
-        wrapped_sentence = ""
-        tmp_sentence = ""
-        for w in words:
-            if len(tmp_sentence + w) <= line_length:
-                tmp_sentence += w + " "
-            else:
-                wrapped_sentence += tmp_sentence + "\n"
-                tmp_sentence = w + " "
-        return wrapped_sentence + tmp_sentence
+    def concat(old, new: str):
+        if len(new) > line_length:
+            old += [new]
+        elif len(old) == 0 or \
+                len(old[-1]) + len(new) >= line_length:
+            old += [f"{new} "]
+        else:
+            old[-1] += new
+        return old
+    words = text.strip().split(" ")
+    if len(words) == 1:
+        return "".join(intersperse("\n", words[0], n=line_length))
     else:
-        return "".join(intersperse("\n", word, n=line_length))
+        parts = reduce(lambda res, w: concat(res, w), words, [])
+        return "\n".join(parts)

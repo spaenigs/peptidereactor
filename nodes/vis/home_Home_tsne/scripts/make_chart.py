@@ -40,42 +40,6 @@ scatter = alt.Chart(
 
 ### chart2
 
-ds = alt.Chart().mark_text(fontSize=12, lineBreak="\n").encode(
-    text="dataset:N"
-).properties(
-    height=80,
-    width=125
-)
-
-ss = alt.Chart().mark_text(fontSize=12).encode(
-    text="seq_size:O",
-).properties(
-    height=80,
-    width=125
-)
-
-t = alt.Chart().mark_text(
-    dy=-30,
-    fontSize=12,
-    lineBreak="\n",
-).encode(
-    text="desc:N"
-)
-
-ref = alt.Chart().transform_calculate(
-    url="" + alt.datum.ref
-).mark_text(
-    dy=-30,
-    fontSize=12,
-    lineBreak="\n"
-).encode(
-    text="ref:N",
-    href="url:N",
-    tooltip="url:N"
-)
-
-### chart3
-
 scatterc = alt.Chart().mark_circle(size=10, color="#fdc086").encode(
     x=alt.X(
         "x:Q",
@@ -117,6 +81,39 @@ tsnec = alt.layer(
     scatterc, hullc, textc,
     data=snakemake.input[1],
     title="Single dataset"
+)
+
+### chart3
+
+ds = alt.Chart().mark_text(fontSize=12, lineBreak="\n").encode(
+    text="dataset:N"
+)
+
+ss = alt.Chart().mark_text(fontSize=12).encode(
+    text="seq_size:O",
+)
+
+t = alt.Chart().mark_text(
+    dy=-50,
+    fontSize=12,
+    lineBreak="\n",
+).encode(
+    text="desc:N"
+)
+
+ref = alt.Chart().transform_calculate(
+    url="" + alt.datum.ref
+).mark_text(
+    dy=-50,
+    fontSize=12,
+    lineBreak="\n"
+).encode(
+    text="ref:N",
+    href="url:N",
+    tooltip="url:N"
+).properties(
+    height=120,
+    width=125
 )
 
 # chart
