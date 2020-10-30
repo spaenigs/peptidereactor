@@ -14,6 +14,32 @@ selection = alt.selection_single(
 
 axis = alt.Axis(grid=False, titleFontWeight="normal")
 
+### chart1
+
+scatter = alt.Chart(
+    snakemake.input[0], title="Multiple datasets"
+).mark_point(
+    filled=True, size=60
+).encode(
+    x=alt.X(
+        "hours:Q",
+        title="log(Computation time) (h)",
+        scale=alt.Scale(type='log'),
+        axis=axis
+    ),
+    y=alt.Y(
+        "seq_size:Q",
+        title="log(# of sequences)",
+        sort="-x",
+        scale=alt.Scale(type='log'),
+        axis=axis
+    ),
+    tooltip="dataset:N",
+    color=alt.condition(selection, alt.value("#4C78A8"), alt.value("lightgrey"))
+).interactive()
+
+### chart2
+
 ds = alt.Chart().mark_text(fontSize=12, lineBreak="\n").encode(
     text="dataset:N"
 ).properties(
@@ -48,35 +74,7 @@ ref = alt.Chart().transform_calculate(
     tooltip="url:N"
 )
 
-table = alt.hconcat(ds, ss, t, ref, data=snakemake.input[0]).transform_filter(
-    selection
-)
-
-scatter = alt.Chart(
-    snakemake.input[0],
-    title="Multiple datasets"
-).mark_point(filled=True, size=60).encode(
-    x=alt.X(
-        "hours:Q",
-        title="log(Computation time) (h)",
-        scale=alt.Scale(type='log'),
-        axis=axis
-    ),
-    y=alt.Y(
-        "seq_size:Q",
-        title="log(# of sequences)",
-        sort="-x",
-        scale=alt.Scale(type='log'),
-        axis=axis
-    ),
-    tooltip="dataset:N",
-    color=alt.condition(selection, alt.value("#4C78A8"), alt.value("lightgrey"))
-).add_selection(
-    selection
-).properties(
-    height=250,
-    width=250
-).interactive()
+### chart3
 
 scatterc = alt.Chart().mark_circle(size=10, color="#fdc086").encode(
     x=alt.X(
@@ -91,8 +89,6 @@ scatterc = alt.Chart().mark_circle(size=10, color="#fdc086").encode(
         axis=axis,
         scale=alt.Scale(domain=[y_min, y_max])
     )
-).transform_filter(
-    selection
 )
 
 hullc = alt.Chart().mark_line(
@@ -105,8 +101,6 @@ hullc = alt.Chart().mark_line(
     order="order:O"
 ).transform_filter(
     alt.datum.hull_vertex == True
-).transform_filter(
-    selection
 )
 
 textc = alt.Chart().mark_text().encode(
@@ -117,21 +111,46 @@ textc = alt.Chart().mark_text().encode(
     text="join(['area=', round(datum.area)], '')"
 ).transform_filter(
     (alt.datum.x == 0) and (alt.datum.y == 0)
-).transform_filter(
-    selection
 )
 
 tsnec = alt.layer(
     scatterc, hullc, textc,
     data=snakemake.input[1],
     title="Single dataset"
+)
+
+# chart
+
+chart1 = scatter.add_selection(
+    selection
 ).properties(
     height=250,
     width=250
 )
 
-chart_json = alt.vconcat(alt.hconcat(scatter, tsnec), table).to_json(indent=None)
+chart2 = alt.layer(
+    scatterc, hullc, textc,
+    data=snakemake.input[1],
+    title="Single dataset"
+).transform_filter(
+    selection
+).properties(
+    height=250,
+    width=250
+)
+
+chart3 = alt.hconcat(
+    ds, ss, t, ref, data=snakemake.input[0]
+).transform_filter(
+   selection
+)
+
+chart = alt.vconcat(
+    alt.hconcat(chart1, chart2), chart3
+).resolve_scale(
+    y="independent"
+)
 
 with open(snakemake.output[0], "w") as f:
-    f.write(chart_json)
+    f.write(chart.to_json(indent=None))
     f.flush()
