@@ -1,1 +1,4 @@
 *.html linguist-vendored
+peptidereactor/iFeature/* linguist-vendored
+*.smk linguist-language=Snakemake
+Snakefile linguist-language=Snakemake
