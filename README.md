@@ -1,227 +1,137 @@
-# PEPTIDEREACToR
+### PEPTIDE REACToR
 
-## Overview
+A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. 
+All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and 
+encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link_style}'>Spänig <i> et al.</i> 
+(2020)</a>.
+
+#### Overview
 
 ![image info](docs/images/peptidereactor.svg)
 
-## Installation
+#### Installation
 
-1. Clone this repo: `git clone git@github.com:spaenigs/proteinreactor.git`
-2. Install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html). 
-3. Create conda environment: `conda env create --file peptidereactor/environment.yaml`
-4. Install docker: 
+1. Clone this repo:  
+    `git clone git@github.com:spaenigs/peptidereactor.git`.
+    
+2. `cd` into the root directory (`peptidereactor/`)
+
+3. Install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html):  
+   `peptidereactor/conda/install.sh`. 
+
+4. Create the conda environment:   
+   `peptidereactor/conda/create_env.sh`
+   
+5. Install docker:
     - Ubuntu: `./peptidereactor/install_docker_io`
     - Other distros: `./peptidereactor/install_docker_ce` 
-5. Build image: `./peptidereactor/build_image`
-6. Set required download links. See `nodes/utils/protein_structure_prediction/README.md` and
-`nodes/utils/secondary_structure_profile/README.md` for further instructions.
-7. Run the pipeline via `./peptidereactor/run_pipeline -s eb.smk --config cores=4 --quiet`
-
-## Docker
-
-### Save/load docker image
-
-```shell script
-docker save peptidereactor > peptidereactor.tar
-docker load < docker/peptidereactor.tar
-```
-
-### Override entrypoint
-e.g.
-```shell script
-docker run --entrypoint "ls" peptidereactor -l /
-docker run --entrypoint "wget" peptidereactor http://raptorx.uchicago.edu/
-```
-or even access it interactively
-```shell script
-docker run -it --entrypoint "/bin/bash" peptidereactor
-```
-
-## Pipeline
-
-### Create DAG of meta jobs
-
-```shell script
-./peptidereactor/run_pipeline -s peptidereactor.smk \ 
-                    --config dataset=neuropeptides_ds3 \ 
-                    --dag | dot -Tpdf > dag.pdf
-```
-
-### Split datasets, if necessary
-
-```shell script
-./peptidereactor/run_pipeline -s create_datasets.smk --config dataset=neuropeptides
-```
-
-### Encoding benchmark
-
-Create the profile dir, if not existing yet.
-```shell script
-mkdir data/neuropeptides_ds1/profile 
-```
-Make sure, that the parameter-based encodings are set (or set them manually). See, e.g., 
-`peptidereactor/iFeature/codes/ksctriad.py` for details.
-```shell script
-./peptidereactor/run_pipeline -s maximum_window_length.smk --config dataset=neuropeptides_ds1
-```
-Moreover, ngram-based encodings require a predetermined dimension. Either run the respective rule 
-or set the maximum dimension manually:
-```shell script
-./peptidereactor/run_pipeline -s maximum_dim_size.smk --config dataset=neuropeptides_ds1
-```
-Finally, execute the pipeline:
-```shell script
-./peptidereactor/run_pipeline -s peptidereactor.smk --config dataset=neuropeptides_ds1
-```
-
-#### Run pipelines isolated
-
-```shell script
-./peptidereactor/run_pipeline -s nodes/utils/tertiary_structure_prediction/Snakefile \
-data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb \  # target file
---config dataset="neuropeptides_ds3" \
-         fasta_in="data/neuropeptides_ds3/seqs.fasta" \    
-         classes_in="data/neuropeptides_ds3/classes.txt" \    
-         download_link_in="nodes/utils/protein_structure_prediction/raptorx_download_link.txt" \
-         license_key_in="nodes/utils/protein_structure_prediction/modeller_license_key.txt" \ 
-         pdbs_out="data/neuropeptides_ds3/pdb/UniRef100_A0SIF1.pdb" \
-         token="asd"
-```
-
-## Meta-workflow
-
-### Add new meta-workflow
-
-The following example demonstrates how to add a new meta-workflow, i.e., a workflow, which incorporates
-sub-workflows or nodes, respectively.
-
-1) Create the workflow file: `touch meta_workflow.smk`
-2) Paste the following content into it:
-    ```snakemake
-    import os
     
-    config["global_workdir"] = os.getcwd() + "/"  
-    
-    DATASET = config["dataset"]
-    
-    rule all:
-        input:
-             f"data/{DATASET}/csv/aaindex/aaindex_ANDN920101.csv",
-             f"data/{DATASET}/csv/aac.csv"
-
-    rule encoding_aaindex:
-        input:
-             fasta_in=f"data/{DATASET}/seqs.fasta",
-             classes_in=f"data/{DATASET}/classes.txt"
-        output:
-             csv_out=f"data/{DATASET}/csv/aaindex/aaindex_ANDN920101.csv"
-        params:
-             subworkflow="aaindex",
-             snakefile="nodes/encodings/aaindex/Snakefile",
-             configfile="nodes/encodings/aaindex/config.yaml"
-        script:
-             "utils/subworkflow.py"
+6. Build images:   
+   - `./peptidereactor/build_image`
+   - `./peptidereactor-vis/docker/build_image`
+  
+#### Execution
    
-   rule encoding_aac:
-        input:
-             fasta_in=f"data/{DATASET}/seqs.fasta",
-             classes_in=f"data/{DATASET}/classes.txt"
-        output:
-             csv_out=f"data/{DATASET}/csv/aac.csv"
-        params:
-             subworkflow="aac",
-             snakefile="nodes/encodings/aac/Snakefile",
-             configfile="nodes/encodings/aac/config.yaml"
-        script:
-             "utils/subworkflow.py"
-    ```
+1. Jobs to be executed:  
+   - `./main.py --quiet --dag | dot -Tsvg > dag.svg` (DAG) 
+   - `./main.py --quiet -nr` (list)
 
-3) In case one would like to process, e.g., `data/neuropeptides/csv/aaindex/aaindex_ANDN920101.csv` 
-in a subsequent sub-workflow, __make sure to use the same file name as input__.
-4) Run the meta-workflow as follows: `./peptidereactor/run_pipeline -s meta_workflow.smk --config dataset=neuropeptides`
+2. Run the pipeline:  
+   `./main.py --quiet`
+   
+3. Results:  
+   - Run server `./peptidereactor-vis/run_server` and
+   - access http://137.248.121.140:8501
 
-## Nodes
 
-### Add new node
+#### Custom nodes
 
-Example: add a new node, i.e., sub-workflow, to convert 
-[pdb](https://en.wikipedia.org/wiki/Protein_Data_Bank_(file_format))  to 
-[sdf](https://en.wikipedia.org/wiki/Chemical_table_file) files and 
-find their respective, energy-minimized conformation.
+The implementation of the PEPTIDE REACToR follows a modular design, such that meta
+nodes can be connected almost arbitrary. Moreover, custom nodes can be easily added.
+__Note that, this tool is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/),
+hence all conditions for a valid Snakemake-workflow must be also fulfilled.__
 
-1) `mkdir nodes/utils/convert_to_sdf_and_minimize`
-2) `touch nodes/utils/convert_to_sdf_and_minimize/Snakefile`
-3) Specify input and output via config dictionary, e.g., `config["pdbs_in"]` 
-and `config["sdfs_out"]`.
+##### Example
+
+A node to conduct multiple sequence alignment. Since we might need such a general node 
+multiple times, we add it to the `utils` category.
+
+1) `mkdir nodes/utils/multiple_sequence_alignment`
+2) `touch nodes/utils/multiple_sequence_alignment/Snakefile`
+3) Specify input and output via config dictionary, e.g., `config["fastas_in"]` 
+   and `config["fastas_out"]`.
 4) Copy/paste into the `Snakefile` and adapt stub:
 
     ```snakemake
-    TOKEN = config["token"]
-   
-    rule process_input:
-       input:
-            config["pdbs_in"]  # use the input of the meta rule!
-       output:
-            f"data/temp/{TOKEN}/intermediate.results"
-       run:
-            pass
-   
-   rule generate_output:
-       input:
-            f"data/temp/{TOKEN}/intermediate.results"
-       output: 
-            config["sdfs_out"]  # use the output of the meta rule!
-       shell:
-            """
-            for file in {output}; do
-               touch $file
-            done
-            """
-    ```
-5) Add all necessary external dependencies to `peptidereactor/environment.yaml`, in this case `openbabel`:
-    ```yaml
-    name: peptidereactor
-    channels:
-      ...
-      - openbabel
-    dependencies:
-      ...
-      - openbabel
-      - pip:
-        ...
-    ```
-    First, if necessary, remove redundant containers with 
-    ```shell script
-    ./peptidereactor/delete_container
-    ```
-    Afterwards, rebuild the `peptidereactor` docker container with 
-    ```shell script
-    ./peptidereactor/build_container
-    ``` 
+    # from ... import ...
     
-6) Implement the algorithm in the `Snakefile` (see #4) and call it in the meta workflow as follows:
-
-   ```snakemake
-    from modlamp.core import read_fasta
+    TOKEN = config["token"]  # access unique token
     
-    rule util_convert_to_sdf_and_minimize:
-   
+    rule all:
         input:
-             pdbs_in=expand("data/neuropeptides_ds2/{seq_name}.pdb",
-                            seq_name=read_fasta(f"data/neuropeptides_ds2/seqs.fasta")[1])       
+             config["fastas_out"]
+    
+    rule multiple_sequence_alignment:
+        input:
+             config["fastas_in"]
         output:
-             sdfs_out=expand("data/neuropeptides_ds2/{seq_name}.pdb",
-                            seq_name=read_fasta(f"data/neuropeptides_ds2/seqs.fasta")[1])
-        params:
-             subworkflow="convert_to_sdf_and_minimize",
-             snakefile="nodes/utils/convert_to_sdf_and_minimize/Snakefile",
-             configfile="nodes/utils/convert_to_sdf_and_minimize/config.yaml"  
-        resources:
-             cores=-1  # can be omitted, uses one core per default
-        script:
-             "utils/subworkflow.py" 
-   ```
+             config["fastas_out"]
+        run:
+             pass
+    ```
+
+5) `touch nodes/utils/multiple_sequence_alignment/__init__.py` for the API and 
+   copy/paste the following:
    
-7) Refer to directory `nodes/*/*/` for all available nodes (and examples).
-8) Make sure to use the output (`config["sdfs_out"]`) as input for another node 
-(e.g., `config["sdfs_in"]`) to enable snakemake capabilities for the meta workflow!
+   ```python
+    import secrets
+    
+    # rule name
+    def _get_header(token):
+        return f'''
+    rule utils_multiple_sequence_alignment_{token}:'''
+    
+    ... 
+   
+    # specify input, output and path to the Snake- and configuration file.
+    def _get_main(fastas_in, fastas_out):
+        return f'''
+        input:
+             fastas_in={fastas_in}
+        output:
+             fastas_out={fastas_out}
+        ...
+    '''
+    
+    # specify input and output
+    def rule(fastas_in, fastas_out, benchmark_dir=None):
+        token = secrets.token_hex(4)
+        rule = _get_header(token)
+        if benchmark_dir is not None:
+            benchmark_out = f"{benchmark_dir}utils_multiple_sequence_alignment_{token}.txt"
+        ...
+   ``` 
+   Refer to an actual `__init__.py` for a complete example.   
+6) Make the node visible by adding `from . import multiple_sequence_alignment` in 
+   `nodes/utils/__init__.py`. 
+7) Import and use the node in `main.py`:
+   ```python
+   import nodes.utils as utils
+   
+   w.add(utils.multiple_sequence_alignment.rule(
+       fastas_in=["data/{dataset}/seqs_mapped.fasta", "data/{dataset}/seqs_sec.fasta",
+                  "data/{dataset}/seqs_ter.fasta"],
+       fastas_out=["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta",
+                   "data/{dataset}/seqs_msa_ter.fasta"],
+       benchmark_dir=w.benchmark_dir))
+   ```
+8) During implementation, it might be helpful to run the rule isolated:
+   ```shell script
+   ./peptidereactor/run_pipeline -s nodes/utils/multiple_sequence_alignment/Snakefile \
+                                 --config fasta_in=... fasta_out=... token=... \
+                                 -nr
+   ``` 
+   or even access the Docker container interactively:
+   ```shell script
+   docker run -it --entrypoint "/bin/bash" peptidereactor
+   ```
