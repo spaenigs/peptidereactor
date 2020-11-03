@@ -32,6 +32,17 @@ def _get_main(feat_imp_in, feat_imp_out):
 
 
 def rule(feat_imp_in, feat_imp_out, benchmark_dir=None):
+    """
+    Computes the feature importance ratio between the feature importance.
+
+    Category: benchmark. \n
+    Node: feature_importance
+
+    :param feat_imp_in: The path to the directory, which contains the feature importance.
+    :param feat_imp_out: The path to the output directory, to store the computed results.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

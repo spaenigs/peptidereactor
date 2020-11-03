@@ -33,6 +33,18 @@ def _get_main(csv_seq_in, csv_str_in, csv_dir_out):
 
 
 def rule(csv_seq_in, csv_str_in, csv_dir_out, benchmark_dir=None):
+    """
+    Executes cross validation between all datasets of two groups.
+
+    Category: benchmark. \n
+    Node: single
+
+    :param csv_seq_in: The path to the directory, which contains the encoded datasets of the first group.
+    :param csv_str_in: The path to the directory, which contains the encoded datasets of the second group.
+    :param csv_dir_out: The path to the output directory, to store the computed results.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

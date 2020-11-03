@@ -34,6 +34,19 @@ def _get_main(group_1_in, group_2_in, metrics_dir_in, dataset_corr_out):
 
 
 def rule(group_1_in, group_2_in, metrics_dir_in, dataset_corr_out, benchmark_dir=None):
+    """
+    Computes the dataset correlation of the best datasets of two groups, determined by the F1-score.
+
+    Category: benchmark. \n
+    Node: dataset_correlation
+
+    :param group_1_in: The path to the directory, which contains the encoded datasets of the first group.
+    :param group_2_in: The path to the directory, which contains the encoded datasets of the second group.
+    :param metrics_dir_in: The path to the directory, which contains the folder with computed F1-scores.
+    :param dataset_corr_out: The path to the output directory, to store the computed results.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

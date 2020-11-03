@@ -32,6 +32,17 @@ def _get_main(metrics_dir_in, cd_dir_out):
 
 
 def rule(metrics_dir_in, cd_dir_out, benchmark_dir=None):
+    """
+    Computes the critical difference between datasets, based on the F1-score.
+
+    Category: benchmark. \n
+    Node: critical_difference
+
+    :param metrics_dir_in: The path to the directory, which contains the folder with computed F1-scores.
+    :param cd_dir_out: The path to the output directory, which contains the computed results.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
