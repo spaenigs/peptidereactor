@@ -1,4 +1,3 @@
-![image info](docs/images/logo.png)
 <img src="docs/images/logo.png" alt="logo" width="200"/>
 
 A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. 
