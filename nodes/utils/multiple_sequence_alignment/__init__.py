@@ -42,6 +42,8 @@ def rule(fastas_in, fastas_out, benchmark_dir=None):
            to the new names.
     :param benchmark_dir: The path to the directory to store the benchmark results. If None,
            benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
     """
     token = secrets.token_hex(4)
     rule = _get_header(token)

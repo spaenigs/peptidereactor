@@ -59,6 +59,8 @@ def rule(fasta_in, classes_in, fasta_sec_out, classes_sec_out,
     :param profile_dir: The path to the output directory to store the profiles.
     :param benchmark_dir: The path to the directory to store the benchmark results. If None,
            benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
     """
     token = secrets.token_hex(4)
     rule = _get_header(token)

@@ -42,6 +42,8 @@ def rule(final_dirs_in, final_files_in, csv_out, benchmark_dir=None):
     :param csv_out: The path to the output file.
     :param benchmark_dir: The path to the directory to store the benchmark results. If None,
            benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
     """
     token = secrets.token_hex(4)
     rule = _get_header(token)
