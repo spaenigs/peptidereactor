@@ -30,6 +30,19 @@ def _get_main(fastas_in, fastas_out):
 
 
 def rule(fastas_in, fastas_out, benchmark_dir=None):
+    """
+    Conducts the multiple sequence alignment.
+
+    Category: utils. \n
+    Node: multiple_sequence_alignment
+
+    :param fastas_in: A list of file paths pointing to fasta files.
+    :param fastas_out: A list of output file paths.
+    :param maps_out: The path to the output file containing the mappings from the original names
+           to the new names.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

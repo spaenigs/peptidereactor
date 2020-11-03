@@ -30,6 +30,17 @@ def _get_main(fasta_in, length_out):
 
 
 def rule(fasta_in, length_out, benchmark_dir=None):
+    """
+    Computes the maximum allowed dimension for ngram-based encodings.
+
+    Category: utils. \n
+    Node: dim_size
+
+    :param fasta_in: The path to the fasta file.
+    :param length_out: The path to the output file for a specific type and alphabet size.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

@@ -35,7 +35,31 @@ def _get_main(fasta_in, classes_in, fasta_sec_out, classes_sec_out, fasta_ter_ou
 '''
 
 
-def rule(fasta_in, classes_in, fasta_sec_out, classes_sec_out, fasta_ter_out, classes_ter_out, pdb_dir, profile_dir, benchmark_dir=None):
+def rule(fasta_in, classes_in, fasta_sec_out, classes_sec_out,
+         fasta_ter_out, classes_ter_out, pdb_dir, profile_dir,
+         benchmark_dir=None):
+    """
+    Approximates the tertiary structure of the input sequences. Note that, not for
+    all sequences a structure can be found.
+
+    Category: utils. \n
+    Node: tertiary_structure_search
+
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param fasta_sec_out: The output path to the fasta file containing the sequences
+           for which a secondary structure could have been found.
+    :param classes_sec_out: The output path to the classes file containing the classes of
+           sequences for which a secondary structure could have been found.
+    :param fasta_ter_out: The output path to the fasta file containing the sequences
+           for which a tertiary structure could have been found.
+    :param classes_ter_out: The output path to the classes file containing the classes of
+           sequences for which a secondary structure could have been found.
+    :param pdb_dir: The path to the output directory to store the structures.
+    :param profile_dir: The path to the output directory to store the profiles.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
