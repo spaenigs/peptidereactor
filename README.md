@@ -2,8 +2,7 @@
 
 A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. 
 All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and 
-encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link_style}'>Spänig <i> et al.</i> 
-(2020)</a>.
+encodings</b>. For a thorough introduction refer to <a href='https://scholar.google.de/citations?user=lEVtMBMAAAAJ&hl=en' style='{link_style}'>Spänig <i> et al.</i> (2020)</a>.
 
 #### Overview
 
@@ -27,7 +26,7 @@ encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link
     - Other distros: `./peptidereactor/install_docker_ce` 
     
 6. Build images:   
-   - `./peptidereactor/build_image`
+   - `./peptidereactor/docker/build_image`
    - `./peptidereactor-vis/docker/build_image`
   
 #### Execution
@@ -119,11 +118,11 @@ multiple times, we add it to the `utils` category.
    import nodes.utils as utils
    
    w.add(utils.multiple_sequence_alignment.rule(
-       fastas_in=["data/{dataset}/seqs_mapped.fasta", "data/{dataset}/seqs_sec.fasta",
-                  "data/{dataset}/seqs_ter.fasta"],
-       fastas_out=["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta",
-                   "data/{dataset}/seqs_msa_ter.fasta"],
-       benchmark_dir=w.benchmark_dir))
+         fastas_in=["data/{dataset}/seqs_mapped.fasta", "data/{dataset}/seqs_sec.fasta",
+                    "data/{dataset}/seqs_ter.fasta"],
+         fastas_out=["data/{dataset}/seqs_msa.fasta", "data/{dataset}/seqs_msa_sec.fasta",
+                     "data/{dataset}/seqs_msa_ter.fasta"],
+         benchmark_dir=w.benchmark_dir))
    ```
 8) During implementation, it might be helpful to run the rule isolated:
    ```shell script
@@ -135,3 +134,6 @@ multiple times, we add it to the `utils` category.
    ```shell script
    docker run -it --entrypoint "/bin/bash" peptidereactor
    ```
+   
+__Note that,__ the PEPTIDE REACToR is still under development, thus changes are likely. 
+However, the fundamental structure, highlighted above, will remain.
