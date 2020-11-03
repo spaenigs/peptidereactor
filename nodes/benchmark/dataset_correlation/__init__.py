@@ -46,6 +46,8 @@ def rule(group_1_in, group_2_in, metrics_dir_in, dataset_corr_out, benchmark_dir
     :param dataset_corr_out: The path to the output directory, to store the computed results.
     :param benchmark_dir: The path to the directory to store the benchmark results. If None,
            benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
     """
     token = secrets.token_hex(4)
     rule = _get_header(token)
