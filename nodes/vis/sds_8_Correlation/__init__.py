@@ -31,6 +31,22 @@ def _get_main(metrics_dir_in, dataset_correlation_in, html_dir_out):
 
 
 def rule(metrics_dir_in, dataset_correlation_in, html_dir_out, benchmark_dir=None):
+    """
+    Creates a visualization for a single dataset, i.e., a clustered dendrogram of
+    correlated datasets.
+
+    Category: vis \n
+    Node: sds_8_Correlation
+
+    :param metrics_dir_in: A list of directory paths pointing to the metric directory.
+    :param dataset_correlation_in: The path to the results of the dataset correlation.
+    :param html_dir_out: The path to the output directory containing the Vega specification
+           and the accompanied data.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

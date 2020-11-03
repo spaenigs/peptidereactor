@@ -31,6 +31,24 @@ def _get_main(fasta_in, classes_in, html_dir_out):
 
 
 def rule(fasta_in, classes_in, html_dir_out, benchmark_dir=None):
+    """
+    Creates a visualization for a single dataset, i.e., a figure composed of a bar chart
+    showing the class distribution, another bar chart depicting the number of sequences
+    per length, and a third bar chart visualizing the relative count of amino acids per
+    class.
+
+    Category: vis. \n
+    Node: sds_7_Composition
+
+    :param fasta_in: A list of fasta file paths.
+    :param classes_in: A list of classes file paths.
+    :param html_dir_out: The path to the output directory containing the Vega-lite specification
+           and the accompanied data.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

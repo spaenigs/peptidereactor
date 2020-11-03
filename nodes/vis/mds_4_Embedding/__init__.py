@@ -31,6 +31,23 @@ def _get_main(fastas_in, classes_in, html_dir_out):
 
 
 def rule(fastas_in, classes_in, html_dir_out, benchmark_dir=None):
+    """
+    Creates a visualization for multiple datasets, i.e., a figure composed of multiple
+    scatter plots showing the sequences of the positive class for each dataset embedded
+    in two dimensions.
+
+    Category: vis. \n
+    Node: mds_4_Embedding
+
+    :param fastas_in: A list of fasta file paths.
+    :param classes_in: A list of classes file paths.
+    :param html_dir_out: The path to the output directory containing the Vega-lite specification
+           and the accompanied data.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
