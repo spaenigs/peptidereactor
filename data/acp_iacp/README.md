@@ -17,6 +17,6 @@
  
 | Description                                                               | Reference                         |
 |---------------------------------------------------------------------------|-----------------------------------|
-| iACP: a sequence-based tool for identifying anticancer peptides. | https://www.oncotarget.com/article/7815/text/ |
+| iACP: a sequence-based tool for identifying anticancer peptides. | https://doi.org/10.18632/oncotarget.7815 |
 
    
