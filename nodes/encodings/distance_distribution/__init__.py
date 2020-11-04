@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, pdb_dir, distance_distribution_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/distance_distribution/distance_distribution.smk",
+         snakefile="nodes/encodings/distance_distribution/Snakefile",
          configfile="nodes/encodings/distance_distribution/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

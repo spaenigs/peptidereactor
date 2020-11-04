@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, pdb_dir, electrostatic_hull_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/electrostatic_hull/electrostatic_hull.smk",
+         snakefile="nodes/encodings/electrostatic_hull/Snakefile",
          configfile="nodes/encodings/electrostatic_hull/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

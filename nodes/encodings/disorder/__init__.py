@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, profile_dir, disorder_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/disorder/disorder.smk",
+         snakefile="nodes/encodings/disorder/Snakefile",
          configfile="nodes/encodings/disorder/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

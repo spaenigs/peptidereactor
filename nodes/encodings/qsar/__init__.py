@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, pdb_dir, qsar_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/qsar/qsar.smk",
+         snakefile="nodes/encodings/qsar/Snakefile",
          configfile="nodes/encodings/qsar/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

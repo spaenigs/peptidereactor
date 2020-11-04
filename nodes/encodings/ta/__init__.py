@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, profile_dir, ta_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/ta/ta.smk",
+         snakefile="nodes/encodings/ta/Snakefile",
          configfile="nodes/encodings/ta/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, pdb_dir, delaunay_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/delaunay/delaunay.smk",
+         snakefile="nodes/encodings/delaunay/Snakefile",
          configfile="nodes/encodings/delaunay/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

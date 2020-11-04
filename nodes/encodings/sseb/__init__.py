@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, profile_dir, sseb_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/sseb/sseb.smk",
+         snakefile="nodes/encodings/sseb/Snakefile",
          configfile="nodes/encodings/sseb/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:

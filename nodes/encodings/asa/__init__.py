@@ -23,7 +23,7 @@ def _get_main(fasta_in, classes_in, profile_dir, asa_out):
     threads:
          1000
     params:
-         snakefile="nodes/encodings/asa/asa.smk",
+         snakefile="nodes/encodings/asa/Snakefile",
          configfile="nodes/encodings/asa/config.yaml"
     run:
         with WorkflowExecuter(dict(input), dict(output), params.configfile, cores=CORES) as e:
