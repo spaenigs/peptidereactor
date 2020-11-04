@@ -46,7 +46,7 @@ DATASETS = [
     "hem_hemopi",
     "aip_aippred",
 
-    # # 199
+    # 199
     "hiv_apv",
     "hiv_dlv",
     "hiv_efv",
@@ -63,7 +63,7 @@ DATASETS = [
     "hiv_sqv",
     "atb_iantitb",
 
-    # # 203
+    # 203
     "avp_amppred",
     "cpp_cellppd",
     "nep_neuropipred",
@@ -185,7 +185,6 @@ with WorkflowSetter(cores=CORES, benchmark_dir="data/{dataset}/misc/benchmark/")
             "data/{dataset}/benchmark/friedman/"
         ],
         final_files_in=[
-            "data/{dataset}/benchmark/feature_importance.csv",
             "data/{dataset}/benchmark/dataset_correlation.csv"
         ],
         csv_out=w.benchmark_dir + "benchmark.csv", benchmark_dir=w.benchmark_dir
