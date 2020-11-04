@@ -49,16 +49,17 @@ if analysis == HOME:
 
     url = "https://scholar.google.de/citations?user=lEVtMBMAAAAJ&hl=en"
     link_style = "text-decoration:none;"
-    text = f"A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
+    text = "A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
            "All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and " \
            f"encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link_style}'>Spänig <i>" \
-           f"et al.</i> (2020)</a>."
+           "et al.</i> (2020)</a>."
     st.markdown(f"<div style='text-align: justify'>{text}</div>", unsafe_allow_html=True)
 
     st.text("")
 
     t2 = "Click on a dataset (left) to show tSNE-based embedding of sequences part of the positive class (right) " \
-         "as well as detailed dataset information (name, size, description, and DOI) (below). Start exploring:"
+         "as well as detailed dataset information (name, size, description, and DOI) (below). To download the " \
+         "original dataset, click on the symbol below. Start exploring:"
     st.markdown(f"<div style='text-align: justify'>{t2}</div>", unsafe_allow_html=True)
 
     st.text("")

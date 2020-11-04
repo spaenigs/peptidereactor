@@ -17,4 +17,4 @@ def wrap_text(text, line_length=15):
         return "".join(intersperse("\n", words[0], n=line_length))
     else:
         parts = reduce(lambda res, w: concat(res, w), words, [])
-        return "\n".join(parts)
+        return "\n".join(parts[:8])

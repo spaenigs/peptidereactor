@@ -137,13 +137,37 @@ chart2 = alt.layer(
 )
 
 chart3 = alt.hconcat(
-    ds, ss, t, ref, data=snakemake.input[0]
+    ds, ss, t, ref
 ).transform_filter(
    selection
 )
 
+chart4 = alt.Chart().transform_calculate(
+    url="https://github.com/spaenigs/peptidereactor/tree/development/data/" + alt.datum.dataset
+).mark_point(
+    shape="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 "
+          "2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-"
+          "5 5-5-5 1.41-1.41L11 12.67V3h2z",
+    filled=True, color="black", size=5,
+    xOffset=-13, yOffset=-14
+).encode(
+    href="url:N",
+    tooltip="url:N"
+).transform_filter(
+   selection
+).properties(
+    height=30,
+    width=567
+)
+
 chart = alt.vconcat(
-    alt.hconcat(chart1, chart2), chart3
+    alt.hconcat(chart1, chart2),
+    alt.vconcat(
+        chart3, chart4,
+        data=snakemake.input[0], spacing=5
+    ).resolve_scale(
+        y="independent"
+    ),
 ).resolve_scale(
     y="independent"
 )
