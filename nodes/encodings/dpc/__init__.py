@@ -31,6 +31,20 @@ def _get_main(fasta_in, classes_in, dpc_out):
 
 
 def rule(fasta_in, classes_in, dpc_out, benchmark_dir=None):
+    """
+    Computes the Di-Peptide Composition (DPC) encoding.
+
+    Category: encodings \n
+    Node: dpc
+
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param dpc_out: The output file path to store the encoded dataset.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

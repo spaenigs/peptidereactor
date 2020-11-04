@@ -63,6 +63,28 @@ def rule(ngram_type,
          fasta_in=None, classes_in=None, csv_in=None, length_in=None,
          ngram_out=None, ngram_lsv_out=None, ngram_sv_out=None,
          benchmark_dir=None):
+    """
+    Computes the n-gram encoding.
+
+    Category: encodings \n
+    Node: ngram
+
+    :param ngram_type: The n-gram type. One of a2, a3, e2, e3, s2, or s3.
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param csv_in: A path pointing to the dataset encoded with the dpc (type a2)
+           or tpc (a3) encoding.
+    :param length_in: The path to the file, containing the allowed parameter space.
+    :param ngram_out: A list of output file paths to store the encoded datasets.
+    :param ngram_lsv_out: A list of output paths pointing to the left singular components
+           matrix. Required to encode unknown test data.
+    :param ngram_sv_out: A list of output paths pointing to the diagonal matrix. Required
+           to encode unknown test data.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token, ngram_type)
     if benchmark_dir is not None:

@@ -8,6 +8,7 @@ import nodes.encodings as encodings
 
 
 class Rule:
+
     _MISC_ENCDOIGNS = \
         ["zscale", "dpc", "tpc", "gtpc", "gdpc", "gaac", "dde", "ctdt",
          "ctdd", "ctdc", "blosum62", "binary", "aac", "blomap", "ctriad"]
@@ -45,6 +46,26 @@ class Rule:
 
     def rule(self, fasta_in, fasta_msa_in, classes_in, path_to_config, misc_dir, csv_dir,
              exclude=None, include=None, benchmark_dir=None):
+
+        """
+        Meta-node for sequence-based encodings.
+
+        Category: encodings \n
+        Node: sequence_based
+
+        :param fasta_in: The path to the fasta file.
+        :param fasta_msa_in: The path to the aligned fasta file.
+        :param classes_in: The path to the classes file.
+        :param path_to_config: The path to configuration file, containing the required parameters.
+        :param misc_dir: The path to misc dir, containing, e.g., encoding specific files.
+        :param csv_dir: The path to the output directory.
+        :param exclude: Compute all encodings, but the specified ones (optional).
+        :param include: Only compute the specified encodings (optional).
+        :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+               benchmark will be not executed (default).
+
+        :return: A string object representing a Snakemake rule.
+        """
 
         target_encodings = \
             self._MISC_ENCDOIGNS + \

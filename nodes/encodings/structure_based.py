@@ -22,6 +22,36 @@ class Rule:
              exclude=None, include=None, benchmark_dir=None
              ):
 
+        """
+        Meta-node for structure-based encodings.
+
+        Category: encodings \n
+        Node: structure_based
+
+        :param fasta_sec_in: The path to the fasta file, based on approximated
+               secondary structure.
+        :param fasta_msa_sec_in: The path to the aligned fasta file, based on approximated
+               secondary structure.
+        :param classes_sec_in: The path to the classes file, based on approximated
+               secondary structure.
+        :param fasta_ter_in: The path to the fasta file, based on approximated
+               tertiary structure.
+        :param fasta_msa_ter_in: The path to the aligned fasta file, based on approximated
+               tertiary structure.
+        :param classes_ter_in: The path to the classes file, based on approximated
+               tertiary structure.
+        :param path_to_config: The path to configuration file, containing the required parameters.
+        :param pdb_dir: The path to the directory, containing the structures.
+        :param profile_dir: The path to the directory, containing the profiles.
+        :param csv_dir: The path to the output directory.
+        :param exclude: Compute all encodings, but the specified ones (optional).
+        :param include: Only compute the specified encodings (optional).
+        :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+               benchmark will be not executed (default).
+
+        :return: A string object representing a Snakemake rule.
+        """
+
         target_encodings = self._ENCODINGS
 
         if (exclude, type(include)) == (None, list):

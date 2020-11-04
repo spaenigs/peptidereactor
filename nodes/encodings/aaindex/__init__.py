@@ -31,6 +31,20 @@ def _get_main(fasta_in, classes_in, aaindex_out):
 
 
 def rule(fasta_in, classes_in, aaindex_out, benchmark_dir=None):
+    """
+    Computes the amino acid index (aaindex) encoding.
+
+    Category: encodings \n
+    Node: aaindex
+
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param aaindex_out: A list of output file paths to store the encoded datasets.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

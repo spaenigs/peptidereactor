@@ -31,6 +31,20 @@ def _get_main(fasta_in, classes_in, egaac_out):
 
 
 def rule(fasta_in, classes_in, egaac_out, benchmark_dir=None):
+    """
+    Computes the Enhanced Grouped Amino Acid Composition (EGAAC) encoding.
+
+    Category: encodings \n
+    Node: egaac
+
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param egaac_out: A list of output file paths to store the encoded datasets.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:

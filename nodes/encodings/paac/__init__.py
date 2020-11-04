@@ -32,6 +32,21 @@ def _get_main(fasta_in, classes_in, length_in, paac_out):
 
 
 def rule(fasta_in, classes_in, length_in, paac_out, benchmark_dir=None):
+    """
+    Computes the Pseudo-Amino Acid Composition (PAAC) encoding.
+
+    Category: encodings \n
+    Node: paac
+
+    :param fasta_in: The path to the fasta file.
+    :param classes_in: The path to the classes file.
+    :param length_in: The path to the file, containing the allowed parameter space.
+    :param paac_out: A list of output file paths to store the encoded datasets.
+    :param benchmark_dir: The path to the directory to store the benchmark results. If None,
+           benchmark will be not executed (default).
+
+    :return: A string object representing a Snakemake rule.
+    """
     token = secrets.token_hex(4)
     rule = _get_header(token)
     if benchmark_dir is not None:
