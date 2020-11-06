@@ -1,1 +1,1 @@
-streamlit run /wd/peptidereactor-vis/resources/streamlit.py --browser.gatherUsageStats False
+streamlit run /wd/peptidereactor-vis/resources/streamlit.py --browser.gatherUsageStats False #--browser.serverAddress localhost
