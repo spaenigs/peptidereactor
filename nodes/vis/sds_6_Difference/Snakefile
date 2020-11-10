@@ -233,8 +233,8 @@ rule concat_cd_charts:
              title=alt.TitleParams(
                  text=[
                      "Statistical comparison (critical difference) of model performance per fold,",
-                     "for all vs. all encodings, within encoding group and",
-                     "the binned counts distribution of differences for all comparisions."
+                     "for all vs. all encodings (top-left), within an encoding group (top-right), and",
+                     "the binned counts distribution of differences for all comparisons (bottom-left)."
                      "",
                      "",
                      ""
