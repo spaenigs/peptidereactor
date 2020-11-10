@@ -4,6 +4,7 @@
   "width": 1000,
   "height": 1000,
   "padding": 5,
+  "background": "white",
   "signals": [
     {
       "name": "originX",

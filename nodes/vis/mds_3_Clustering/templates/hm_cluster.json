@@ -274,5 +274,6 @@
       "labelFontSize": 12
     }
   ],
-  "config": {"style": {"cell": {"stroke": "transparent"}}}
+  "config": {"style": {"cell": {"stroke": "transparent"}}},
+  "background": "white"
 }
