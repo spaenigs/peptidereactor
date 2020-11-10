@@ -75,7 +75,7 @@ rule create_heatmap:
              color=alt.Color(
                  "Similarity_cat:N",
                  scale=alt.Scale(domain=d, range=r),
-                 legend=alt.Legend(title="Diversity")
+                 legend=alt.Legend(title="Similarity")
              ),
              tooltip=["Encoding1:N", "Encoding2:N", "Similarity:Q"]
          ).properties(
