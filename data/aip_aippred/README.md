@@ -14,4 +14,4 @@
  
 | Description                                                               | Reference                         |
 |---------------------------------------------------------------------------|-----------------------------------|
-| AIPpred: Sequence-Based Prediction of Anti-inflammatory Peptides Using Random Forest. | https://doi.org/10.3389/fmicb.2018.00323  |
+| AIPpred: Sequence-Based Prediction of Anti-inflammatory Peptides Using Random Forest. | https://doi.org/10.3389/fphar.2018.00276  |

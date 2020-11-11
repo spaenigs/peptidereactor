@@ -2,7 +2,8 @@
 
 ##### Description
 
-    Dataset is taken from [1] and downloaded from https://webs.iiitd.edu.in/raghava/neuropipred/download.php.
+    Dataset is taken from [1] and downloaded from https://webs.iiitd.edu.in/raghava/neuropipred/download.php. We 
+    used the combined (main + validation) NeuroPIpred_DS1 dataset in this study.
 
 ##### Reference
 
