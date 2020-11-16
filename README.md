@@ -6,7 +6,13 @@ encodings</b>. For a thorough introduction refer to <a href='https://scholar.goo
 
 #### Overview
 
-![image info](docs/images/peptidereactor.svg)
+![image info](docs/images/graphical_abstract.png)
+
+The emphasis is put on a high-throughput processing of an arbitrary amount of input datasets (arrows), followed by the 
+preprocessing, encoding, and postprocessing, generating the final output (top). The preprocessing includes sanitizing 
+of the input sequences and the tertiary structure approximation, among others. Afterwards, the sequences as well as the 
+accompanied structures are used for the encoding. The postprecessing involves the machine learning and the visual 
+preparation of the analyses, among others.
 
 #### Installation
 
