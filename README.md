@@ -46,8 +46,7 @@ preparation of the analyses, among others.
    
 3. Results:  
    - Run server `./peptidereactor-vis/run_server` and
-   - access http://137.248.121.140:8501
-
+   - access http://localhost:8501
 
 #### Custom nodes
 
