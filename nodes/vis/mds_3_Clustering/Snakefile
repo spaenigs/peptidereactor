@@ -87,8 +87,8 @@ rule aggregate_hm_cluster:
 
          title = [
              "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
-             "X-axis is arranged by clustering datasets, i.e., the biomedical application. The y-axis is",
-             "organized by clustering sequence and structure based encodings."
+             "The x-axis is arranged by clustering datasets, i.e., the biomedical application. The y-axis is",
+             "organized by clustering sequence- and structure-based encodings."
              "",
              ""
          ]

@@ -49,7 +49,7 @@ if analysis == HOME:
 
     url = "https://scholar.google.de/citations?user=lEVtMBMAAAAJ&hl=en"
     link_style = "text-decoration:none;"
-    text = "A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
+    text = "A tool for an <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
            "All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and " \
            f"encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link_style}'>Spänig <i>" \
            "et al.</i> (2020)</a>."

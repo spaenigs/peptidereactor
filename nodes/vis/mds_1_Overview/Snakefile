@@ -126,7 +126,7 @@ rule concat_heatmaps:
              title=alt.TitleParams(
                  text=[
                      "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
-                     "X-axis are organized by sequence and structure based encodings. Y-axis are sorted by class",
+                     "X-axis are organized by sequence- and structure-based encodings. Y-axis are sorted by class",
                      "balance (cut-off 0.3, top) and in addition by biomedical application (bottom). Groups are",
                      "separated by white bars."
                      "",

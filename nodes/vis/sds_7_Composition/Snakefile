@@ -244,7 +244,7 @@ rule collect_aac:
              center=True,
              title=alt.TitleParams(
                  text=[
-                     "Overall class distribution (top), sequence length distribution (middle) and",
+                     "Overall class distribution (top), sequence length distribution (middle), and",
                      "amino acid ratios relative to the respective class (bottom).",
                      "",
                      ""

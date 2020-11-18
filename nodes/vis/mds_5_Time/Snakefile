@@ -114,8 +114,8 @@ rule make_chart:
              center=True,
              title=alt.TitleParams(
                  text=[
-                     "Total computation time per dataset (top), number of sequences vs. computation",
-                     "time (bottom-left) and mean sequence length per dataset vs. computation time (bottom-right).",
+                     "Total computation time per dataset (top), the number of sequences vs. computation",
+                     "time (bottom-left), and mean sequence length per dataset vs. computation time (bottom-right).",
                      "Click on a field to enable filtering by datasets."
                      "",
                      ""

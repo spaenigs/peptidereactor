@@ -108,7 +108,7 @@ rule create_similarity_chart:
              title=alt.TitleParams(
                  text=[
                      "Diversity of the classifier outputs between all encodings (left) and",
-                     "sequence vs. structure based encodings (right),",
+                     "sequence- vs. structure-based encodings (right),",
                      "based on correlation (top) and disagreement (bottom).",
                      "",
                      ""

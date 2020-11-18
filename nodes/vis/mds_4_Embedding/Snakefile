@@ -135,7 +135,7 @@ rule tsne_chart:
               title=alt.TitleParams(
                   text=[
                       "tSNE-based embedding of sequences part of the positive class. The ordering of",
-                      "datasets corresponds  to the respective cluster area. Click on the button below,",
+                      "datasets corresponds to the respective cluster area. Click on the button below,",
                       "in order to display further datasets.",
                       "",
                       ""

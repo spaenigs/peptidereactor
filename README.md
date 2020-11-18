@@ -1,6 +1,6 @@
 <img src="docs/images/logo.png" alt="logo" width="200"/>
 
-A tool for <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. 
+A tool for an <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. 
 All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and 
 encodings</b>. For a thorough introduction refer to <a href='https://scholar.google.de/citations?user=lEVtMBMAAAAJ&hl=en' style='{link_style}'>Spänig <i> et al.</i> (2020)</a>.
 
@@ -8,10 +8,10 @@ encodings</b>. For a thorough introduction refer to <a href='https://scholar.goo
 
 ![image info](docs/images/graphical_abstract.png)
 
-The emphasis is put on a high-throughput processing of an arbitrary amount of input datasets (arrows), followed by the 
+The emphasis is put on high-throughput processing of an arbitrary amount of input datasets (arrows), followed by the 
 preprocessing, encoding, and postprocessing, generating the final output (top). The preprocessing includes sanitizing 
 of the input sequences and the tertiary structure approximation, among others. Afterwards, the sequences as well as the 
-accompanied structures are used for the encoding. The postprecessing involves the machine learning and the visual 
+accompanied structures are used for the encoding. The postprocessing involves machine learning and the visual 
 preparation of the analyses, among others.
 
 #### Installation
@@ -51,8 +51,8 @@ preparation of the analyses, among others.
 #### Custom nodes
 
 The implementation of the PEPTIDE REACToR follows a modular design, such that meta
-nodes can be connected almost arbitrary. Moreover, custom nodes can be easily added.
-__Note that, this tool is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/),
+nodes can be connected almost arbitrarily. Moreover, custom nodes can be easily added.
+__Note that this tool is based on [Snakemake](https://snakemake.readthedocs.io/en/stable/),
 hence all conditions for a valid Snakemake-workflow must be also fulfilled.__
 
 ##### Example
@@ -140,5 +140,5 @@ multiple times, we add it to the `utils` category.
    docker run -it --entrypoint "/bin/bash" peptidereactor
    ```
    
-__Note that,__ the PEPTIDE REACToR is still under development, thus changes are likely. 
+__Note that__ the PEPTIDE REACToR is still under development, thus changes are likely. 
 However, the fundamental structure, highlighted above, will remain.

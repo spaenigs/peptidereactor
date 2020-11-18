@@ -138,7 +138,7 @@ rule create_roc_pr_chart:
                  text=[
                      "ROC (left) and precision/recall curve (right) for ",
                      "top 6 encodings (top) and ",
-                     "top 3 sequence and top 3 structure based encodings (bottom), ",
+                     "top 3 sequence- and top 3 structure-based encodings (bottom), ",
                      "based on F1 measure.",
                      "",
                      ""
