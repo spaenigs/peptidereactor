@@ -37,11 +37,11 @@
 #  "hiv_sqv"
 #  "atb_iantitb"
 #)
-
+#
 #HOST=172.16.103.199
 #NAME=ubuntu
 
-DATASET_NAMES=(
+#DATASET_NAMES=(
 #  "avp_amppred"
 #  "cpp_cellppd"
 #  "nep_neuropipred"
@@ -53,32 +53,47 @@ DATASET_NAMES=(
 #  "afp_antifp"
 #  "isp_il10pred"
 #  "ace_vaxinpad"
-  "aip_antiinflam"
+#  "aip_antiinflam"
+#)
+#
+#HOST=172.16.103.203
+#NAME=ubuntu
+
+DATASET_NAMES=(
+  "cpp_mixed"
+  "amp_gonzales"
+  "cpp_sanders"
+  "hiv_bevirimat"
+  "tce_zhao"
+  "amp_fernandes"
+  "hiv_nfv"
+  "hiv_v3"
 )
 
-HOST=172.16.103.203
-NAME=ubuntu
+HOST=137.248.121.201
+NAME=spaenigs
 
-#DATASET_NAMES=(
-#  "cpp_mixed"
-#  "amp_gonzales"
-#  "cpp_sanders"
-#  "hiv_bevirimat"
-#  "tce_zhao"
-#  "amp_fernandes"
-#  "hiv_nfv"
-#  "hiv_v3"
-#)
-
-#HOST=137.248.121.201
-#NAME=spaenigs
-
+TARGET_DIR=/media/spaenigs/565f856e-2d16-4784-a91c-c36edf56faf4/peptidereactor/
 
 for i in "${DATASET_NAMES[@]}"
 do
+
 	echo $i
-	scp -r $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/benchmark \
-	  /media/spaenigs/565f856e-2d16-4784-a91c-c36edf56faf4/peptidereactor/data/$i/
-	scp -r $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/vis \
-	  /media/spaenigs/565f856e-2d16-4784-a91c-c36edf56faf4/peptidereactor/data/$i/
+
+	## 1.
+	# a) delete all, sequence_based, structure_based
+	rm -r $TARGET_DIR/data/$i/csv/all
+	rm -r $TARGET_DIR/data/$i/csv/sequence_based
+	rm -r $TARGET_DIR/data/$i/csv/structure_based
+	# b) download the 3 folders
+	scp -r $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/csv/sequence_based/ $TARGET_DIR/data/$i/csv/
+	scp -r $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/csv/structure_based/ $TARGET_DIR/data/$i/csv/
+	scp -r $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/csv/all/ $TARGET_DIR/data/$i/csv/
+
+	## 3.
+	# a) delete misc/benchmark on server
+	ssh $NAME@$HOST "rm -r /home/$NAME/peptidereactor/data/$i/misc/benchmark/"
+	# b) upload misc/benchmark dir to server
+	scp -r $TARGET_DIR/data/$i/misc/benchmark/ $NAME@$HOST:/home/$NAME/peptidereactor/data/$i/misc/
+
 done
