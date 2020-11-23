@@ -143,7 +143,7 @@ chart3 = alt.hconcat(
 )
 
 chart4 = alt.Chart().transform_calculate(
-    url="https://github.com/spaenigs/peptidereactor/tree/development/data/" + alt.datum.dataset
+    url="https://github.com/spaenigs/peptidereactor/tree/master/data/" + alt.datum.dataset
 ).mark_point(
     shape="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 "
           "2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-"
