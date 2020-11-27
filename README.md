@@ -4,6 +4,8 @@ A tool for an <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide e
 All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and 
 encodings</b>. For a thorough introduction refer to <a href='https://scholar.google.de/citations?user=lEVtMBMAAAAJ&hl=en' style='{link_style}'>Spänig <i> et al.</i> (2020)</a>.
 
+The visualizations can be interactively accessed at [https://peptidereactor.mathematik.uni-marburg.de/](https://peptidereactor.mathematik.uni-marburg.de/).
+
 #### Overview
 
 ![image info](docs/images/graphical_abstract.png)
