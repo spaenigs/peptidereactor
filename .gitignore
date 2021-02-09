@@ -34,7 +34,7 @@ data/*
 !data/aip_*/
 !data/bce_*/
 !data/bvf_spaan/
-!data/nep_neuropipred/
+!data/nep_*/
 !data/npp_profet/
 !data/hiv_*/
 !data/isp_il10pred/
