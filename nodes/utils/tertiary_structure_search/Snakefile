@@ -130,7 +130,7 @@ rule download_from_pdb:
     run:
          df = pd.read_csv(str(input[0]), dtype={"sacc_id": str})
 
-         address = "128.6.244.85" # "rsync.rcsb.org"
+         address = "128.6.158.70" # "rsync.rcsb.org"
 
          if not df.empty:
              id = df.loc[0, "sacc_id"]
