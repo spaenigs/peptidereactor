@@ -19,6 +19,7 @@ rule overview_data:
     output:
         temp(f"data/temp/{TOKEN}/hm_dendro_data.csv")
     run:
+        # TODO skip handle case, if only one dataset has metric data
         paths = [p + "f1.csv" for p in list(input)]
 
         df_res = pd.DataFrame()
