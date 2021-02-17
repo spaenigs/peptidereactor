@@ -1,11 +1,14 @@
 from itertools import zip_longest
 from modlamp.core import read_fasta
+from iFeature import AAC
+from sklearn.manifold import TSNE
 
 import Bio.Data.IUPACData as iupac_data
 import altair as alt
 import pandas as pd
 
 import joblib
+import re
 
 TOKEN = config["token"]
 
@@ -217,35 +220,94 @@ rule aac:
              ).transform_calculate(
                  tt="join(['~', round(datum.count), '%'], '')"
              ).properties(
-                 width=18
+                 width=20
              ),
              anno_layer(20),
              anno_layer(40),
              anno_layer(60),
              anno_layer(80)
          ).facet(
-             column=alt.Column("aa:N", title="Amino acid"),
+             column=alt.Column("aa:N", title=None),
              data=url
          )
 
          joblib.dump(chart, output[0])
 
+rule sequence_similarity_data:
+    input:
+        config["fasta_in"],
+        config["classes_in"]
+    output:
+        config["html_dir_out"] + "tsne_data.json"
+    run:
+        seqs, names = read_fasta(input[0])
+        with open(input[1]) as f:
+            classes = list(map(lambda l: int(l.rstrip()),f.readlines()))
+
+        seq_tuples = [[name, tup[0]] for name, tup in zip(names,zip(seqs,classes))]
+
+        df_res = pd.DataFrame([res[1:] for res in AAC.AAC(seq_tuples,order=None)][1:])
+        df_res["class"] = [str(c) for c in classes]
+        df_res["dataset"] = re.findall("data/(.*?)/",input[0])[0]
+
+        X_embedded = TSNE(n_components=2,n_jobs=-1).fit_transform(df_res.iloc[:, :-2].values)
+
+        df_tsne = pd.DataFrame(X_embedded)
+        df_tsne.columns = ["x", "y"]
+        df_tsne["class"] = df_res["class"].to_list()
+        df_tsne["dataset"] = df_res["dataset"].to_list()
+
+        df_tsne.to_json(output[0],orient="records")
+
+rule sequence_similarity:
+    input:
+        config["html_dir_out"] + "tsne_data.json"
+    output:
+        temp(f"data/temp/{TOKEN}/seq_sim_chart.joblib")
+    run:
+        select_class = alt.selection_multi(fields=["class"],bind='legend')
+
+        d, r = ["0", "1"], ["#7b3294", "#008837"]
+        scatterc = alt.Chart(input[0], title="Sequence similarity").mark_circle(size=40).encode(
+            x=alt.X(
+                "x:Q",
+                title="tSNE-1",
+                axis=alt.Axis(grid=False,titleFontWeight="normal")
+            ),
+            y=alt.Y(
+                "y:Q",
+                title="tSNE-2",
+                axis=alt.Axis(grid=False,titleFontWeight="normal")
+            ),
+            color=alt.Color("class:N",title="Class label",scale=alt.Scale(domain=d,range=r)),
+            opacity=alt.condition(select_class,alt.value(1),alt.value(0.0))
+        ).add_selection(
+            select_class
+        ).properties(
+            width=275,
+            height=275
+        )
+
+        joblib.dump(scatterc, output[0])
+
 rule collect_aac:
     input:
          f"data/temp/{TOKEN}/class_ratio_chart.joblib",
-         f"data/temp/{TOKEN}/aac_chart.joblib"
+         f"data/temp/{TOKEN}/aac_chart.joblib",
+         f"data/temp/{TOKEN}/seq_sim_chart.joblib"
     output:
          config["html_dir_out"] + "sds_7_Composition.json"
     run:
-         cr, aac = joblib.load(input[0]), joblib.load(input[1])
+         cr, aac, seq_sim = [joblib.load(input[i]) for i in range(3)] # joblib.load(input[0]), joblib.load(input[1])
 
          chart_json = alt.vconcat(
-             cr, aac,
+             cr, alt.hconcat(aac, seq_sim),
              center=True,
              title=alt.TitleParams(
                  text=[
                      "Overall class distribution (top), sequence length distribution (middle), and",
-                     "amino acid ratios relative to the respective class (bottom).",
+                     "amino acid ratios relative to the respective class (bottom left).",
+                     "The sequence similarity based on the amino acid composition is shown in the bottom right.",
                      "",
                      ""
                  ],
