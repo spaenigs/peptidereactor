@@ -51,8 +51,8 @@ if analysis == HOME:
     link_style = "text-decoration:none;"
     text = "A tool for an <b>in-depth comparison</b> and <b>benchmarking</b> of <b>peptide encodings</b>. " \
            "All computations are <b>highly parallelized</b> and work efficiently across <b>multiple datasets and " \
-           f"encodings</b>. For a thorough introduction refer to <a href='{url}' style='{link_style}'>Spänig <i>" \
-           "et al.</i> (2020)</a>."
+           f"encodings</b>. For a thorough introduction refer to Spänig <i>et al.</i> (manuscript in preparation)." \
+           # f" <a href='{url}' style='{link_style}'>Spänig <i>et al.</i> (2020)</a>."
     st.markdown(f"<div style='text-align: justify'>{text}</div>", unsafe_allow_html=True)
 
     st.text("")
