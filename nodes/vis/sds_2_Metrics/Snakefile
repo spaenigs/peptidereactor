@@ -59,7 +59,6 @@ rule create_metrics_chart:
          temp(f"data/temp/{TOKEN}/{{metric}}.joblib")
     run:
          scatter_plot_data = pd.read_json(input[0])
-         box_plot_data = pd.read_json(input[1])
 
          hline_data = pd.DataFrame({'a': [scatter_plot_data["Value"][NR_TOP_ENCODINGS]]})
          anno_struc = scatter_plot_data.loc[scatter_plot_data["type"] == "structure based", :]
@@ -121,7 +120,7 @@ rule create_metrics_chart:
 
          bp = alt.Chart(url_box).mark_boxplot().encode(
              x=alt.X("Encoding:N", title=None, sort=scatter_plot_data["Encoding"][:NR_TOP_ENCODINGS].tolist()),
-             y=alt.Y("Value:Q", title=None, scale=alt.Scale(domain=[min, 1.0])),
+             y=alt.Y("Value:Q", scale=alt.Scale(domain=[min, 1.0]), axis=alt.Axis(title=None)),
              color=alt.Color("type:N", scale=alt.Scale(domain=d, range=r)),
          ).properties(
              width=600
