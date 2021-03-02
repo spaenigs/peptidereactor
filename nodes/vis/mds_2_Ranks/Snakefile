@@ -117,8 +117,8 @@ rule concat_heatmaps:
              title=alt.TitleParams(
                  text=[
                      "Performance of encoding groups. Color coding corresponds to the ranks of encodings across",
-                     "datasets. The x-axis is sorted by class balance (cut-off 0.3) and the y-axis is organized by sequence-",
-                     "and structure-based encodings. Groups are separated by grey bars."
+                     "datasets. The x-axis is organized by sequence- and structure-based encodings and the y-axis",
+                     "is sorted by class balance (cut-off 0.35). Groups are separated by grey bars."
                      "",
                      ""
                  ],
