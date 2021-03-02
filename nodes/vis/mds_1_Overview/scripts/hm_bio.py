@@ -49,7 +49,7 @@ tooltip = ["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
 url = snakemake.input[0].replace("source", "bio")
 source.to_json(url, orient="records")
 
-chart1 = alt.Chart(url).mark_rect().encode(
+chart1 = alt.Chart(url).mark_rect(opacity=0.9).encode(
     x=alt.X('Encoding:N', axis=x_axis, sort=sort_x_axis),
     y=alt.Y('Dataset:N', axis=y_axis, sort=sort_y_axis),
     color=alt.Color('F1:Q', scale=alt.Scale(

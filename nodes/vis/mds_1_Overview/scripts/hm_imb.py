@@ -36,7 +36,7 @@ sort_y_axis = alt.Sort(alt.SortArray(names_imbalanced))
 
 tooltip = ["Encoding:N", "Dataset:N", "F1:Q", "is_imbalanced:Q"]
 
-chart1 = alt.Chart(url).mark_rect().encode(
+chart1 = alt.Chart(url).mark_rect(opacity=0.9).encode(
     x=alt.X('Encoding:N', axis=axis, sort=sort_x_axis),
     y=alt.Y('Dataset:N', sort=sort_y_axis),
     color=alt.Color('F1:Q', scale=alt.Scale(

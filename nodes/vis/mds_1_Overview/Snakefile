@@ -127,7 +127,7 @@ rule concat_heatmaps:
                  text=[
                      "Performance of encoding groups. Color coding corresponds to the max F1-score of a group.",
                      "X-axis are organized by sequence- and structure-based encodings. Y-axis are sorted by class",
-                     "balance (cut-off 0.3, top) and in addition by biomedical application (bottom). Groups are",
+                     "balance (cut-off 0.35, top) and in addition by biomedical application (bottom). Groups are",
                      "separated by white bars."
                      "",
                      ""
