@@ -70,7 +70,8 @@ rule create_metrics_chart:
              input[0], input[1], output[0], output[1], output[2]
 
          df_box = pd.read_json(url_box)
-         min = np.max((np.around(df_box["Value"].min(), 1) - 0.1, 0.0))
+
+         min = np.max((np.around(df_box["Value"].min(), 1) - 0.1, -1.0))
 
          d, r = ["sequence based", "structure based"], ["#7570b3", "#d95f02"]
 
