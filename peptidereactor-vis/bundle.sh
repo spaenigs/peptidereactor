@@ -22,7 +22,7 @@ cp -r nodes/ $ROOT_DIR
 
 # create README file
 README_FILE=$ROOT_DIR/README.md
-touch $$README_FILE
+touch $README_FILE
 cat > $README_FILE <<- EOF
 1) \`screen -S peptidereactor # if not running\`
 
