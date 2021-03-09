@@ -41,11 +41,11 @@ echo "Updating..."
 
 SCRIPT_PATH=$ROOT_DIR"peptidereactor-vis/resources/streamlit.py"
 
-FAVICON_URL_LOCALHOST=http://192.168.178.30:8501/favicon.png
+FAVICON_URL_LOCALHOST=http://127.0.0.1:8383/favicon.png
 FAVICON_URL_PUBLIC=https://peptidereactor.mathematik.uni-marburg.de/favicon.png
 sed -i "s%$FAVICON_URL_LOCALHOST%$FAVICON_URL_PUBLIC%g" $ROOT_DIR"peptidereactor-vis/resources/streamlit.py"
 
-LOGO_URL_LOCALHOST=http://127.0.0.1:8501/logo.png
+LOGO_URL_LOCALHOST=http://127.0.0.1:8383/logo.png
 LOGO_URL_PUBLIC=https://peptidereactor.mathematik.uni-marburg.de/logo.png
 sed -i "s%$LOGO_URL_LOCALHOST%$LOGO_URL_PUBLIC%g" $ROOT_DIR"peptidereactor-vis/resources/streamlit.py"
 

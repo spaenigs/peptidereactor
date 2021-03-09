@@ -32,13 +32,13 @@ def set_chart(path):
 
 st.set_page_config(
     page_title="PEPTIDE REACToR",
-    page_icon="http://192.168.178.30:8501/favicon.png"
+    page_icon="http://127.0.0.1:8383/favicon.png"
 )
 
 with open("peptidereactor-vis/resources/style.css") as f:
     st.markdown('<style>{}</style>'.format(f.read()), unsafe_allow_html=True)
 
-st.sidebar.image("http://127.0.0.1:8501/logo.png", width=200)
+st.sidebar.image("http://127.0.0.1:8383/logo.png", width=200)
 
 HOME, MDS, SDS = "Home", "Multiple datasets", "Single dataset"
 
