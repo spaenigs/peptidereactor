@@ -4,5 +4,5 @@ docker run -t -i \
   -v $PWD/peptidereactor-vis/static/peptide-reactor.png:/usr/local/lib/python3.7/site-packages/streamlit/static/logo.png \
   -v $PWD/peptidereactor-vis/static/favicon.png:/usr/local/lib/python3.7/site-packages/streamlit/static/favicon.png \
   -u `id -u $USER` \
-  -p 8501:8501 \
+  -p 8383:8383 \
   vis-img

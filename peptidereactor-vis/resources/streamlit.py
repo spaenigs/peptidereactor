@@ -74,7 +74,7 @@ if analysis == HOME:
     st.text("")
     st.text("")
 
-    st.text("Copyright (c) 2020 Heiderlab")
+    st.text("Copyright (c) 2021 Heiderlab")
 
 elif analysis == MDS:
     paths = sorted(glob("nodes/vis/mds_*"))
