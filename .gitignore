@@ -47,7 +47,7 @@ data/*
 !data/sig_signalp/
 !data/tce_zhao/
 !data/top_toxinpred/
-!data/hem_hemopi/
+!data/hem_*/
 
 data/*/*/
 data/*/seqs_*.fasta
